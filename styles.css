@@ -1,12 +1,42 @@
 body {
-	background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
-h1 {
-	color: blue;
+header {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
 }
 
-p {
-	font-size: 16px;
+main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
 }
 
+.article-preview {
+    width: 30%;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.article-preview img {
+    width: 100%;
+    height: auto;
+}
+
+.article-preview h2 {
+    margin-top: 10px;
+}
+
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+}
