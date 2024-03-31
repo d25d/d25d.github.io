@@ -253,6 +253,58 @@
 
 			inertia();
 		}
+	    // 添加触摸事件监听器
+		document.addEventListener('touchstart', onTouchStart, false);
+		document.addEventListener('touchmove', onTouchMove, false);
+		document.addEventListener('touchend', onTouchEnd, false);
+		
+		// 定义初始的触摸位置
+		var touchX = 0;
+		var touchY = 0;
+		var isTouching = false;
+		var previousTouchDeltaX = 0;
+		var previousTouchDeltaY = 0;
+		
+		// 触摸开始事件处理函数
+		function onTouchStart(event) {
+		    touchX = event.touches[0].clientX;
+		    touchY = event.touches[0].clientY;
+		    isTouching = true;
+		}
+		
+		// 触摸移动事件处理函数
+		function onTouchMove(event) {
+		    if (isTouching) {
+			var deltaX = event.touches[0].clientX - touchX;
+			var deltaY = event.touches[0].clientY - touchY;
+		
+			earth.rotation.x += THREE.MathUtils.degToRad(20) * deltaY * 0.01;
+			earth.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, earth.rotation.x));
+			earth.rotation.y += THREE.MathUtils.degToRad(20) * deltaX * 0.01;
+		
+			renderer.render(scene, camera);
+		
+			touchX = event.touches[0].clientX;
+			touchY = event.touches[0].clientY;
+		    }
+		}
+		
+		// 触摸结束事件处理函数
+		function onTouchEnd() {
+		    isTouching = false;
+		
+		    function inertia() {
+			if (Math.abs(previousTouchDeltaX) > 0.1 || Math.abs(previousTouchDeltaY) > 0.1) {
+			    earth.rotation.y += THREE.MathUtils.degToRad(20) * previousTouchDeltaX * 0.01;
+			    previousTouchDeltaX *= inertiaFactor;
+			    previousTouchDeltaY *= inertiaFactor;
+			    renderer.render(scene, camera);
+			    requestAnimationFrame(inertia);
+			}
+		    }
+		
+		    inertia();
+		}
         // 初始化地图
         initMap();
     </script>
