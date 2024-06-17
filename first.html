@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>留言</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f0ff; /* 淡紫色背景 */
+    }
+    #messages {
+        margin-bottom: 20px;
+        width: 40%; /* 设置留言板显示区域宽度为屏幕宽度的50% */
+        border: 10px solid #00ca10; /* 添加2像素宽度的实线边框，颜色为灰色 */
+        padding: 10px; /* 可选，添加内边距以增加边框与内容之间的间距 */
+        overflow: auto; /* 或者使用 overflow: scroll; */
+    }
+    
+    #messages li {
+        border: 0px solid #121a17;
+        list-style-type: none; /* 去掉开头的黑色圆点 */
+        margin-bottom: 10px; /* 添加留言之间的间距 */
+        word-wrap: break-word; /* 当单词过长时自动换行 */
+        white-space: pre-wrap;
+    }
+    
+    .delete-btn {
+        margin-left:10px;
+        margin-right: 10px; /* 调整删除按钮与留言内容之间的间距 */
+        cursor: pointer;
+    }
+    #message-text {
+        width: 70%; /* 输入框宽度*/
+        box-sizing: border-box; /* 设置输入框尺寸包括边框和内边距 */
+    }
+    #message-form {
+    position: fixed;
+    bottom: 0;
+    left: 0; /* 设置左侧对齐 */
+    width: 60%; /* 设置宽度为50% */
+    background-color: #f5f0ff; /* 白色背景 */
+    padding: 10px; /* 添加内边距 */
+    box-sizing: border-box; /* 设置尺寸包括边框和内边距 */
+    z-index: 999; /* 确保在页面上的其他元素之上 */
+    }
+    .timestamp {
+        font-size: smaller; /* 使用稍小一点的字号 */
+        color: gray; /* 灰色文字颜色 */
+    }
+    .circle {
+        position: absolute;
+        top:10%;
+        right:10%;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background-color: lightblue;
+        overflow: hidden;
+    }
+    .water {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: rgb(17, 26, 206);
+        transition: height 0.5s ease;
+    }
+    .value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 20px;
+        color: white;
+    }
+    #event{
+        position: absolute;
+        top: 40%;
+        right: 5%;
+        width:30%;
+        bottom: 10%;;
+        border: 2px solid black; /* 添加边框 */
+        padding: 10px;
+        overflow-y: auto; /* 添加垂直滚动条 */
+        height: 300px; /* 限制显示区域的高度 */
+    }
+</style>
+</head>
+<body>
+<h1>你必须维持你的理智以免陷入未知的境地</h1>
+
+<div id="messages">
+    <h2>一些经验之谈</h2>
+    <ul id="message-list"></ul>
+</div>
+
+<div id="message-form">
+    <textarea id="message-text" placeholder="在此上传你的经验"></textarea><br>
+    <button onclick="addMessage()">上传</button>
+</div>
+
+<div class="circle">
+    <div class="water" id="water" style="height: 50%;"></div>
+    <div class="value" id="value">理智值：0%</div>
+</div>
+
+<div id="event">
+    <h3>每个选择都会对未来产生影响</h3>
+    <!--button id="clearBtn">清屏</button-->
+
+</div>
+
+<script>
+    // Function to automatically expand textarea height based on content
+    function autoExpand(textarea) {
+        // Reset height to minimum to ensure textarea shrinks when removing content
+        textarea.style.height = 'auto';
+        // Set the computed height to the textarea
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+    // Function to add a message to the list
+    function addMessage() {
+    var messageText = document.getElementById("message-text").value;
+    if (messageText.trim() === "") {
+        alert("请填写留言内容！");
+        return;
+    }
+
+    var messageList = document.getElementById("message-list");
+    var messageContainer = document.createElement("div"); // Create a div for each message
+    messageContainer.classList.add("message-container");
+
+    var listItem = document.createElement("li"); // Create a list item for each message
+
+    // Create timestamp
+    var timestamp = document.createElement("span");
+    timestamp.classList.add("timestamp");
+    var currentDate = new Date();
+    timestamp.textContent = currentDate.toLocaleString();
+    messageContainer.appendChild(timestamp); // Append timestamp to message container
+
+    // Create delete button
+    var deleteButton = document.createElement("button");
+    deleteButton.textContent = "删除";
+    deleteButton.classList.add("delete-btn");
+    deleteButton.onclick = function() {
+        // Remove message container from list
+        messageContainer.remove();
+        // Remove message from localStorage
+        var messages = JSON.parse(localStorage.getItem("messages")) || [];
+        var index = messages.findIndex(function(item) {
+            return item.text === messageText && item.timestamp === currentDate.toLocaleString();
+        });
+        if (index !== -1) {
+            messages.splice(index, 1);
+            localStorage.setItem("messages", JSON.stringify(messages));
+        }
+    };
+    messageContainer.appendChild(deleteButton); // Append delete button to message container
+
+    var messageContent = document.createElement("span");
+    messageContent.textContent = "\n"+messageText; // Set message text
+    messageContainer.appendChild(messageContent); // Append message content to message container
+
+    listItem.appendChild(messageContainer); // Append message container to list item
+    messageList.appendChild(listItem); // Append list item to message list
+
+    // Save message to localStorage
+    var messages = JSON.parse(localStorage.getItem("messages")) || [];
+    messages.push({ text: messageText, timestamp: currentDate.toLocaleString() });
+    localStorage.setItem("messages", JSON.stringify(messages));
+
+    // Clear message input field
+    document.getElementById("message-text").value = "";
+}
+
+    // Function to load messages from localStorage
+    function loadMessages() {
+        var messages = JSON.parse(localStorage.getItem("messages")) || [];
+        var messageList = document.getElementById("message-list");
+        messages.forEach(function(message) {
+            var listItem = document.createElement("li");
+
+            var messageContainer = document.createElement("div"); // Create a div for each message
+            messageContainer.classList.add("message-container");
+
+            // Create timestamp
+            var timestamp = document.createElement("span");
+            timestamp.classList.add("timestamp");
+            timestamp.textContent = message.timestamp;
+            messageContainer.appendChild(timestamp); // Append timestamp to message container
+
+            // Create delete button
+            var deleteButton = document.createElement("button");
+            deleteButton.textContent = "删除";
+            deleteButton.classList.add("delete-btn");
+            deleteButton.onclick = function() {
+                // Remove message container from list
+                messageContainer.remove();
+                // Remove message from localStorage
+                var index = messages.findIndex(function(item) {
+                    return item.text === message.text && item.timestamp === message.timestamp;
+                });
+                if (index !== -1) {
+                    messages.splice(index, 1);
+                    localStorage.setItem("messages", JSON.stringify(messages));
+                }
+            };
+            messageContainer.appendChild(deleteButton); // Append delete button to message container
+
+            var messageContent = document.createElement("span");
+            messageContent.textContent = message.text; // Set message text
+            messageContainer.appendChild(messageContent); // Append message content to message container
+
+            listItem.appendChild(messageContainer); // Append message container to list item
+            messageList.appendChild(listItem); // Append list item to message list
+        });
+    }
+
+
+    
+
+    // Auto expand textarea when typing
+    document.getElementById("message-text").addEventListener("input", function() {
+        autoExpand(this);
+    });
+
+    // Send message when Enter is pressed, add newline when Shift+Enter is pressed
+    document.getElementById("message-text").addEventListener("keydown", function(event) {
+        if (event.keyCode === 13 && !event.shiftKey) {
+            event.preventDefault(); // Prevent default behavior of Enter key (submitting form)
+            addMessage(); // Call the addMessage function to send the message
+        }
+    });
+
+    // 设置初始值
+        var value = 0;
+        updateWater(value);
+
+        // 更新水的体积
+        function updateWater(value) {
+            var water = document.getElementById("water");
+            var valueText = document.getElementById("value");
+            // 将值限制在0到100之间
+            value = Math.min(Math.max(value, 0), 100);
+            // 更新水的高度和显示的值
+            water.style.height = value + "%";
+            valueText.textContent = "理智值："+value + "%";
+            if(value<50){water.style.backgroundColor = "#00ca10"}
+            if(value<80&&value>50){water.style.backgroundColor = "rgb(17, 26, 206)"}
+            if(value>80){water.style.backgroundColor = "#dc143c"}
+
+        }
+
+        // 示例：每秒钟增加%
+        setInterval(function() {
+            if(value!=100){
+            value += 20;
+            }
+            //else{value=0;}
+            updateWater(value);
+        }, 2000);
+
+    function displayEvents() {
+        var events = JSON.parse(localStorage.getItem("events")) || [];
+        events.forEach(function(event) {
+            addEvent(event);
+        });
+    }
+    var eventContainer = document.getElementById("event");
+    function addEvent(text) {
+        var eventText = document.createElement("p");
+        eventText.textContent = text;
+        eventContainer.appendChild(eventText);
+        // 滚动到最新添加的事件处
+        //eventContainer.scrollTop = eventContainer.scrollHeight;
+        // 将事件保存到本地存储中
+        var events = JSON.parse(localStorage.getItem("events")) || [];
+        events.push(text);
+        localStorage.setItem("events", JSON.stringify(events));
+    }
+
+    // 点击清屏按钮时清空事件容器和本地存储的事件信息
+    /*
+document.getElementById("clearBtn").addEventListener("click", function() {
+    eventContainer.innerHTML = ""; // 清空事件容器
+    localStorage.removeItem("events"); // 移除本地存储的事件信息
+});*/
+    setInterval(function() {
+        var newEvent = "发生" +new Date().getFullYear()+'.'+(new Date().getMonth() + 1)+'.'+new Date().getDate()+'-'+new Date().getHours()+':'+new Date().getMinutes();
+        addEvent(newEvent);
+    }, 3000); // 添加一个新事件
+
+    // Load messages when the page loads
+    window.onload = loadMessages;
+    // 页面加载时显示之前保存的事件信息
+    window.onload = displayEvents;
+</script>
+
+</body>
+</html>
