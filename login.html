@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CW</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f0ff; /* 淡紫色背景 */
+    }
+    #event{
+        position: absolute;
+        top: 40%;
+        right: 40%;
+        width:20%;
+        /*bottom: 10%;*/
+        border: 2px solid black; /* 添加边框 */
+        padding: 10px;
+        overflow-y: auto; /* 添加垂直滚动条 */
+        height: 300px; /* 限制显示区域的高度 */
+    }
+</style>
+</head>
+<body>
+
+<div id="event">
+    <h3>What happened</h3>
+
+    <button id="clearBtn">Clear</button>
+    <div id="login-or-register">
+        <form id="login-form">
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" onclick="login()">Login</button>
+            <button type="submit" onclick="register()">Register</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    //一些全局变量
+    //
+    var Passwords=[{
+    username: "11",
+    password: "22"
+    }]
+
+    function login(){
+
+        // 读取文本文件
+        console.log(reader)
+        fetch('password.txt')
+        .then(response => response.text()) // 获取文本内容
+        .then(fileContent => {
+            // 在这里处理fileContent
+            console.log(fileContent);
+        })
+        .catch(error => {
+            console.error('Error fetching file:', error);
+        });
+
+
+        var usernameInput = document.getElementById("username");
+        var username = usernameInput.value;
+        var passwordInput = document.getElementById("password");
+        var password = passwordInput.value;
+        for (var i = 0; i < Passwords.length; i++) {
+            if (Passwords[i].username === username){
+                if(Passwords[i].password === password){
+                    //alert('login successful');
+                    console.log('login successful');
+                    //alert(Passwords);
+                    console.log(Passwords);
+                    //window.location.href = "suoyin.html";
+                    return true;
+                }
+            }
+        }
+        //alert('login failed');
+        console.log('login failed');
+       // alert(Passwords);
+        console.log(Passwords);
+        return false;
+        
+    }
+    function register(username,password){
+        var usernameInput = document.getElementById("username");
+        var username1 = usernameInput.value;
+        var passwordInput = document.getElementById("password");
+        var password1 = passwordInput.value;
+        for (var element of Passwords) {
+            if (element.username === username1){
+                //alert('username already exists');
+                console.log('username already exists');
+                //alert(Passwords);
+                console.log(Passwords);
+                return false;
+            }
+        }
+        Passwords.push({username: username1,password: password1})
+        //alert('register successful');
+        console.log('register successful');
+        //alert(Passwords);
+        console.log(Passwords);
+        return true;
+    }
+
+</script>
+
+</body>
+</html>
