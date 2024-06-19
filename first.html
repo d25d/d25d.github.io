@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>留言</title>
+<title>CW</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -12,17 +12,23 @@
     #messages {
         margin-bottom: 20px;
         width: 40%; /* 设置留言板显示区域宽度为屏幕宽度的50% */
-        border: 10px solid #00ca10; /* 添加2像素宽度的实线边框，颜色为灰色 */
+        height: 540px;
+        border: 2px solid #08ff1d; /* 添加2像素宽度的实线边框，颜色为灰色 */
         padding: 10px; /* 可选，添加内边距以增加边框与内容之间的间距 */
-        overflow: auto; /* 或者使用 overflow: scroll; */
+        box-shadow: 4px 4px 10px rgba(0, 0, 0.6, 0.6); /* 添加阴影效果 */
+        overflow-y: auto; /* 启用垂直滚动 */
+
     }
     
     #messages li {
-        border: 0px solid #121a17;
+        /* border-bottom: 2px solid #6f766f; */
+        margin-bottom: 10px; /* 添加留言之间的间距 */
+        margin-top: 10px; /* 添加留言上面的间距 */
         list-style-type: none; /* 去掉开头的黑色圆点 */
         margin-bottom: 10px; /* 添加留言之间的间距 */
         word-wrap: break-word; /* 当单词过长时自动换行 */
-        white-space: pre-wrap;
+        white-space: pre-wrap;    /*border-top: 2px solid #6f766f;*/
+    
     }
     
     .delete-btn {
@@ -45,7 +51,7 @@
     z-index: 999; /* 确保在页面上的其他元素之上 */
     }
     .timestamp {
-        font-size: smaller; /* 使用稍小一点的字号 */
+        font-size: 0.2em; /* 使用稍小一点的字号 */
         color: gray; /* 灰色文字颜色 */
     }
     .circle {
@@ -87,11 +93,11 @@
     }
 </style>
 </head>
-<body>
-<h1>Because of a wonderful coincidence, you will encounter other unknown beings who have accidentally come here and be able to communicate with each other. However, only you and they will remember this experience.</h1>
+<body onload="showWelcomeMessage()">
+<h1>There are other people here I heard</h1>
 
 <div id="messages">
-    <h2>Say something......</h2>
+    <h2>What other say</h2>
     <ul id="message-list"></ul>
 </div>
 
@@ -102,16 +108,42 @@
 
 <div class="circle">
     <div class="water" id="water" style="height: 50%;"></div>
-    <div class="value" id="value">？？？：0%</div>
+    <div class="value" id="value">???:0%</div>
 </div>
 
 <div id="event">
-    <h3>What does this mean?</h3>
-    <!--button id="clearBtn">Clear</button-->
+    <h3>What happened</h3>
 
+    <button id="clearBtn">Clear</button>
+    <!-- <div id="login-or-register">
+        <form id="login-form">
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" onclick="login()">Login</button>
+            <button type="submit" onclick="register()">Register</button>
+        </form>
+    </div> -->
 </div>
 
 <script>
+    //一些全局变量
+    //
+    var Passwords=[{
+    username: "11",
+    password: "22"
+    }]
+
+
+    function showWelcomeMessage() {
+        alert('Because of a wonderful coincidence, you will encounter other unknown beings who have accidentally come here and be able to communicate with each other. However, only you and they will remember this experience.');
+    }
+
     // Function to automatically expand textarea height based on content
     function autoExpand(textarea) {
         // Reset height to minimum to ensure textarea shrinks when removing content
@@ -123,7 +155,7 @@
     function addMessage() {
     var messageText = document.getElementById("message-text").value;
     if (messageText.trim() === "") {
-        alert("请填写留言内容！");
+        alert("it is nothing！");
         return;
     }
 
@@ -142,7 +174,7 @@
 
     // Create delete button
     var deleteButton = document.createElement("button");
-    deleteButton.textContent = "删除";
+    deleteButton.textContent = "delete";
     deleteButton.classList.add("delete-btn");
     deleteButton.onclick = function() {
         // Remove message container from list
@@ -156,6 +188,7 @@
             messages.splice(index, 1);
             localStorage.setItem("messages", JSON.stringify(messages));
         }
+        
     };
     messageContainer.appendChild(deleteButton); // Append delete button to message container
 
@@ -170,6 +203,8 @@
     var messages = JSON.parse(localStorage.getItem("messages")) || [];
     messages.push({ text: messageText, timestamp: currentDate.toLocaleString() });
     localStorage.setItem("messages", JSON.stringify(messages));
+
+    
 
     // Clear message input field
     document.getElementById("message-text").value = "";
@@ -193,7 +228,7 @@
 
             // Create delete button
             var deleteButton = document.createElement("button");
-            deleteButton.textContent = "删除";
+            deleteButton.textContent = "delete";
             deleteButton.classList.add("delete-btn");
             deleteButton.onclick = function() {
                 // Remove message container from list
@@ -219,7 +254,63 @@
     }
 
 
-    
+    function login(){
+        var usernameInput = document.getElementById("username");
+        var username = usernameInput.value;
+        var passwordInput = document.getElementById("password");
+        var password = passwordInput.value;
+        for (var element of Passwords) {
+            if (element.username ===username){
+                if(element.password===password){
+                    alert('login successful');
+                    console.log('login successful');
+                }
+            }
+        }
+
+
+        
+        // // 创建FileReader实例
+        // var reader = new FileReader();
+        // // 监听文件读取完成事件
+        // reader.onload = function(e) {
+        // var fileContent = e.target.result;
+        // var accounts = fileContent.split('\n'); // 将文件内容按行分割
+        // // 查找匹配的用户名和密码
+        // var match = accounts.find(function(line) {
+        //     var parts = line.split(':'); // 将行按冒号分割
+        //     return parts[0] === username && parts[1] === password;
+        // });
+
+        // // 如果找到匹配的账户和密码，显示登录成功
+        // if (match) {
+        //     alert('登录成功');
+        //     console.log('密码验证成功');
+        // } else {
+        //     alert('登录失败');
+        //     console.log('密码验证失败');
+        // }
+        // };
+        // // 读取文件内容
+        // console.log('密码验证失败');
+        // reader.readAsText('password.txt');
+        
+    }
+    function register(username,password){
+        var usernameInput = document.getElementById("username");
+        var username1 = usernameInput.value;
+        var passwordInput = document.getElementById("password");
+        var password1 = passwordInput.value;
+        for (var element of Passwords) {
+            if (element.username===username1){
+                alert('username already exists');
+                console.log('username already exists');
+            }
+        }
+        Passwords.push({username: username1,password: password1})
+        alert('register successful');
+        console.log('register successful');
+    }
 
     // Auto expand textarea when typing
     document.getElementById("message-text").addEventListener("input", function() {
@@ -235,32 +326,32 @@
     });
 
     // 设置初始值
-        var value = 0;
-        updateWater(value);
+    var value = 0;
+    updateWater(value);
 
         // 更新水的体积
-        function updateWater(value) {
-            var water = document.getElementById("water");
-            var valueText = document.getElementById("value");
-            // 将值限制在0到100之间
-            value = Math.min(Math.max(value, 0), 100);
-            // 更新水的高度和显示的值
-            water.style.height = value + "%";
-            valueText.textContent = "理智值："+value + "%";
-            if(value<50){water.style.backgroundColor = "#00ca10"}
-            if(value<80&&value>50){water.style.backgroundColor = "rgb(17, 26, 206)"}
-            if(value>80){water.style.backgroundColor = "#dc143c"}
+    function updateWater(value) {
+        var water = document.getElementById("water");
+        var valueText = document.getElementById("value");
+        // 将值限制在0到100之间
+        value = Math.min(Math.max(value, 0), 100);
+        // 更新水的高度和显示的值
+        water.style.height = value + "%";
+        valueText.textContent = "???:"+value + "%";
+        if(value<50){water.style.backgroundColor = "#00ca10"}
+        if(value<80&&value>50){water.style.backgroundColor = "rgb(17, 26, 206)"}
+        if(value>80){water.style.backgroundColor = "#dc143c"}
 
+    }
+
+    //示例：每秒钟增加%
+    setInterval(function() {
+        if(value!=100){
+        value += 2;
         }
-
-        // 示例：每秒钟增加%
-        setInterval(function() {
-            if(value!=100){
-            value += 20;
-            }
-            //else{value=0;}
-            updateWater(value);
-        }, 2000);
+        else{value=0;}
+        updateWater(value);
+    }, 2000);
 
     function displayEvents() {
         var events = JSON.parse(localStorage.getItem("events")) || [];
@@ -281,21 +372,21 @@
         localStorage.setItem("events", JSON.stringify(events));
     }
 
-    // 点击清屏按钮时清空事件容器和本地存储的事件信息
-    /*
-document.getElementById("clearBtn").addEventListener("click", function() {
-    eventContainer.innerHTML = ""; // 清空事件容器
-    localStorage.removeItem("events"); // 移除本地存储的事件信息
-});*/
-    setInterval(function() {
-        var newEvent = "发生" +new Date().getFullYear()+'.'+(new Date().getMonth() + 1)+'.'+new Date().getDate()+'-'+new Date().getHours()+':'+new Date().getMinutes();
-        addEvent(newEvent);
-    }, 3000); // 添加一个新事件
+    //点击清屏按钮时清空事件容器和本地存储的事件信息
+    // document.getElementById("clearBtn").addEventListener("click", function() {
+    //     eventContainer.innerHTML = ""; // 清空事件容器
+    //     localStorage.removeItem("events"); // 移除本地存储的事件信息
+    // });
+
+    // setInterval(function() {
+    //     var newEvent = "发生" +new Date().getFullYear()+'.'+(new Date().getMonth() + 1)+'.'+new Date().getDate()+'-'+new Date().getHours()+':'+new Date().getMinutes();
+    //     addEvent(newEvent);
+    // }, 3000); // 添加一个新事件
 
     // Load messages when the page loads
     window.onload = loadMessages;
     // 页面加载时显示之前保存的事件信息
-    window.onload = displayEvents;
+    //window.onload = displayEvents;
 </script>
 
 </body>
