@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>音乐</title>
+<style>
+  body {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;/*左右居中*/
+    align-items: center;/*上下居中*/
+    height: 100vh;
+    margin: 0;
+    background-color: #c3d48b;
+  }
+  #up{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width:100%;
+    height:8%;
+  }
+  #menu{
+    width:100%;
+    height:5%;
+
+  }
+  #menu div {
+    left:auto;
+    width:30%;
+    height:100%;
+  }
+  #menu div div{
+    text-align: center;
+  
+  }
+  /* #up a{
+  } */
+  .fly{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    height:70%;
+    background-color:#e8ecdb
+  }
+    .left{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        top:20%;
+        left: 10%;
+        right:10%;
+        width:100%;
+        height:10%;
+    }
+    /* #data_index{
+        background-color: aqua; 
+
+
+    } */
+    .one{
+        display: flex;
+        flex-wrap: wrap;
+        top: 30%;
+        left: 30%;
+        width: 40%;
+        height: 40%;
+    }
+    .one a{
+        text-align: center;
+        height:30%;
+    }
+    .one #bu{
+      display: flex;
+      justify-content: center;
+    }
+    .one button{
+        /* justify-content: center; */
+        width:20%;
+        height:30%;
+    }
+  .keyboard {
+    width: 100%;
+    height: 100px;
+    display:flex; 
+    flex-direction:row;
+    justify-content: center; /* 添加这一行来实现水平居中 */
+    align-items: center;
+  }
+  .key {
+    width: 100px;
+    height: 50px;
+    margin: 5px;
+    background-color: #ddd;
+    text-align: center;
+    line-height: 50px;
+    /* font-size: 18px;
+    cursor: pointer;
+    user-select: none; */ 
+  }
+  .key.active {
+    background-color: #cb3e61;
+  }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+</head>
+<body>
+    <div id="up">
+        <a>高音：同时按下q和音调键---</a>
+        <a>---低音：同时按下z和音调键</a>
+    </div>
+    <div id="menu">
+        <div style="display:flex;">
+            <div>返回</div>
+            <div>消息</div>
+            <div>帮助</div>
+            <div>个人</div>
+        </div>
+    </div>
+    <div class ="fly">
+        <div class="left">
+            <a id="data_index" style="height: 20%;" ></a>
+        </div>
+        <div style="background-color: aqua; width:20%; height:20%;">
+        
+        </div>
+        <div class="one">
+            <div style="width: 100%; text-align: center;">
+              <a style="width:100%">识别接下来的音乐</a>
+            </div>
+            <div id="bu" style="width: 100%;">
+                <button class='button' id='begin' onclick="loop(keysToPress)">开始</button>
+                <button class='button' onclick="next()">下一首</button>
+            </div>
+            
+        </div>
+        <div style="background: linear-gradient(to right, rgba(0, 255, 255, 0.5), rgba(255, 255, 255, 0.5)); width: 20%; height: 20%; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px;">
+
+        </div>
+        
+
+    </div>
+    <div class="keyboard">
+        <div class="key" data-note="C4">1</div>
+        <div class="key" data-note="D4">2</div>
+        <div class="key" data-note="E4">3</div>
+        <div class="key" data-note="F4">4</div>
+        <div class="key" data-note="G4">5</div>
+        <div class="key" data-note="A4">6</div>
+        <div class="key" data-note="B4">7</div>
+    </div>
+    
+
+<script>
+  // 音符频率映射表
+  const notes = {
+    'C4': 261.63,
+    'D4': 293.66,
+    'E4': 329.63,
+    'F4': 349.23,
+    'G4': 392.00,
+    'A4': 440.00,
+    'B4': 493.88
+  };
+    let qKeyDown = false;
+    let zKeyDown = false;
+
+    
+    // input_string = "3 3 3 4 5 3 2 1 1 1 2 3 3 77 77 66 3 2 66 3 2 66 3 2 1 1 "
+    // string_array = input_string.split(' ')
+    // print(string_array)
+
+    // result=[]
+    // for i in string_array:
+    //     if len(i)==1:
+    //         result.append(i)
+    //     elif len(i)==2:
+    //         result.append('z'+i[1])
+    //     elif len(i)==3:
+    //         result.append('q'+i[2])
+            
+    // print(result)
+    //音调数字转换为带有音调数字数组
+
+    data=[
+        [['荷塘月色'],['1', '1', 'z6', 'z5', 'z6', '1', '1', '2', '3', '2', '2', '1', '2', '2', '5', '5', '3', '3', '2', '3', '1', '1', 'z6', 'z5', '5', '3', '2', '3', '2', '1', '2', '2', '1', '2', '2', '3', '2', '1', 'z6', '2', '1']],
+        [['背对背拥抱'],['q3', 'q3', 'q3', 'q2', 'q1', 'q2', '6', 'q1', 'q1', 'q3', 'q3', 'q3', 'q2', 'q1', 'q2', 'q1', '5', 'q3', 'q3', 'q3', 'q2', 'q1', 'q2', '6', 'q1', 'q1', 'q1', 'q1', '7', '7', '7', '6', '6', '6', '5', '5', '5']],
+        [['虫儿飞'],['3', '3', '3', '4', '5', '3', '2', '1', '1', '1', '2', '3', '3', 'z7', 'z7', 'z6', '3', '2', 'z6', '3', '2', 'z6', '3', '2', '1', '1']]
+    ]   
+    data_index=0//音频序号
+    keysToPress = data[0][1];
+    index=0;//音频循环的序号
+    document.getElementById('data_index').textContent='第'+(data_index+1)+'首';
+
+  // 创建音频上下文
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  // 播放音符的函数
+  function playNote(note) {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.value = note;
+    gainNode.gain.value = 0.5;
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.2); // 持续时间为0.5秒
+  }
+
+  // 绑定键盘事件
+  document.addEventListener('keydown', function(event) {
+    const key = event.key.toUpperCase();
+    const keys = document.querySelectorAll('.key');
+    // console.log(key)
+    if (key === 'Q') {
+        qKeyDown = true;
+    }
+    if (key === 'Z') {
+        zKeyDown = true;
+    }
+    if(qKeyDown ===true){
+        keys.forEach(k => {
+            if (k.textContent === key) {
+                k.classList.add('active');
+                const note = k.getAttribute('data-note');
+                playNote(notes[note]*2); // 播放更高音
+            } 
+        });
+    }
+    else if(zKeyDown ===true){
+        keys.forEach(k => {
+            if (k.textContent === key) {
+                k.classList.add('active');
+                const note = k.getAttribute('data-note');
+                playNote(notes[note]/2); // 播放更低音
+            } 
+        });
+    }
+    else{
+        keys.forEach(k => {
+            if (k.textContent === key) {
+                // 没有按下Shift键，播放普通音调
+                k.classList.add('active');
+                const note = k.getAttribute('data-note');
+                playNote(notes[note]);
+            }
+        });
+    }
+  });
+
+  // 解绑键盘事件
+  document.addEventListener('keyup', function(event) {
+    const key = event.key.toUpperCase();
+    const keys = document.querySelectorAll('.key');
+    if (key === 'Q') {
+        qKeyDown = false;
+    }
+    if (key === 'Z') {
+        zKeyDown = false;
+    }
+    keys.forEach(k => {
+      if (k.textContent === key) {
+        k.classList.remove('active');
+      }
+    });
+  });
+
+
+  // 模拟按键
+function simulateKeyPress(key) {
+    //key =key.toString()
+  // 将键名转换为大写
+  const uppercaseKey = key;//.toUpperCase();
+  if(key.length === 2){
+    // 模拟按键
+    const downEvent = new KeyboardEvent('keydown', {
+        key: uppercaseKey[0],
+        bubbles: true,
+        cancelable: true,
+    });
+    const upEvent = new KeyboardEvent('keyup', {
+        key: uppercaseKey[0],
+        bubbles: true,
+        cancelable: true,
+    });
+    const downEvent1 = new KeyboardEvent('keydown', {
+        key: uppercaseKey[1],
+        bubbles: true,
+        cancelable: true,
+    });
+    const upEvent1 = new KeyboardEvent('keyup', {
+        key: uppercaseKey[1],
+        bubbles: true,
+        cancelable: true,
+    });
+
+    // 触发按键事件
+    document.dispatchEvent(downEvent);
+    document.dispatchEvent(downEvent1);
+    document.dispatchEvent(upEvent);
+    document.dispatchEvent(upEvent1);
+  }
+  else{
+    // 模拟按键
+    const downEvent = new KeyboardEvent('keydown', {
+        key: uppercaseKey,
+        bubbles: true,
+        cancelable: true,
+    });
+    const upEvent = new KeyboardEvent('keyup', {
+        key: uppercaseKey,
+        bubbles: true,
+        cancelable: true,
+    });
+
+    // 触发按键事件
+    document.dispatchEvent(downEvent);
+    document.dispatchEvent(upEvent);
+  }
+
+  
+}
+
+function loop(keysToPress){
+    // 按顺序模拟按下123456键
+    if(document.getElementById('begin').textContent === '开始'){
+        document.getElementById('begin').textContent='暂停';
+        let i=0;
+        index=setInterval(function() {
+            if(i<keysToPress.length){
+                simulateKeyPress(keysToPress[i]);
+                i += 1;
+            }
+            else{
+                clearInterval(index);
+                if(document.getElementById('begin').textContent === '暂停'){document.getElementById('begin').textContent='开始';}
+            }
+            // else{i=0;}
+            // simulateKeyPress(keysToPress[i]);
+        }, 200);
+    }
+    else{document.getElementById('begin').textContent='开始';
+    clearInterval(index);
+    }
+}
+
+function next(){
+    // fetch('C:\Users\Pondsi\Desktop\workspace\website\program1\data.txt')
+    //     .then(response => response.text()) // 获取文本内容
+    //     .then(fileContent => {
+    //         // 在这里处理fileContent
+    //         console.log(fileContent);
+    //     })
+    //     .catch(error => {
+    //         console.error('Error fetching file:', error);
+    //     });
+    // console.log(data.length)
+    if(data_index<data.length-1){
+        data_index++;
+        document.getElementById('data_index').textContent='第'+(data_index+1)+'首';
+        keysToPress=data[data_index][1];
+    }
+    else{
+        console.log('全部完成')
+        data_index=0;
+        document.getElementById('data_index').textContent='第'+(data_index+1)+'首';
+        keysToPress=data[data_index][1];
+    }
+}
+
+
+</script>
+</body>
+</html>
