@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>强化模拟器</title>
+  <style>
+    /* 定义边框闪光动画 */
+    @keyframes border-flash {
+        0%, 100% { border-color: rgba(255, 215, 0, 0); } /* 透明 */
+        50% { border-color: rgba(255, 215, 0, 1); } /* 金色 */
+    }
+
+    /* 应用动画到元素 */
+    .flash-border {
+        animation: border-flash 0.5s linear infinite alternate;
+    }
+    .popup {
+        position: fixed;
+        top: 30%;
+        left: 20%;
+        /* width:200px; */
+        height:100px;
+        transform: translate(-50%, -50%);
+        color:#F9FBFF;
+        justify-content: center;
+        align-items: center;/*上下居中*/
+        z-index: 1000; /* 确保提示框位于其他元素之上 */
+        background-color: #080500;
+        padding: 10px;
+        border: 1px solid rgb(55, 240, 23);
+        display: none; /* 初始时隐藏提示框 */
+        opacity:0.5;
+    }
+    .container {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      height: 200px;
+      background-color: #f0f0f0;
+    }
+  
+    .section {
+      width: 20%;
+      height: 100%;
+      background-color: #ddd;
+      transition: box-shadow 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .section div{
+        width: 200px;;
+        height: 200px;
+        display: block;
+    }
+    .section div img{
+        display:block;
+        position:relative;
+        width:90px;
+        height:100px;
+        top:-120px;
+        right:-110px;
+    }
+    .section div div{/*每一行字和按钮行*/
+        width:130px;
+        height:20px;
+        color:rgb(245, 245, 245)
+    }
+    .section div .stars{
+        width: 100px;
+        position:relative;
+        left:190px;
+        top:40px;
+        display:flex;
+
+    }
+    .section div .stars div{
+        height:20px;
+        width: 20px;
+        background-repeat: no-repeat;
+        
+    }
+
+  
+    .section:hover {
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      transform: scale(1.05);
+      position: relative;
+      z-index: 1;
+    }
+    #left{
+        width:50%;
+        height: 500px;
+    }
+    #bag{
+        width:100%;
+        height:100%;
+        display: flex;
+        flex-wrap: wrap; /* 添加这一行 */
+        overflow-y: auto; /* 启用垂直滚动 */
+
+    }
+    #bag div{
+        width:200px;
+        height: 200px;
+        display: block;
+        position:relative;
+    }
+    #bag div:hover{
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        transform: scale(1.01);
+        position: relative;
+        z-index: 1;
+    }
+    #bag div div{/*每一行字和按钮行*/
+        width:130px;
+        height:20px;
+        color:rgb(245, 245, 245)
+    }
+    #bag div img{
+        display:block;
+        position:relative;
+        width:90px;
+        height:100px;
+        top:-160px;
+        right:-110px;
+    }
+    #bag div .stars{
+        width: 100px;
+        position:relative;
+        top:0px;
+        display: flex;
+        
+    }
+    #bag div .stars div{
+        height:20px;
+        width: 20px;
+        background-repeat: no-repeat;
+        
+    }
+    #bag div div button{
+        background-color: #7FE11B;
+    }
+    
+    #right {
+        width:50%;
+        display: block;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        gap: 10px;
+        padding: 20px;
+        background-color: #f0f0f0;
+        border: 1px solid rgba(229,173,88,255);
+        border-radius: 5px;
+    }
+
+    #right div {
+        width:50%;
+        background-color: rgba(229,173,88,255);
+        background-image:linear-gradient(-45deg, rgba(109,83,84,255), rgba(229,173,88,255));
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    #player{
+        position: relative;
+        top:-380px;
+        left:450px; 
+        width:200px;
+        height:400px;
+    }
+  </style>
+</head>
+<body style="user-select:none;">
+    <div id="popup" class="popup"></div>
+    <audio id="music">
+        <source src="musics/qianghua.mp3" type="audio/mpeg">
+    </audio>
+    <div class="container">
+        <div class="section" id="0" count='0'>器</div>
+        <div class="section" id="1" count='0'>盾</div>
+        <div class="section" id="2" count='0'>铠</div>
+        <div class="section" id="3" count='0'>核</div>
+      </div>
+    <div style="height:500px; display:flex;">
+        <div id="left">
+            <button style="top:10px;"  onclick="generateRandomDiv()">获取</button>
+            <div id="bag">
+            
+            </div>
+        </div>
+        <div id="right">
+            <div data-key="生命值">生命值:10</div>
+            <div data-key="攻击力">攻击力:10</div>
+            <div data-key="防御力">防御力:20</div>
+            <div data-key="暴击伤害">暴击伤害:5%</div>
+            <div data-key="暴击率">暴击率:5%</div>
+            <div data-key="闪避">闪避:5%</div>
+            <div data-key="爆发">爆发:5%</div>
+            <img id='player' src="images/飞雷之弦振.jpg">
+        </div>
+    </div>
+  <script>
+    //属性初始值以及强化可能值
+    const level=[
+        ['攻击力','47',14,16,18,19],
+        ['攻击','7%',4.1,4.7,5.3,5.8],
+        ['防御力','47',16,19,21,23],
+        ['防御','8.7%',5.1,5.8,6.6,7.3],
+        ['暴击伤害','9.3%',5.4,6.2,7.0,7.8],
+        ['暴击率','4.7%',2.7,3.1,3.5,3.9],
+        ['闪避','7%',4.1,4.7,5.3,5.8],
+        ['生命值','717',209,239,269,299],
+        ['生命','7%',4.1,4.7,5.3,5.8],
+        ['爆发','7%',4.1,4.7,5.3,5.8]
+    ];
+    //武器类别以及名称
+    const wuqi=[
+        ['器','雷剑','火之哀伤','冰封剑','红缨枪','飞雷之弦振','护摩之杖','若水',  '冬极白星', '裁叶萃光',  '雾切之回光',  '薙草之稻光'                             ],
+        ['盾','铁甲龟盾','云生盾','残破的盾','新手盾'  ,'木盾','护心镜','不屈意志'                               ],
+        ['铠','黄金甲','精钢铠','赤心流火衣','飞鱼服'],
+        ['核','炎之核心','冰之核心','光之核心','水之核心']
+    ];
+    
+    var isclick= true;//强化按钮是否被点击
+
+      function generateRandomDiv() {
+            var o=[-1,-1,-1];
+            for (var i=0;i<4;i++ ){
+                var gg= Math.floor(Math.random() * level.length);
+                while(true){
+                    gg= Math.floor(Math.random() * level.length);
+                    if(!o.includes(gg)){break;}
+                }
+                o[i]=gg;
+                //console.log(o[i]);
+            }
+            //o=[-1,-1,-1];
+            var w=Math.floor(Math.random() * wuqi.length);
+            var ww=Math.floor(Math.random() * (wuqi[w].length-1));
+            const te1='名称:'+wuqi[w][ww+1];
+            const te2=level[o[0]][0]+':'+level[o[0]][1];
+            const te3=level[o[1]][0]+':'+level[o[1]][1];
+            const te4=level[o[2]][0]+':'+level[o[2]][1];
+            const te5=level[o[3]][0]+':'+level[o[3]][1];
+
+            const newDiv = document.createElement('div');
+            newDiv.className='war';
+            const d1=document.createElement('div');
+            const d2=document.createElement('div');
+            const d3=document.createElement('div');
+            const d4=document.createElement('div');
+            const d5=document.createElement('div');
+            d1.textContent =te1;
+            d2.textContent =te2;
+            d3.textContent =te3;
+            d4.textContent =te4;
+            d5.textContent =te5;
+            d2.style.color='#DEA758';
+            // newDiv.style.width = 50+'px';//Math.floor(Math.random() * 100) + 'px';
+            // newDiv.style.height = 50+'px';//Math.floor(Math.random() * 100) + 'px';
+            newDiv.style.backgroundColor = `rgb(150,104,80,255)`;
+            newDiv.style.backgroundImage= 'linear-gradient(135deg, rgba(109,83,84,255), rgba(229,173,88,255))';
+            // newDiv.textContent = randomText;
+            newDiv.setAttribute('number', 0); // 添加数字属性代表已经强化次数
+            newDiv.setAttribute('wuqi',w);//代表装备类别
+
+            const buttons = document.createElement('div');
+            buttons.style.display = 'flex';
+            buttons.style.justifyContent = 'space-between';
+            buttons.style.height='20%';
+            buttons.style.width='100%';
+            buttons.style.position='relative';
+            buttons.style.bottom="-30%";
+            
+
+
+            const btn1 = document.createElement('button');
+            btn1.textContent = '强化';
+            btn1.style.marginRight = '5px';
+            btn1.addEventListener('click', () => enhanceWeapon(d1, d2, d3, d4,d5,newDiv));
+
+            const btn2 = document.createElement('button');
+            btn2.textContent = '丢弃';
+            btn2.addEventListener('click', function(){newDiv.remove();});
+
+            const btn3 = document.createElement('button');
+            btn3.textContent = '使用';
+            btn3.addEventListener('click', () => getwuqi(d1, d2, d3, d4,d5,newDiv));
+
+            buttons.appendChild(btn1);
+            buttons.appendChild(btn2);
+            buttons.appendChild(btn3);
+
+            newDiv.appendChild(d1);//名称
+            newDiv.appendChild(d2);//四个属性之一
+            newDiv.appendChild(d3);//四个属性之一
+            newDiv.appendChild(d4);//四个属性之一
+            newDiv.appendChild(d5);//四个属性之一
+            newDiv.appendChild(buttons);
+            const li=document.createElement('div');//星级
+            li.className='stars';
+            //li.textContent=newDiv.getAttribute('number');
+            newDiv.appendChild(li);
+
+            const ima = document.createElement('img');
+            ima.src='images/'+wuqi[w][ww+1]+'.jpg';//='images/hongyingqiang.jpg';
+            // ima.style.width='80px';
+            // ima.style.height='80px';
+            // ima.style.top='10px';
+            // ima.style.right='10px';
+            newDiv.appendChild(ima);
+            // newDiv.style.backgroundImage=`url('${'images/hongyingqiang.jpg'}')`;
+            // newDiv.style.backgroundSize='contain'; /* 图片将保持其原始比例并适应容器 */
+            // newDiv.style.backgroundPosition= 'right top'; /* 图片将放置在右上角 */
+
+            document.getElementById('bag').appendChild(newDiv);
+        }
+        function enhance(attribute,value){//具体针对单个数字字符进行强化 返回结果字符
+                for(let i =0;i<=9;i++)
+                {
+                    if (level[i][0]===attribute){
+                        if(value.includes('%')){
+                            return (parseInt(value,10)+level[i][Math.floor(Math.random() * 4)+2]).toString()+'%';
+                        }
+                        return (parseInt(value,10)+level[i][Math.floor(Math.random() * 4)+2]).toString();
+                    }
+                }   
+        }
+
+        function enhanceWeapon(d1, d2, d3, d4,d5,newDiv) {//按强化键
+            if(isclick){
+                isclick=false;
+                if(parseInt(newDiv.getAttribute('number'),10)<5){
+                // 随机选择一个属性进行强化
+                //console.log(parseInt(newDiv.getAttribute('number'),10));
+                //d2.textContent = d2.textContent.split(':')[0]+':'+d2.textContent.split(':')[1]+'1';
+
+                
+                const randomAttribute = Math.floor(Math.random() * 3)+1;
+                
+                // var last=d2.textContent.split(':')[0]+':'+d2.textContent.split(':')[1];
+                d2.textContent =d2.textContent.split(':')[0]+':'+ enhance(d2.textContent.split(':')[0],d2.textContent.split(':')[1]);
+                // var next=d2.textContent.split(':')[0]+':'+d2.textContent.split(':')[1];
+                if (randomAttribute === 1) {
+                    var last=d3.textContent.split(':')[0]+':'+d3.textContent.split(':')[1];
+                    d3.textContent = d3.textContent.split(':')[0]+':'+enhance(d3.textContent.split(':')[0],d3.textContent.split(':')[1]);
+                    var next=d3.textContent.split(':')[0]+':'+d3.textContent.split(':')[1];
+                } else if (randomAttribute === 2) {
+                    var last=d4.textContent.split(':')[0]+':'+d4.textContent.split(':')[1];
+                    d4.textContent = d4.textContent.split(':')[0]+':'+enhance(d4.textContent.split(':')[0],d4.textContent.split(':')[1]);
+                    var next=d4.textContent.split(':')[0]+':'+d4.textContent.split(':')[1];
+                }else if (randomAttribute === 3) {
+                    var last=d5.textContent.split(':')[0]+':'+d5.textContent.split(':')[1];
+                    d5.textContent = d5.textContent.split(':')[0]+':'+enhance(d5.textContent.split(':')[0],d5.textContent.split(':')[1]);
+                    var next=d5.textContent.split(':')[0]+':'+d5.textContent.split(':')[1];
+                }
+                newDiv.setAttribute('number', (parseInt(newDiv.getAttribute('number'),10)+1).toString());
+                
+                //更新强化后的星级显示
+                const div1=document.createElement('div');
+                div1.style.backgroundImage = "url('images/nother/start.jpg')";
+                newDiv.getElementsByTagName('div')[6].appendChild(div1);
+                newDiv.getElementsByTagName('div')[6].style.left=(200-20*parseInt(newDiv.getAttribute('number'),10)).toString()+'px';
+
+                //加上强化特效  声音和光
+                var audio = document.getElementById("music");
+                audio.play();
+
+                var alertDiv = document.getElementById('popup');
+                alertDiv.textContent=last+'   ----->   '+next.split(':')[1];
+                document.body.appendChild(alertDiv);
+                alertDiv.style.width='400px';
+                alertDiv.style.display = 'flex';
+                //setInterval("autoClose()",1000);
+                setTimeout(function(){ 
+                    isclick = true;
+                }, 1500);
+
+                setTimeout(function() {
+                    // 自动关闭弹窗
+                    alertDiv.style.display = 'none';
+                }, 1500); // 毫秒后关闭弹窗
+                
+
+            }
+                else{
+                    //alert('已强化至最高级');
+                    // 创建弹窗
+                    const alertDiv = document.getElementById('popup');
+                    alertDiv.textContent='已强化至最高级';
+                    alertDiv.style.width='200px';
+                    document.body.appendChild(alertDiv);
+                    alertDiv.style.display = 'flex';
+                    //setInterval("autoClose()",1000);
+
+                    setTimeout(function(){ 
+                        isclick = true;
+                    }, 1000);
+                    setTimeout(function() {
+                        // 自动关闭弹窗
+                        alertDiv.style.display = 'none';
+                    }, 400); // 毫秒后关闭弹窗
+
+                    
+                }
+        }
+        }
+
+        function getwuqi(d1, d2, d3, d4,d5,newDiv){
+            var bag=document.getElementById('bag');
+
+            var chair = document.getElementById(newDiv.getAttribute('wuqi'));
+            //console.log(chair.getAttribute('count'))
+
+             if(chair.getAttribute('count')==='0'){
+                bag.removeChild(newDiv)
+                var bu=newDiv.getElementsByTagName('div')[5];
+                bu.style.display='none';
+                chair.appendChild(newDiv);
+
+                chair.setAttribute('count','1');
+                update();//更新总属性
+             }
+             else{
+                //bag.appendChild(chair.div);
+                var qq=chair.getElementsByTagName('div')[0];
+                chair.removeChild(qq)
+                var bu=newDiv.getElementsByTagName('div')[5];
+                bu.style.display='none';
+                chair.appendChild(newDiv);
+                var buu=qq.getElementsByTagName('div')[5];
+                buu.style.display='flex';
+                bag.appendChild(qq);
+                update();//更新总属性
+             }
+        }
+
+        function update(){
+            //显示总属性
+            // 获取要更新的div元素
+            const rightDiv = document.getElementById('right');
+            var temp=[];//将装有四个装备栏
+            for(var i=0;i<4;i++){temp[i]=document.getElementById(i.toString());}
+           // console.log(temp[1]);/////////////
+            // const w1 = document.getElementById('0');
+            // const w2 = document.getElementById('1');
+            // const w3 = document.getElementById('2');
+            // const w4 = document.getElementById('3');
+            var data = {
+                '生命值': 10, // 生命值
+                '攻击力': 10, // 攻击力
+                '防御力': 20, // 防御力
+                '暴击伤害': 5, // 暴击伤害
+                '暴击率': 5, // 暴击率
+                '闪避': 5, // 闪避
+                '爆发': 5 // 爆发
+            };
+            var buff={
+                '攻击力':0,
+                '攻击':0,
+                '防御力':0,
+                '防御':0,
+                '暴击伤害':0,
+                '闪避':0,
+                '生命值':0,
+                '生命':0,
+                '爆发':0,
+                '暴击率':0
+            };
+            for (var i =0;i<temp.length;i++){
+                if(temp[i].querySelector('.war')){
+                    buff [  temp[i].getElementsByTagName('div')[0].getElementsByTagName('div')[1]    .textContent.split(':')[0]             ]+=parseFloat(temp[i].getElementsByTagName('div')[0].getElementsByTagName('div')[1]    .textContent.split(':')[1] ,10 );
+                    buff [  temp[i].getElementsByTagName('div')[0].getElementsByTagName('div')[2]    .textContent.split(':')[0]             ]+=parseFloat(temp[i].getElementsByTagName('div')[0].getElementsByTagName('div')[2]    .textContent.split(':')[1] ,10 );
+                    buff [  temp[i].getElementsByTagName('div')[0].getElementsByTagName('div')[3]    .textContent.split(':')[0]             ]+=parseFloat(temp[i].getElementsByTagName('div')[0].getElementsByTagName('div')[3]    .textContent.split(':')[1] ,10 );
+                    buff [  temp[i].getElementsByTagName('div')[0].getElementsByTagName('div')[4]    .textContent.split(':')[0]             ]+=parseFloat(temp[i].getElementsByTagName('div')[0].getElementsByTagName('div')[4]    .textContent.split(':')[1] ,10 );
+
+                }
+                
+            }
+            //console.log(buff);////////////////////////////
+            data['生命值']+=buff['生命值']*(100+buff['生命'])/100;
+            data['攻击力']+=buff['攻击力']*(100+buff['攻击'])/100;
+            data['防御力']+=buff['防御力']*(100+buff['防御'])/100;
+            data['暴击伤害']+=buff['暴击伤害'];
+            data['暴击率']+=buff['暴击率'];
+            data['闪避']+=buff['闪避'];
+            data['爆发']+=buff['爆发'];
+
+            // 遍历data对象，更新每个div元素的内容
+            for (const key in data) {
+                const value = data[key];
+                const div = rightDiv.querySelector(`div[data-key="${key}"]`);
+                if (div) {
+                    if(key==='生命值'||key==='攻击力'||key==='防御力'){div.textContent = `${key}:${value}`;}
+                    else{div.textContent = `${key}:${value}`+'%';}
+                }
+            }
+        }
+        
+
+  </script>
+</body>
+</html>
