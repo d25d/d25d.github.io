@@ -30,12 +30,42 @@
         display: none; /* 初始时隐藏提示框 */
         opacity:0.5;
     }
+    .fight {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width:600px;
+        height:400px;
+        transform: translate(-50%, -50%);
+        color:#F9FBFF;
+        /* justify-content: center;
+        align-items: center;上下居中 */
+        z-index: 1000; /* 确保提示框位于其他元素之上 */
+        background-color: #38333c;
+        
+        border: 3px solid rgb(55, 240, 23);
+        display: none; /*初始时隐藏提示框*/
+        opacity:0.8;/*透明度*/
+    }
+    #diren{
+        width:600px;
+        height: 200px;
+    }
+    #playerr{
+        width:500px;
+        height: 150px;
+        position:relative;
+        top:50px;
+        left:180px;
+    }
+
     .container {
       display: flex;
       justify-content: space-around;
       width: 100%;
       height: 200px;
       background-color: #f0f0f0;
+      /* position: absolute; */
     }
   
     .section {
@@ -50,12 +80,15 @@
       border: 1px solid #ccc;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
-    .section div{
+    .section .war{/**/
         width: 200px;;
-        height: 200px;
+        height: 100px;
         display: block;
+        position: relative;
+        top:-45px;
+        left:33px;
     }
-    .section div img{
+    .section .war img{
         display:block;
         position:relative;
         width:90px;
@@ -63,12 +96,12 @@
         top:-120px;
         right:-110px;
     }
-    .section div div{/*每一行字和按钮行*/
+    .section .war div{/*每一行字和按钮行*/
         width:130px;
         height:20px;
         color:rgb(245, 245, 245)
     }
-    .section div .stars{
+    .section .war .stars{
         width: 100px;
         position:relative;
         left:190px;
@@ -76,7 +109,7 @@
         display:flex;
 
     }
-    .section div .stars div{
+    .section .war .stars div{
         height:20px;
         width: 20px;
         background-repeat: no-repeat;
@@ -90,9 +123,21 @@
       position: relative;
       z-index: 1;
     }
-    #left{
-        width:50%;
+    .menu{
+        position:relative; 
+        top:50px; 
+        left:-40px; 
+        width:30px; 
         height: 500px;
+    }
+    #left{
+        visibility: hidden;
+        width:43%;
+        height: 500px;
+        position:relative;
+        top:10px;
+        background-color: rgb(119, 224, 187);
+        background-image:linear-gradient(-45deg, rgb(119, 224, 100), rgb(119, 224, 200));
     }
     #bag{
         width:100%;
@@ -108,9 +153,9 @@
         display: block;
         position:relative;
     }
-    #bag div:hover{
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-        transform: scale(1.01);
+    #bag .war:hover{
+        box-shadow: 0 4px 10px rgba(247, 5, 5, 0.7);
+        transform: scale(1.01)  translateX(10px);/*放大和右移*/
         position: relative;
         z-index: 1;
     }
@@ -146,18 +191,26 @@
     
     #right {
         width:50%;
-        display: block;
+        display: flex;
+        position:relative;
+        top:10px;
+        left:0px;
         flex-wrap: wrap;
         justify-content: space-around;
         gap: 10px;
         padding: 20px;
-        background-color: #f0f0f0;
+        background-color: #ede3ca;
         border: 1px solid rgba(229,173,88,255);
         border-radius: 5px;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    #right div{
+        position: relative;
+        left:-180px;
     }
 
-    #right div {
-        width:50%;
+    #right div div{
+        width: 200px;
         background-color: rgba(229,173,88,255);
         background-image:linear-gradient(-45deg, rgba(109,83,84,255), rgba(229,173,88,255));
         border: 1px solid #ccc;
@@ -174,36 +227,72 @@
     }
   </style>
 </head>
-<body style="user-select:none;">
+<body style="user-select:none; background-color: rgb(254, 254, 255);">
     <div id="popup" class="popup"></div>
+    <div id="fight" class="fight">
+        <div id="diren">
+            <div id="direnname"></div>
+            <div style="display: flex;border: 1px solid red; width: 400px;">
+                <div id="direnshengming"></div>
+                <div id="direnlifebar"></div>
+            </div>
+            
+            <div id="direnjineng"></div>
+
+        </div>
+        <div id="playerr">
+            <div id="playername">本本鱼</div>
+            <div style="display: flex;border: 1px solid red; width: 400px;">
+                <div id="playershengming"></div>
+                <div id="playerlifebar"></div>
+            </div>
+            
+            <button id="a" onclick="attack()">攻击</button>
+            <div id="playerjineng">
+                <button id="e1" onclick="">技能1</button>
+                <button id="e2">技能2</button>
+                <button id="e3">技能3</button>
+            </div>
+        </div>
+    </div>
     <audio id="music">
         <source src="musics/qianghua.mp3" type="audio/mpeg">
     </audio>
     <div class="container">
-        <div class="section" id="0" count='0'>器</div>
-        <div class="section" id="1" count='0'>盾</div>
-        <div class="section" id="2" count='0'>铠</div>
-        <div class="section" id="3" count='0'>核</div>
+        <div class="section" id="0" count='0' style="background-color: rgb(223, 228, 222);">器</div>
+        <div class="section" id="1" count='0' style="background-color: rgb(223, 228, 182);">盾</div>
+        <div class="section" id="2" count='0' style="background-color: rgb(223, 228, 142);">铠</div>
+        <div class="section" id="3" count='0' style="background-color: rgb(223, 228, 102);">核</div>
       </div>
-    <div style="height:500px; display:flex;">
+    <div style="width:100%; height:500px; display:flex;"> 
+        <menu class="menu">
+            <button id='get' style=" width:50px; height: 50px; visibility:hidden"  onclick="generateRandomDiv()">获取</button>
+            <button style=" width:50px; height: 50px;"  onclick="bag()">背包</button>
+            <button style=" width:50px; height: 50px;"  onclick="fightting()">战斗</button>
+
+        </menu>
+        
         <div id="left">
-            <button style="top:10px;"  onclick="generateRandomDiv()">获取</button>
             <div id="bag">
-            
             </div>
         </div>
         <div id="right">
-            <div data-key="生命值">生命值:10</div>
-            <div data-key="攻击力">攻击力:10</div>
-            <div data-key="防御力">防御力:20</div>
-            <div data-key="暴击伤害">暴击伤害:5%</div>
-            <div data-key="暴击率">暴击率:5%</div>
-            <div data-key="闪避">闪避:5%</div>
-            <div data-key="爆发">爆发:5%</div>
-            <img id='player' src="images/飞雷之弦振.jpg">
+            <button  style="position: relative; left:-130px;" onclick="closee()">></button >
+            <div>
+                <div data-key="生命值">生命值:10164</div>
+                <div data-key="攻击力">攻击力:323</div>
+                <div data-key="防御力">防御力:615</div>
+                <div data-key="暴击伤害">暴击伤害:5%</div>
+                <div data-key="暴击率">暴击率:19.2%</div>
+                <div data-key="闪避">闪避:5%</div>
+                <div data-key="爆发">爆发:5%</div>
+            </div>
+            <!-- <img id='player' src="images/飞雷之弦振.jpg"> -->
+            
         </div>
     </div>
   <script>
+    // console.log(Math.floor(123.65454));
     //属性初始值以及强化可能值
     const level=[
         ['攻击力','47',14,16,18,19],
@@ -225,100 +314,267 @@
         ['核','炎之核心','冰之核心','光之核心','水之核心']
     ];
     
+    //boss属性信息,后四项均为百分数
+    //生命值   攻击力   防御力   暴击伤害   暴击率   闪避   爆发
+    const boss={
+        '急冻树':      [500,300,20,0.8,0.3,0.2,0.2],
+        '古岩龙蜥':    [1000,600,40,1.6,0.6,0.1,0.4]
+    }
+    const player_shuxing= {//初始属性
+                '生命值': 10164, // 生命值
+                '攻击力': 323, // 攻击力
+                '防御力': 615, // 防御力
+                '暴击伤害': 5, // 暴击伤害
+                '暴击率': 19.2, // 暴击率
+                '闪避': 5, // 闪避
+                '爆发': 5 // 爆发
+            };
+    var boss_index=0;//boss 序号
+
     var isclick= true;//强化按钮是否被点击
 
-      function generateRandomDiv() {
-            var o=[-1,-1,-1];
-            for (var i=0;i<4;i++ ){
-                var gg= Math.floor(Math.random() * level.length);
-                while(true){
-                    gg= Math.floor(Math.random() * level.length);
-                    if(!o.includes(gg)){break;}
+        function generateRandomDiv() {
+            var ba=document.getElementById('left');
+            if(ba.style.visibility=='visible'){
+
+                var o=[-1,-1,-1];
+                for (var i=0;i<4;i++ ){
+                    var gg= Math.floor(Math.random() * level.length);
+                    while(true){
+                        gg= Math.floor(Math.random() * level.length);
+                        if(!o.includes(gg)){break;}
+                    }
+                    o[i]=gg;
+                    //console.log(o[i]);
                 }
-                o[i]=gg;
-                //console.log(o[i]);
+                //o=[-1,-1,-1];
+                var w=Math.floor(Math.random() * wuqi.length);
+                var ww=Math.floor(Math.random() * (wuqi[w].length-1));
+                const te1='名称:'+wuqi[w][ww+1];
+                const te2=level[o[0]][0]+':'+level[o[0]][1];
+                const te3=level[o[1]][0]+':'+level[o[1]][1];
+                const te4=level[o[2]][0]+':'+level[o[2]][1];
+                const te5=level[o[3]][0]+':'+level[o[3]][1];
+
+                const newDiv = document.createElement('div');
+                newDiv.className='war';
+                newDiv.id='war';
+                const d1=document.createElement('div');
+                const d2=document.createElement('div');
+                const d3=document.createElement('div');
+                const d4=document.createElement('div');
+                const d5=document.createElement('div');
+                d1.textContent =te1;
+                d2.textContent =te2;
+                d3.textContent =te3;
+                d4.textContent =te4;
+                d5.textContent =te5;
+                d2.style.color='#DEA758';
+                // newDiv.style.width = 50+'px';//Math.floor(Math.random() * 100) + 'px';
+                // newDiv.style.height = 50+'px';//Math.floor(Math.random() * 100) + 'px';
+                newDiv.style.backgroundColor = `rgb(150,104,80,255)`;
+                newDiv.style.backgroundImage= 'linear-gradient(135deg, rgba(109,83,84,255), rgba(229,173,88,255))';
+                // newDiv.textContent = randomText;
+                newDiv.setAttribute('number', 0); // 添加数字属性代表已经强化次数
+                newDiv.setAttribute('wuqi',w);//代表装备类别
+
+                const buttons = document.createElement('div');
+                buttons.style.display = 'flex';
+                buttons.style.justifyContent = 'space-between';
+                buttons.style.height='20%';
+                buttons.style.width='100%';
+                buttons.style.position='relative';
+                buttons.style.bottom="-30%";
+                
+
+
+                const btn1 = document.createElement('button');
+                btn1.textContent = '强化';
+                btn1.style.marginRight = '5px';
+                btn1.addEventListener('click', () => enhanceWeapon(d1, d2, d3, d4,d5,newDiv));
+
+                const btn2 = document.createElement('button');
+                btn2.textContent = '丢弃';
+                btn2.addEventListener('click', function(){newDiv.remove();});
+
+                const btn3 = document.createElement('button');
+                btn3.textContent = '使用';
+                btn3.addEventListener('click', () => getwuqi(d1, d2, d3, d4,d5,newDiv));
+
+                buttons.appendChild(btn1);
+                buttons.appendChild(btn2);
+                buttons.appendChild(btn3);
+
+                newDiv.appendChild(d1);//名称
+                newDiv.appendChild(d2);//四个属性之一
+                newDiv.appendChild(d3);//四个属性之一
+                newDiv.appendChild(d4);//四个属性之一
+                newDiv.appendChild(d5);//四个属性之一
+                newDiv.appendChild(buttons);
+                const li=document.createElement('div');//星级
+                li.className='stars';
+                //li.textContent=newDiv.getAttribute('number');
+                newDiv.appendChild(li);
+
+                const ima = document.createElement('img');
+                ima.src='images/'+wuqi[w][ww+1]+'.jpg';//='images/hongyingqiang.jpg';
+                // ima.style.width='80px';
+                // ima.style.height='80px';
+                // ima.style.top='10px';
+                // ima.style.right='10px';
+                newDiv.appendChild(ima);
+                // newDiv.style.backgroundImage=`url('${'images/hongyingqiang.jpg'}')`;
+                // newDiv.style.backgroundSize='contain'; /* 图片将保持其原始比例并适应容器 */
+                // newDiv.style.backgroundPosition= 'right top'; /* 图片将放置在右上角 */
+
+                document.getElementById('bag').appendChild(newDiv);
             }
-            //o=[-1,-1,-1];
-            var w=Math.floor(Math.random() * wuqi.length);
-            var ww=Math.floor(Math.random() * (wuqi[w].length-1));
-            const te1='名称:'+wuqi[w][ww+1];
-            const te2=level[o[0]][0]+':'+level[o[0]][1];
-            const te3=level[o[1]][0]+':'+level[o[1]][1];
-            const te4=level[o[2]][0]+':'+level[o[2]][1];
-            const te5=level[o[3]][0]+':'+level[o[3]][1];
-
-            const newDiv = document.createElement('div');
-            newDiv.className='war';
-            const d1=document.createElement('div');
-            const d2=document.createElement('div');
-            const d3=document.createElement('div');
-            const d4=document.createElement('div');
-            const d5=document.createElement('div');
-            d1.textContent =te1;
-            d2.textContent =te2;
-            d3.textContent =te3;
-            d4.textContent =te4;
-            d5.textContent =te5;
-            d2.style.color='#DEA758';
-            // newDiv.style.width = 50+'px';//Math.floor(Math.random() * 100) + 'px';
-            // newDiv.style.height = 50+'px';//Math.floor(Math.random() * 100) + 'px';
-            newDiv.style.backgroundColor = `rgb(150,104,80,255)`;
-            newDiv.style.backgroundImage= 'linear-gradient(135deg, rgba(109,83,84,255), rgba(229,173,88,255))';
-            // newDiv.textContent = randomText;
-            newDiv.setAttribute('number', 0); // 添加数字属性代表已经强化次数
-            newDiv.setAttribute('wuqi',w);//代表装备类别
-
-            const buttons = document.createElement('div');
-            buttons.style.display = 'flex';
-            buttons.style.justifyContent = 'space-between';
-            buttons.style.height='20%';
-            buttons.style.width='100%';
-            buttons.style.position='relative';
-            buttons.style.bottom="-30%";
-            
-
-
-            const btn1 = document.createElement('button');
-            btn1.textContent = '强化';
-            btn1.style.marginRight = '5px';
-            btn1.addEventListener('click', () => enhanceWeapon(d1, d2, d3, d4,d5,newDiv));
-
-            const btn2 = document.createElement('button');
-            btn2.textContent = '丢弃';
-            btn2.addEventListener('click', function(){newDiv.remove();});
-
-            const btn3 = document.createElement('button');
-            btn3.textContent = '使用';
-            btn3.addEventListener('click', () => getwuqi(d1, d2, d3, d4,d5,newDiv));
-
-            buttons.appendChild(btn1);
-            buttons.appendChild(btn2);
-            buttons.appendChild(btn3);
-
-            newDiv.appendChild(d1);//名称
-            newDiv.appendChild(d2);//四个属性之一
-            newDiv.appendChild(d3);//四个属性之一
-            newDiv.appendChild(d4);//四个属性之一
-            newDiv.appendChild(d5);//四个属性之一
-            newDiv.appendChild(buttons);
-            const li=document.createElement('div');//星级
-            li.className='stars';
-            //li.textContent=newDiv.getAttribute('number');
-            newDiv.appendChild(li);
-
-            const ima = document.createElement('img');
-            ima.src='images/'+wuqi[w][ww+1]+'.jpg';//='images/hongyingqiang.jpg';
-            // ima.style.width='80px';
-            // ima.style.height='80px';
-            // ima.style.top='10px';
-            // ima.style.right='10px';
-            newDiv.appendChild(ima);
-            // newDiv.style.backgroundImage=`url('${'images/hongyingqiang.jpg'}')`;
-            // newDiv.style.backgroundSize='contain'; /* 图片将保持其原始比例并适应容器 */
-            // newDiv.style.backgroundPosition= 'right top'; /* 图片将放置在右上角 */
-
-            document.getElementById('bag').appendChild(newDiv);
         }
+
+        function bag(){
+            var bag=document.getElementById('left');
+            var bu=document.getElementById('get');
+            if(bag.style.visibility=='visible'){
+                bag.style.visibility='hidden';
+                bu.style.visibility='hidden';
+            }
+            else{
+                bag.style.visibility='visible';
+                bu.style.visibility='visible';
+            }
+        }
+
+        function fightting(){
+            var fight=document.getElementById('fight');
+            fight.style.display='block';
+
+            const rightDiv = document.getElementById('right');
+
+            var diren_name=document.getElementById('direnname');
+            var diren_shengming=document.getElementById('direnshengming');
+            var diren_lifebar=document.getElementById('direnlifebar');
+            var diren_jineng=document.getElementById('direnjineng');
+
+            var player_shengming=document.getElementById('playershengming');
+            var player_lifebar=document.getElementById('playerlifebar');
+
+            diren_name.textContent=Object.keys(boss)[boss_index];//boss  name
+            diren_shengming.textContent= '生命:'+ boss[Object.keys(boss)[boss_index]][0];
+            diren_shengming.style.width='100px';
+            
+            //diren_lifebar.style.border='1px solid red';
+            diren_lifebar.style.backgroundColor='red';
+            diren_lifebar.style.width='300px';
+
+            if(boss_index==0){
+                player_shengming.textContent=  '生命:'+ parseFloat (rightDiv.querySelector(`div[data-key="生命值"]`).textContent.split(':')[1],10);
+                player_shengming.style.width='100px';
+                player_lifebar.style.backgroundColor='red';
+                player_lifebar.style.width='300px';
+            }
+
+            // while(boss_index<2){
+                if(parseFloat (diren_shengming.textContent.split(':')[1],10)<=0){
+                boss_index++;
+                diren_name.textContent=Object.keys(boss)[boss_index];
+                diren_shengming.textContent= '生命:'+ boss[Object.keys(boss)[boss_index]][0];
+                    return;
+                }
+                else if(parseFloat (player_shengming.textContent.split(':')[1],10)<=0){
+                    //diren_shengming.textContent= '生命:'+ boss[Object.keys(boss)[boss_index]][0];
+                    // break;
+                    return;
+                }
+            // }
+
+
+
+        
+        }
+        function attack(){//角色普通攻击
+            var fight=document.getElementById('fight');
+            fight.style.display='block';
+
+            const rightDiv = document.getElementById('right');
+
+            var diren_name=document.getElementById('direnname');
+            var diren_shengming=document.getElementById('direnshengming');
+            var diren_jineng=document.getElementById('direnjineng');
+
+            var player_shengming=document.getElementById('playershengming');
+
+            // diren_name.textContent='急冻树';
+            // diren_shengming.textContent= '生命：'+ 100;
+
+            // player_shengming.textContent=  '生命：'+ parseFloat (rightDiv.querySelector(`div[data-key="生命值"]`).textContent.split(':')[1],10);
+
+            //console.log(boss[Object.keys(boss)[boss_index]][5]);
+            if(Math.random()<=boss[Object.keys(boss)[boss_index]][5]){//boss miss
+                //console.log(boss[Object.keys(boss)[boss_index]][5]);
+                const alertDiv = document.getElementById('popup');
+                alertDiv.textContent=Object.keys(boss)[boss_index]+'missed';
+                alertDiv.style.width='200px';
+                document.body.appendChild(alertDiv);
+                alertDiv.style.display = 'flex';
+                setTimeout(function() {
+                    // 自动关闭弹窗
+                    alertDiv.style.display = 'none';
+                }, 400); // 毫秒后关闭弹窗
+
+            }
+
+            //boss 扣血
+            else if(parseFloat (diren_shengming.textContent.split(':')[1],10)>0&&parseFloat(player_shengming.textContent.split(':')[1],10)>0){
+                var gongji=Math.random()<=parseFloat (rightDiv.querySelector(`div[data-key="暴击率"]`).textContent.split(':')[1],10)*0.01?    (parseFloat (rightDiv.querySelector(`div[data-key="暴击伤害"]`).textContent.split(':')[1],10)*0.01+1         )*parseFloat (rightDiv.querySelector(`div[data-key="攻击力"]`).textContent.split(':')[1],10) : parseFloat (rightDiv.querySelector(`div[data-key="攻击力"]`).textContent.split(':')[1],10)   ;
+                //gongji=Math.round(gongji * 10) / 10
+                // console.log(parseFloat (rightDiv.querySelector(`div[data-key="暴击率"]`).textContent.split(':')[1],10))
+                // console.log(parseFloat (rightDiv.querySelector(`div[data-key="暴击伤害"]`).textContent.split(':')[1],10))
+                // console.log(parseFloat (rightDiv.querySelector(`div[data-key="攻击力"]`).textContent.split(':')[1],10))
+                // console.log(diren_shengming.textContent);
+                diren_shengming.textContent= '生命:'+ (     (parseFloat(diren_shengming.textContent.split(':')[1],10)-parseFloat(gongji,10))>=0? Math.round((parseFloat(diren_shengming.textContent.split(':')[1],10)-parseFloat(gongji,10))*10)/10  :0            );
+                var diren_lifebar=document.getElementById('direnlifebar');//更新生命条
+                diren_lifebar.style.width=parseFloat(diren_shengming.textContent.split(':')[1],10)/boss[Object.keys(boss)[boss_index]][0]*300+'px';
+            }
+            if(parseFloat (diren_shengming.textContent.split(':')[1],10)<=0){
+                boss_index=(boss_index+1<Object.keys(boss).length?  boss_index+1:0);
+
+                fightting();
+                return;
+            }
+
+
+            setTimeout(function() {
+                //间隔时间后boss反击
+                if(Math.random()<=parseFloat (rightDiv.querySelector(`div[data-key="闪避"]`).textContent.split(':')[1],10)*0.01){
+                    //console.log(boss[Object.keys(boss)[boss_index]][5]);
+                    const alertDiv = document.getElementById('popup');
+                    alertDiv.textContent='you'+'missed';
+                    alertDiv.style.width='200px';
+                    document.body.appendChild(alertDiv);
+                    alertDiv.style.display = 'flex';
+                    setTimeout(function() {
+                        // 自动关闭弹窗
+                        alertDiv.style.display = 'none';
+                    }, 400); // 毫秒后关闭弹窗
+
+                }
+
+                else if(parseFloat (diren_shengming.textContent.split(':')[1],10)>0&&parseFloat(player_shengming.textContent.split(':')[1],10)>0){
+                    var gongji=Math.random()<=boss[Object.keys(boss)[boss_index]][4]?    (boss[Object.keys(boss)[boss_index]][3]+1         )*boss[Object.keys(boss)[boss_index]][1] : boss[Object.keys(boss)[boss_index]][1]   ;
+                    //gongji=Math.round(gongji * 10) / 10
+                    // console.log(parseFloat (rightDiv.querySelector(`div[data-key="暴击率"]`).textContent.split(':')[1],10))
+                    // console.log(parseFloat (rightDiv.querySelector(`div[data-key="暴击伤害"]`).textContent.split(':')[1],10))
+                    // console.log(parseFloat (rightDiv.querySelector(`div[data-key="攻击力"]`).textContent.split(':')[1],10))
+                    // console.log(diren_shengming.textContent);
+                    player_shengming.textContent= '生命:'+ (     (parseFloat(player_shengming.textContent.split(':')[1],10)-parseFloat(gongji,10))>=0? Math.round((parseFloat(player_shengming.textContent.split(':')[1],10)-parseFloat(gongji,10))*10)/10  :0            );
+                    var player_lifebar=document.getElementById('playerlifebar');//更新生命条
+                    player_lifebar.style.width=parseFloat(player_shengming.textContent.split(':')[1],10)/parseFloat (rightDiv.querySelector(`div[data-key="生命值"]`).textContent.split(':')[1],10)*300+'px';
+                }
+
+            }, 1000); 
+            
+        }
+
         function enhance(attribute,value){//具体针对单个数字字符进行强化 返回结果字符
                 for(let i =0;i<=9;i++)
                 {
@@ -363,6 +619,7 @@
                 //更新强化后的星级显示
                 const div1=document.createElement('div');
                 div1.style.backgroundImage = "url('images/nother/start.jpg')";
+                newDiv.getElementsByTagName('div')[6].style.width=(20*parseInt(newDiv.getAttribute('number'),10)).toString()+'px';
                 newDiv.getElementsByTagName('div')[6].appendChild(div1);
                 newDiv.getElementsByTagName('div')[6].style.left=(200-20*parseInt(newDiv.getAttribute('number'),10)).toString()+'px';
 
@@ -410,7 +667,7 @@
         }
         }
 
-        function getwuqi(d1, d2, d3, d4,d5,newDiv){
+        function getwuqi(d1, d2, d3, d4,d5,newDiv){//装载武器装备
             var bag=document.getElementById('bag');
 
             var chair = document.getElementById(newDiv.getAttribute('wuqi'));
@@ -439,26 +696,24 @@
              }
         }
 
+        //更新总属性值
         function update(){
             //显示总属性
-            // 获取要更新的div元素
             const rightDiv = document.getElementById('right');
             var temp=[];//将装有四个装备栏
             for(var i=0;i<4;i++){temp[i]=document.getElementById(i.toString());}
            // console.log(temp[1]);/////////////
             // const w1 = document.getElementById('0');
-            // const w2 = document.getElementById('1');
-            // const w3 = document.getElementById('2');
-            // const w4 = document.getElementById('3');
-            var data = {
-                '生命值': 10, // 生命值
-                '攻击力': 10, // 攻击力
-                '防御力': 20, // 防御力
-                '暴击伤害': 5, // 暴击伤害
-                '暴击率': 5, // 暴击率
-                '闪避': 5, // 闪避
-                '爆发': 5 // 爆发
-            };
+            var data =player_shuxing; 
+            // {
+            //     '生命值': 10, // 生命值
+            //     '攻击力': 10, // 攻击力
+            //     '防御力': 20, // 防御力
+            //     '暴击伤害': 5, // 暴击伤害
+            //     '暴击率': 5, // 暴击率
+            //     '闪避': 5, // 闪避
+            //     '爆发': 5 // 爆发
+            // };
             var buff={
                 '攻击力':0,
                 '攻击':0,
@@ -481,14 +736,15 @@
                 }
                 
             }
+            //console.log(buff);
             //console.log(buff);////////////////////////////
-            data['生命值']+=buff['生命值']*(100+buff['生命'])/100;
-            data['攻击力']+=buff['攻击力']*(100+buff['攻击'])/100;
-            data['防御力']+=buff['防御力']*(100+buff['防御'])/100;
-            data['暴击伤害']+=buff['暴击伤害'];
-            data['暴击率']+=buff['暴击率'];
-            data['闪避']+=buff['闪避'];
-            data['爆发']+=buff['爆发'];
+            data['生命值']=Math.round(((buff['生命值']+data['生命值'])*(100.0+buff['生命'])/100)*10)/10;
+            data['攻击力']=Math.round(((buff['攻击力']+data['攻击力'])*(100.0+buff['攻击'])/100)*10)/10;
+            data['防御力']=Math.round(((buff['防御力']+data['防御力'])*(100.0+buff['防御'])/100)*10)/10;
+            data['暴击伤害']=Math.round((buff['暴击伤害']+data['暴击伤害'])*10)/10;
+            data['暴击率']=Math.round((buff['暴击率']+data['暴击率'])*10)/10;
+            data['闪避']=Math.round((buff['闪避']+data['闪避'])*10)/10;
+            data['爆发']=Math.round((buff['爆发']+data['爆发'])*10)/10;
 
             // 遍历data对象，更新每个div元素的内容
             for (const key in data) {
@@ -501,7 +757,26 @@
             }
         }
         
+        function closee(){//关闭总属性栏
+            console.log('db');
+            var pl=document.getElementById('right');
+            // pl.style.width='10px';
+            // pl.style.left='700px';
+            pl.style.transition = 'all 1s ease'; // 设置过渡效果，持续时间为2秒，平滑过渡
+            // pl.style.transform ='translateX('+10  +'px)'; // pl.style.clipPath === 'polygon(0 0, 10% 0, 10% 100%, 0 100%)' ?    'translateX(-600px)': 'translateX(600px)'; // 设置最终位置，元素会从当前位置向右移动100%，即完全消失
+            // pl.style.clipPath = pl.style.clipPath === 'polygon(0 0, 10% 0, 10% 100%, 0 100%)' ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' : 'polygon(0 0, 10% 0, 10% 100%, 0 100%)';
+            if(pl.style.left==="0px"){
+                pl.querySelector('button').textContent='<';
+                pl.style.left="5em";
+                pl.style.opacity="0.2";
+                //pl.style.visibility = "hidden"; // 隐藏元素
+            }else{
+                pl.querySelector('button').textContent='>';
+                pl.style.left="0px";
+                pl.style.opacity="1";
+            }
 
+        }
   </script>
 </body>
 </html>
