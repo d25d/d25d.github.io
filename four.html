@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Collector</title>
+</head>
+<body>
+    <div id="container">
+        <input type="text" id="inputField0" style="width:1000px; height:50px;" placeholder="图片所在元素类名如article">
+        <input type="text" id="inputField" style="width:1000px; height:50px;" placeholder="网址">
+        <div>
+            <button id="startButton">start</button>
+            <button id="stopButton">stop</button>
+            <button id="downloadButton">download</button>
+            <button id="checkButton">check</button>
+        </div>
+    </div>
+    <script>
+         const input0 = document.getElementById('inputField0');
+        const input = document.getElementById('inputField');
+    const start = document.getElementById('startButton');
+    const stop = document.getElementById('stopButton');
+    const download = document.getElementById('downloadButton');
+    const check = document.getElementById('checkButton');
+
+    start.onclick = function() { funcStart(input.value); };
+    stop.onclick = funcStop;
+    download.onclick = funcDownload;
+    check.onclick = funcCheck;
+
+    const imgSources = [];
+            let timer = null;
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    funcStart(input.value); // 调用 funcStart 函数
+                    
+                }
+            });
+
+            function funcStart(url) {
+                // timer = setInterval(() => {
+                //     const items = Array.from(container.querySelectorAll('.TRS_Editor img'));
+                //     items.forEach((item) => {
+                //         if (!imgSources.includes(item.src)) {
+                //             imgSources.push(item.src);
+                //         }
+                //     });
+                // }, 500);
+
+
+                
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络响应不正常');
+                        }
+                        return response.text(); // 获取页面文本
+                    })
+                    .then(html => {
+                        // 这里可以解析 HTML 并提取图片等
+                        // const parser = new DOMParser();
+                        // const doc = parser.parseFromString(html, 'text/html');
+                        // const images = Array.from(doc.querySelectorAll('img'));
+
+                        // images.forEach((img) => {
+                        //     if (!imgSources.includes(img.src)) {
+                        //         imgSources.push(img.src);
+                        //         // console.log('找到图片:', img.src); // 打印找到的图片链接
+                        //     }
+                        // });
+                        // container = document.querySelector('.TRS_Editor');
+
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        timer = setInterval(() => {
+                            const items = Array.from(doc.querySelectorAll('.'+input0.value+' img'));
+                            
+                            items.forEach((item) => {
+                                if (!imgSources.includes(url.substring(0, url.lastIndexOf('/')) +'/'+item.src.substring(item.src.lastIndexOf('/') + 1))) {
+                                    imgSources.push(url.substring(0, url.lastIndexOf('/')) +'/'+item.src.substring(item.src.lastIndexOf('/') + 1));
+                                    check.innerText = 'check: ' + imgSources.length.toString();
+                                    console.log(url.substring(0, url.lastIndexOf('/')) +'/'+item.src.substring(item.src.lastIndexOf('/') + 1));
+                                }
+                            });
+                        }, 500);
+
+                    })
+                    .catch(error => {
+                        console.error('发生错误:', error);
+                    });
+
+
+            }
+
+            function funcStop() {
+                clearInterval(timer);
+            }
+
+            function funcDownload() {
+                const newWindow = window.open();
+                newWindow.document.write('<html><head><title>Image Sources</title></head><body>');
+                imgSources.forEach(src => {
+                    newWindow.document.write(`<img src="${src}" style="max-width: 100%; margin: 10px;">`);
+                });
+                // newWindow.document.write('</body></html>');
+                // newWindow.document.close(); // 关闭文档流
+            }
+
+            function funcCheck() {
+                check.innerText = 'check: ' + imgSources.length.toString();
+            }
+
+
+        // (function plugin() {
+        //     var check;
+        //     function init() {
+        //         const div = document.createElement('div');
+        //         const web=document.createElement('div');
+        //         const start = document.createElement('button');
+        //         const stop = document.createElement('button');
+        //         const download = document.createElement('button');
+        //         check = document.createElement('button');
+                
+        //         const input = document.createElement('input');
+        //         input.type = 'text'; // 设置输入框类型为文本
+        //         input.placeholder = '请输入内容'; // 设置占位符
+
+        //         // // 将输入框添加到页面中的某个容器
+        //         // const container = document.getElementById('inputContainer');
+        //         div.appendChild(input);
+
+        //         start.innerText = 'start';
+        //         stop.innerText = 'stop';
+        //         download.innerText = 'download';
+        //         check.innerText = 'check';
+                
+        //         div.appendChild(web);
+        //         div.appendChild(start);
+        //         div.appendChild(stop);
+        //         div.appendChild(download);
+        //         div.appendChild(check);
+        //         document.body.appendChild(div);
+                
+        //         div.style.position = 'fixed';
+        //         div.style.width='500px';
+        //         div.style.height='100px';
+        //         div.style.top = '100px';
+        //         div.style.right = '100px';
+        //         div.style.zIndex = '99999';
+        //         input.style.height='50px';
+        //         input.style.width='300px';
+
+        //         start.onclick = function() { funcStart(input.value); };
+        //         stop.onclick = funcStop;
+        //         download.onclick = funcDownload;
+        //         check.onclick = funcCheck;
+        //     }
+
+        //     // let container;
+        //     const imgSources = [];
+        //     let timer = null;
+
+        //     function funcStart(url) {
+        //         // timer = setInterval(() => {
+        //         //     const items = Array.from(container.querySelectorAll('.TRS_Editor img'));
+        //         //     items.forEach((item) => {
+        //         //         if (!imgSources.includes(item.src)) {
+        //         //             imgSources.push(item.src);
+        //         //         }
+        //         //     });
+        //         // }, 500);
+
+
+                
+
+        //         fetch(url)
+        //             .then(response => {
+        //                 if (!response.ok) {
+        //                     throw new Error('网络响应不正常');
+        //                 }
+        //                 return response.text(); // 获取页面文本
+        //             })
+        //             .then(html => {
+        //                 // 这里可以解析 HTML 并提取图片等
+        //                 // const parser = new DOMParser();
+        //                 // const doc = parser.parseFromString(html, 'text/html');
+        //                 // const images = Array.from(doc.querySelectorAll('img'));
+
+        //                 // images.forEach((img) => {
+        //                 //     if (!imgSources.includes(img.src)) {
+        //                 //         imgSources.push(img.src);
+        //                 //         // console.log('找到图片:', img.src); // 打印找到的图片链接
+        //                 //     }
+        //                 // });
+        //                 // container = document.querySelector('.TRS_Editor');
+
+        //                 const parser = new DOMParser();
+        //                 const doc = parser.parseFromString(html, 'text/html');
+        //                 timer = setInterval(() => {
+        //                     const items = Array.from(doc.querySelectorAll('.TRS_Editor img'));
+                            
+        //                     items.forEach((item) => {
+        //                         if (!imgSources.includes(url.substring(0, url.lastIndexOf('/')) +'/'+item.src.substring(item.src.lastIndexOf('/') + 1))) {
+        //                             imgSources.push(url.substring(0, url.lastIndexOf('/')) +'/'+item.src.substring(item.src.lastIndexOf('/') + 1));
+        //                             console.log(url.substring(0, url.lastIndexOf('/')) +'/'+item.src.substring(item.src.lastIndexOf('/') + 1));
+        //                         }
+        //                     });
+        //                 }, 500);
+
+        //             })
+        //             .catch(error => {
+        //                 console.error('发生错误:', error);
+        //             });
+
+
+        //     }
+
+        //     function funcStop() {
+        //         clearInterval(timer);
+        //     }
+
+        //     function funcDownload() {
+        //         const newWindow = window.open();
+        //         newWindow.document.write('<html><head><title>Image Sources</title></head><body>');
+        //         imgSources.forEach(src => {
+        //             newWindow.document.write(`<img src="${src}" style="max-width: 100%; margin: 10px;">`);
+        //         });
+        //         // newWindow.document.write('</body></html>');
+        //         // newWindow.document.close(); // 关闭文档流
+        //     }
+
+        //     function funcCheck() {
+        //         check.innerText = 'check: ' + imgSources.length.toString();
+        //     }
+
+        //     init();
+        // })();
+    </script>
+</body>
+</html>
