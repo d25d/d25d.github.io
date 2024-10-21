@@ -1,313 +1,70 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>孤独之旅</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <style>
-        body { margin: 0; }
-        #canvas { width: 50%; height: 50vh; }
-		#sidebar {
-			width: 200px;
-			background-color: white;
-			color: white;
-        }
-    </style>
-</head>
-<body>
-    <div id="canvas"></div>
-	<div id="sidebar">
-		<!-- 在这里放置选项栏内容 -->
-		<h2>选项栏</h2>
-		<ul>
-		  <li><a href="login.html" >For a Wait</a></li>
-		  <li><a href="second.html" >play music</a></li>
-		  <li><a href="shengyiwu/gg.html" >continue something interesting</a></li>
-		  <li><a href="four.html" >get images</a></li>
-		</ul>
-	  </div>
-
-    <script>
-        // 创建场景和相机
-        var scene = new THREE.Scene();
-        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-		var earth; // 全局变量用于保存地球模型
-        // 创建渲染器
-        var renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas').appendChild(renderer.domElement);
-
-        // 添加光源
-        var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-
-        var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-        directionalLight.position.set(5, 3, 5);
-        scene.add(directionalLight);
-
-		// 创建坐标轴辅助对象
-		var axesHelper = new THREE.AxesHelper(1000); // 设置辅助对象的大小
-		scene.add(axesHelper); // 将坐标轴辅助对象添加到场景中
-
-		// 创建发光材质
-		var glowMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
-
-		// 创建发光材质
-		var glowCubeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.8 });
-		// 创建发光的one球体
-		var glowingSphereGeometry = new THREE.SphereGeometry(5, 32, 32);
-		var one = new THREE.Mesh(glowingSphereGeometry, glowCubeMaterial);
-		one.position.set(21, 0, -21); // 设置位置
-		scene.add(one); // 添加到场景中
-
-		//经纬度转换为地球上的3维坐标
-		function getPositionFromLatLong(radius,lon, lat) {
-				var phi = (90 - lat) * Math.PI / 180;
-				var theta = (lon + 180) * Math.PI / 180;
-				var x = -radius * Math.sin(phi) * Math.cos(theta);
-				var y = radius * Math.cos(phi);
-				var z = radius * Math.sin(phi) * Math.sin(theta);
-				return new THREE.Vector3(x, y, z);
-			}
-       // 加载地球模型
-		    var loader = new THREE.TextureLoader();
-			var geometry = new THREE.SphereGeometry(5, 32, 32);
-            var material = new THREE.MeshPhongMaterial({ color:0x00bfff});
-		 	earth = new THREE.Mesh(geometry, material);
-			scene.add(earth);
-
-			// 绘制经纬线
-			var latLongLines = new THREE.Group();
+<!doctype html>
+<html lang="en">
+  <head>
     
-			// 将经纬度转换为三维坐标
-			// 绘制经线
-			for (var j = -180; j <= 180; j += 15) {
-				var latLineGeometry = new THREE.BufferGeometry();
-				var positions = [];
-				for (var k = -90; k <= 90; k++) {
-					var position = getPositionFromLatLong(5, j, k);
-					positions.push(position.x, position.y, position.z);
-				}
-				var positionsAttribute = new THREE.Float32BufferAttribute(positions, 3);
-				latLineGeometry.setAttribute('position', positionsAttribute);
-				var latLine = new THREE.Line(latLineGeometry, new THREE.LineBasicMaterial({ color: 0xffffff }));
-				latLongLines.add(latLine);
-			}
-			// 绘制纬线
-			for (var j = -90; j <= 90; j += 15) {
-				var longLineGeometry = new THREE.BufferGeometry();
-				var positions = [];
-				for (var k = -180; k <= 180; k++) {
-					var position = getPositionFromLatLong(5, k, j);
-					positions.push(position.x, position.y, position.z);
-				}
-				var positionsAttribute = new THREE.Float32BufferAttribute(positions, 3);
-				longLineGeometry.setAttribute('position', positionsAttribute);
-				var longLine = new THREE.Line(longLineGeometry, new THREE.LineBasicMaterial({ color: 0xffffff }));
-				latLongLines.add(longLine);
-			}
+  </head>
 
-			earth.add(latLongLines);
-			var axesHelper1 = new THREE.AxesHelper(500);
-			earth.add(axesHelper1)
+  <body style="width: 100%; display: flex; ">
+    
+    <div id="exhibit" style="display:flex; flex-wrap: wrap; width: 660px; height:100%; margin-left:300px; ">
 
-			// 渲染场景
-			renderer.render(scene, camera);
-			
-		
+      <div style="display: flex; flex-direction: column;   height: 150px; width: 200px; margin-right: 10px;  border: 1px solid #dde3e9;">
+        <a style="height: 113px; width: 195px;" href="tian.html" >
+            <img alt="生一群熊猫玩玩" src="https://ts1.cn.mm.bing.net/th/id/R-C.bcfe7294d5831971bb513cce87ca0acb?rik=yC%2fse1soou40IQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fwater%2f9542%2fgoods_water_9542_698_652.33_.png&ehk=RCksYy%2b%2bB%2fvlxHNqE12oiJfKDZfFrnYBvwfp1V3FNZ0%3d&risl=&pid=ImgRaw&r=0" style="width:195px; height:113px;">
+        </a>
+        <div style="height: 20%; width: 100%; ">地球</div>
+      </div>
+      <div style="display: flex; flex-direction: column;   height: 150px; width: 200px; margin-right: 10px; border: 1px solid #dde3e9;">
+        <a style="height: 113px; width: 195px;" href="first.html" >
+            <img alt="生一群熊猫玩玩" src="https://ts1.cn.mm.bing.net/th/id/R-C.bcfe7294d5831971bb513cce87ca0acb?rik=yC%2fse1soou40IQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fwater%2f9542%2fgoods_water_9542_698_652.33_.png&ehk=RCksYy%2b%2bB%2fvlxHNqE12oiJfKDZfFrnYBvwfp1V3FNZ0%3d&risl=&pid=ImgRaw&r=0" style="width:195px; height:113px;">
+        </a>
+        <div style="height: 20%; width: 100%; ">生一群熊猫玩玩</div>
+      </div>
 
+      <div style="display: flex; flex-direction: column;   height: 150px; width: 200px; margin-right: 10px;  border: 1px solid #dde3e9;">
+        <a style="height: 113px; width: 195px;" href="second.html" >
+            <img alt="生一群熊猫玩玩" src="https://ts1.cn.mm.bing.net/th/id/R-C.bcfe7294d5831971bb513cce87ca0acb?rik=yC%2fse1soou40IQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fwater%2f9542%2fgoods_water_9542_698_652.33_.png&ehk=RCksYy%2b%2bB%2fvlxHNqE12oiJfKDZfFrnYBvwfp1V3FNZ0%3d&risl=&pid=ImgRaw&r=0" style="width:195px; height:113px;">
+        </a>
+        <div style="height: 20%; width: 100%; ">弹音乐</div>
+      </div>
 
+      <div style="display: flex; flex-direction: column;   height: 150px; width: 200px; margin-right: 10px;  border: 1px solid #dde3e9;">
+        <a style="height: 113px; width: 195px;" href="four.html" >
+            <img alt="生一群熊猫玩玩" src="https://ts1.cn.mm.bing.net/th/id/R-C.bcfe7294d5831971bb513cce87ca0acb?rik=yC%2fse1soou40IQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fwater%2f9542%2fgoods_water_9542_698_652.33_.png&ehk=RCksYy%2b%2bB%2fvlxHNqE12oiJfKDZfFrnYBvwfp1V3FNZ0%3d&risl=&pid=ImgRaw&r=0" style="width:195px; height:113px;">
+        </a>
+        <div style="height: 20%; width: 100%; ">从网页下载图片</div>
+      </div>
 
-        // 初始化地图
-        function initMap() {
-            // 获取用户当前位置
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    var latitude = position.coords.latitude;
-                    var longitude = position.coords.longitude;
-					var infoDiv = document.createElement('div');
-					infoDiv.innerHTML = '经度：' + longitude+'<br>纬度：'+  latitude;
-					infoDiv.style.position = 'absolute';
-					infoDiv.style.top = '50px'; // 根据需要设置位置
-					infoDiv.style.left = '50px'; // 根据需要设置位置
-					infoDiv.style.backgroundColor = 'white'; // 设置背景颜色为白色
-					infoDiv.style.color = 'black'; // 设置文字颜色为黑色
-					document.body.appendChild(infoDiv);
-					console.log('纬度：' + latitude);
-   					console.log('经度：' + longitude);
-                    // 设置相机位置和目标点
-                    camera.position.z = 15;
-					camera.position.y =5;
-					camera.position.x=5;
-                    camera.lookAt(new THREE.Vector3(0, 0, 0));
+      <div style="display: flex; flex-direction: column;   height: 150px; width: 200px; margin-right: 10px;  border: 1px solid #dde3e9;">
+        <a style="height: 113px; width: 195px;" href="shengyiwu/gg.html" >
+            <img alt="生一群熊猫玩玩" src="https://ts1.cn.mm.bing.net/th/id/R-C.bcfe7294d5831971bb513cce87ca0acb?rik=yC%2fse1soou40IQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fwater%2f9542%2fgoods_water_9542_698_652.33_.png&ehk=RCksYy%2b%2bB%2fvlxHNqE12oiJfKDZfFrnYBvwfp1V3FNZ0%3d&risl=&pid=ImgRaw&r=0" style="width:195px; height:113px;">
+        </a>
+        <div style="height: 20%; width: 100%; ">圣遗物？？</div>
+      </div>
 
-					var temp_position = getPositionFromLatLong(5, longitude, latitude);
-					//console.log(temp_position)
-					var glowingSphereGeometry = new THREE.SphereGeometry(0.02, 32, 32);
-					var address = new THREE.Mesh(glowingSphereGeometry, glowCubeMaterial);
-					address.position.set(temp_position.x,temp_position.y,temp_position.z); // 设置位置
-					earth.add(address); // 添加到场景中
-					// 根据经纬度调整地球的旋转
-					earth.rotation.y = THREE.MathUtils.degToRad(-longitude-60);
-                    earth.rotation.x = THREE.MathUtils.degToRad(latitude-30);
+      
+  
+    </div>
 
-                    // 渲染场景
-                    renderer.render(scene, camera);
-					
-                }, function() {
-                    alert('无法获取您的位置信息。');
-                });
-            } else {
-                alert('您的浏览器不支持地理位置功能。');
-            }
-        }
+    <div id="right" style="width: 260px; margin-left: 50px; ">
+      
+        <div style="width: 260px; height:100px; display: flex; border: 1px solid #dde3e9;">
+          
+          <div style="width: 160px; height:100px; ">
+            <h2 >赞助本站</h2>
+            <p>感谢您的喜爱</p>
+          </div>
 
-		// 添加鼠标滚轮事件监听器
-		document.addEventListener('mousewheel', onMouseWheel, { passive: false });
-		document.addEventListener('DOMMouseScroll', onMouseWheel, false);
-		
-		// 鼠标滚轮事件处理函数
-		function onMouseWheel(event) {
-			event.preventDefault();
-			// 获取滚动方向和速度
-			var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
-			// 根据滚动方向调整摄像头的距离
-			var step = 1; // 移动步长
-			var distance = Math.sqrt(camera.position.x * camera.position.x + camera.position.y * camera.position.y + camera.position.z * camera.position.z); // 相机距离地球的距离
-			var a=camera.position.x/distance;
-			var b=camera.position.y/distance;
-			var y=camera.position.z/distance;
-			// 根据相机距离地球的远近来调整步长大小
-			if (distance < 10) {
-				step = 0.1;
-			} else if (distance > 50) {
-				step = 1;
-			}
-			if (delta < 0) {
-				distance +=step;
-				camera.position.z = distance*y; // 向前移动
-				camera.position.y = distance*b;
-				camera.position.x = distance*a;
-			} else {
-				distance -=step;
-				camera.position.z = distance*y; // 向后移动
-				camera.position.y = distance*b;
-				camera.position.x = distance*a;
-			}
-			camera.lookAt(new THREE.Vector3(0, 0, 0));
-			// 渲染场景
-			renderer.render(scene, camera);
-		}
+          <div style="width: 100px;">
+            <img alt="" loading="lazy" width="100" height="100" decoding="async" data-nimg="1" class="mx-auto"  src="my.jpg" style="color: transparent;">
+          </div>
 
-		// 定义初始的鼠标位置
-		var mouseX = 0;
-		var mouseY = 0;
+        </div>
+          
+          
+    </div>
 
-		var isDragging = false;
-		var previousDeltaX = 0;
-		var previousDeltaY = 0;
-		var inertiaFactor = 0.7; // 惯性因子，控制减速速度
-
-		// 添加鼠标移动事件监听器
-		document.addEventListener('mousemove', onMouseMove, false);
-		document.addEventListener('mouseup', onMouseUp, false);
-
-		// 鼠标移动事件处理函数
-		function onMouseMove(event) {
-			
-			if (event.buttons === 1) {
-				
-				// 计算鼠标在页面上的位置变化
-				var deltaX = event.clientX - mouseX;
-				var deltaY = event.clientY - mouseY;
-				// 更新鼠标位置
-				if (isDragging) {
-					earth.rotation.x += THREE.MathUtils.degToRad(20) * deltaY * 0.01;
-					earth.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, earth.rotation.x));
-					earth.rotation.y += THREE.MathUtils.degToRad(20) * deltaX * 0.01;
-
-					renderer.render(scene, camera);
-				}
-
-				mouseX = event.clientX;
-				mouseY = event.clientY;
-				isDragging = true;
-				previousDeltaX = deltaX;
-				previousDeltaY = deltaY;
-			}
-			
-		}
-
-		function onMouseUp() {
-			isDragging = false;
-
-			// 模拟惯性运动
-			function inertia() {
-				if (Math.abs(previousDeltaX) > 0.1 || Math.abs(previousDeltaY) > 0.1) {
-					//earth.rotation.x += THREE.MathUtils.degToRad(20) * previousDeltaY * 0.01;
-					earth.rotation.y += THREE.MathUtils.degToRad(20) * previousDeltaX * 0.01;
-					previousDeltaX *= inertiaFactor;
-					previousDeltaY *= inertiaFactor;
-					renderer.render(scene, camera);
-					requestAnimationFrame(inertia);
-				}
-			}
-
-			inertia();
-		}
-	    // 添加触摸事件监听器
-		document.addEventListener('touchstart', onTouchStart, false);
-		document.addEventListener('touchmove', onTouchMove, false);
-		document.addEventListener('touchend', onTouchEnd, false);
-		
-		// 定义初始的触摸位置
-		var touchX = 0;
-		var touchY = 0;
-		var isTouching = false;
-		var previousTouchDeltaX = 0;
-		var previousTouchDeltaY = 0;
-		
-		// 触摸开始事件处理函数
-		function onTouchStart(event) {
-		    touchX = event.touches[0].clientX;
-		    touchY = event.touches[0].clientY;
-		    isTouching = true;
-		}
-		
-		// 触摸移动事件处理函数
-		function onTouchMove(event) {
-		    if (isTouching) {
-			var deltaX = event.touches[0].clientX - touchX;
-			var deltaY = event.touches[0].clientY - touchY;
-		
-			earth.rotation.x += THREE.MathUtils.degToRad(20) * deltaY * 0.01;
-			earth.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, earth.rotation.x));
-			earth.rotation.y += THREE.MathUtils.degToRad(20) * deltaX * 0.01;
-		
-			renderer.render(scene, camera);
-		
-			touchX = event.touches[0].clientX;
-			touchY = event.touches[0].clientY;
-		    }
-		}
-		
-		// 触摸结束事件处理函数
-		function onTouchEnd() {
-		    isTouching = false;
-		
-		    function inertia() {
-			if (Math.abs(previousTouchDeltaX) > 0.1 || Math.abs(previousTouchDeltaY) > 0.1) {
-			    earth.rotation.y += THREE.MathUtils.degToRad(20) * previousTouchDeltaX * 0.01;
-			    previousTouchDeltaX *= inertiaFactor;
-			    previousTouchDeltaY *= inertiaFactor;
-			    renderer.render(scene, camera);
-			    requestAnimationFrame(inertia);
-			}
-		    }
-		
-		    inertia();
-		}
-        // 初始化地图
-        initMap();
-    </script>
-</body>
+    
+   
+  </body>
 </html>
