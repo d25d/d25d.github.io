@@ -9,7 +9,12 @@ body{
     
 }
 #exhibit{
-  margin-left:10px;
+  display:flex; 
+  flex-wrap: wrap;
+  width: 50%; 
+  height:100%; 
+  margin-top:0%; 
+  margin-left:1%; "
 }
 #ele {
     display: flex; 
