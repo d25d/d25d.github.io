@@ -8,6 +8,14 @@ body{
     text-align: center;
     
 }
+#exhibit{
+    display:flex; 
+    flex-wrap: wrap; 
+    width: 40%; 
+    height:100%; 
+    margin-top:0%; 
+    margin-left:30%; "
+}
 #ele {
     display: flex; 
     flex-direction: column;   
