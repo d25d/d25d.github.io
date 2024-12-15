@@ -8,11 +8,14 @@ body{
     text-align: center;
     
 }
+#exhibit{
+  margin-left:10px;
+}
 #ele {
     display: flex; 
     flex-direction: column;   
-    height: 8vh; 
-    width: 30%; 
+    height: 25vh; 
+    width: 100%; 
     margin-right: 10px; 
     margin-top: 30px;  
     border: 1px solid #dde3e9;
@@ -36,6 +39,6 @@ body{
   #right{
     width: 30%; 
     margin-top: 5%; 
-    margin-left:75%; 
+    margin-left:70%; 
     position:fixed;
   }
