@@ -11,6 +11,7 @@ body{
 #exhibit{
   display:flex; 
   flex-wrap: wrap;
+  background-color: #a0c7ed;
   width: 50%; 
   height:100%; 
   margin-top:0%; 
@@ -23,7 +24,7 @@ body{
     width: 100%; 
     margin-right: 10px; 
     margin-top: 30px;  
-    border: 1px solid #dde3e9;
+    border: 1px solid #000203;
   }
 
   #ele .im{
@@ -43,7 +44,8 @@ body{
   }
 
   #right{
-    width: 30%; 
+    width: 28%; 
+    background-color: #96caa2;
     margin-top: 5%; 
     margin-left:70%; 
     position:fixed;
