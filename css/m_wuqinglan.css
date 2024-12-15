@@ -14,7 +14,7 @@ body{
   width: 50%; 
   height:100%; 
   margin-top:0%; 
-  margin-left:1%; "
+  margin-left:1%; 
 }
 #ele {
     display: flex; 
@@ -39,6 +39,7 @@ body{
   #ele .di{
     height: 20%; 
     width: 100%;
+    font-size:50px;
   }
 
   #right{
