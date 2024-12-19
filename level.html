@@ -122,31 +122,37 @@
   width:14%;
   height:100%;
   border: solid;
+  display:block;
   background: linear-gradient(to bottom, #424b5c, #727874)
   }
   
   .menu #left #top-buttons{
     width:100%;
-    height:8%;
+    /* height: 10%; */
+    aspect-ratio: 1 / 1; /* 宽度和高度保持 1:1 比例 */
     display:flex;
-    border: solid;
+    border: solid #f90909;
+    
 
   }
   .menu #left #top-buttons button{
     width:100%;
-    height: 0;        /* 设置高度为0 */
-    padding-top: 100%; /* 使用padding-top来创建高度，其值为宽度的百分比 */
+    aspect-ratio: 1 / 1; /* 宽度和高度保持 1:1 比例 */
+    /* padding-top: 100%; 使用padding-top来创建高度，其值为宽度的百分比  */
     background-color: transparent;/*除背景图之外背景透明*/
   }
   .menu #left #bottom-buttons{
     width:100%;
-    height:60%;
-    border: solid;
+    aspect-ratio: 1 / 7; /* 宽度和高度保持 1:1 比例 */
+    border:1px solid #0093fc;
+    
+    margin-top: 80%;
   }
   .menu #left #bottom-buttons button{
     width:100%;
-    height: 0;        /* 设置高度为0 */
-    padding-top: 100%; /* 使用padding-top来创建高度，其值为宽度的百分比 */
+    aspect-ratio: 1 / 1; /* 宽度和高度保持 1:1 比例 */
+    
+    /* padding-top: 100%; 使用padding-top来创建高度，其值为宽度的百分比 */
     background-color: transparent;/*除背景图之外背景透明*/
   }
 
@@ -182,7 +188,7 @@
 
   .menu #right #bottom{
     width:100%;
-    height:60%;
+    height:70%;
     justify-content: space-between; /* 使子元素均匀分布，并且两端有间隔 */
     background: linear-gradient(to bottom, #ede5da, #e1dabd);
     /* display: flex; */
