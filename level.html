@@ -7,6 +7,28 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>level</title>
+<!-- 功能句
+    aspect-ratio: 1 / 1; /* 宽度和高度保持 1:1 比例 */
+
+    background-color: transparent;/*除背景图之外背景透明*/;
+    background-repeat: no-repeat;/*背景图不重复*/
+    background-size: cover; /* 或者您可以使用 '100% 100%' 来精确控制 */
+    background-position: center center;/*背景图按中心对齐*/
+
+    可以利用 margin-left: auto; 这个属性来将某个子元素推到父容器的最右侧。
+
+    align-items: center;  /* 垂直居中 */
+    justify-content: center;  /* 水平居中（可选） */
+
+    background: linear-gradient(to bottom, #424b5c, #727874);/*渐变颜色*/
+
+    overflow-y: auto; /* 垂直滚动条 */
+    overflow-x: hidden; /* 水平滚动条隐藏 */
+      }
+      .menu.open #right #bottom div::-webkit-scrollbar {
+      width: 2px; /* 设置滚动条的宽度 */
+      }
+  -->
 <style>
   body, html {
     margin: 0;
@@ -29,6 +51,10 @@
     border: 3px solid #fff; /* 菜单边框 */
     display: flex;
     flex-direction: column;
+    background-image: url("images/sucai/acti/fuzhizhijian.jpg");
+    background-repeat: no-repeat;/*背景图不重复*/
+    background-size: cover; /* 或者您可以使用 '100% 100%' 来精确控制 */
+    background-position: center center;/*背景图按中心对齐*/
   }
 
   .top-buttons {
@@ -106,27 +132,30 @@
   }
   .menu{
     width: 0; /* 设置菜单宽度 */
-    height: 100%; /* 设置菜单高度 */
+    /* height: 100vh; 设置菜单高度 */
     position: fixed; /* 固定定位 */
     display: none;
     /* left: -250px; 默认隐藏在左侧 */
     /* top: 10%; 菜单顶部对齐 */
     background-color: #faf4f4; /* 菜单背景颜色 */
-    transition: left 0.8s; /* 设置动画过渡效果 */
+    /* transition: left 0.8s; 设置动画过渡效果 */
     z-index: 1000; /* 确保菜单在其他内容之上 */
   }
   .menu.open {
-    width: 50vh; /* 当菜单打开时，左侧对齐为0 */
+    width: 40%; /* 当菜单打开时，左侧对齐为0 */
+    height:100%;
+    margin-left: 3.75%;
+    /* aspect-ratio: 1 / 1.2; 宽度和高度保持 1:1 比例 */
   }
-  .menu #left{
-  width:14%;
+  .menu.open #left{
+  width:12.5%;
   height:100%;
   border: solid;
   display:block;
-  background: linear-gradient(to bottom, #424b5c, #727874)
+  background: linear-gradient(to bottom, #424b5c, #727874);
   }
   
-  .menu #left #top-buttons{
+  .menu.open #left #top-buttons{
     width:100%;
     /* height: 10%; */
     aspect-ratio: 1 / 1; /* 宽度和高度保持 1:1 比例 */
@@ -135,20 +164,20 @@
     
 
   }
-  .menu #left #top-buttons button{
+  .menu.open #left #top-buttons button{
     width:100%;
     aspect-ratio: 1 / 1; /* 宽度和高度保持 1:1 比例 */
     /* padding-top: 100%; 使用padding-top来创建高度，其值为宽度的百分比  */
     background-color: transparent;/*除背景图之外背景透明*/
   }
-  .menu #left #bottom-buttons{
+  .menu.open #left #bottom-buttons{
     width:100%;
     aspect-ratio: 1 / 7; /* 宽度和高度保持 1:1 比例 */
     border:1px solid #0093fc;
     
     margin-top: 80%;
   }
-  .menu #left #bottom-buttons button{
+  .menu.open #left #bottom-buttons button{
     width:100%;
     aspect-ratio: 1 / 1; /* 宽度和高度保持 1:1 比例 */
     
@@ -156,50 +185,210 @@
     background-color: transparent;/*除背景图之外背景透明*/
   }
 
-  .menu #right{
-  width:80%;
+  .menu.open #right{
+  width:87.5%;
   height:100%;
   border: solid;
   }
-  .menu #right #top{
+  .menu.open #right #top{
     width:100%;
-    height:30%;
+    height:38.1%;
     display: flex;
     border: solid;
     background: linear-gradient(to bottom, #3b4453, #5e94ba);
   }
-  .menu #right #top #head{
-    width:30%;
+  .menu.open #right #top #head{
+    width:33%;
     height:100%;
-    border: 2px solid black;
+    border: 1px solid black;
   }
-  .menu #right #top #qianming{
-    width:70%;
+  .menu.open #right #top #qianming{
+    width:67%;
     height:100%;
     display: block;
-    border: 2px solid black;
+    border:  1px solid black;
   }
-  .menu #right #top #qianming div{
-    width:100%;
-    height:10%;
-    border: 2px solid black;
+  .menu.open #right #top #qianming div{
+    width: 100%;
+    border: 1px solid black;
+    display: inline-block;
     color: rgb(255, 0, 17);
   }
 
-  .menu #right #bottom{
+  .menu.open #right #top #qianming #qm1{
+    height: 25%;
+  }
+  .menu.open #right #top #qianming #qm2{
+    height: 23%;
+  }
+  .menu.open #right #top #qianming #qm3{
+    height: 10%;
+
+  }
+  .menu.open #right #top #qianming #qm4{
+    height: 14%;
+
+  }
+  .menu.open #right #top #qianming #qm5{
+    height: 10%;
+
+  }
+  .menu.open #right #top #qianming #qm6{
+    height: 16%;
+
+  }
+
+
+  .menu.open #right #bottom{
     width:100%;
-    height:70%;
-    justify-content: space-between; /* 使子元素均匀分布，并且两端有间隔 */
+    height:61.9%;
+    /* text-align: center; */
+    /* justify-content: space-between; 使子元素均匀分布，并且两端有间隔 */
+    display:block;
     background: linear-gradient(to bottom, #ede5da, #e1dabd);
+    /* overflow: auto; 当内容超出时显示滚动条 */
     /* display: flex; */
     /* border: solid; */
   }
-  .menu #right #bottom button{
-    width:20%;
-    height: 0;        /* 设置高度为0 */
-    padding-top: 20%; /* 使用padding-top来创建高度，其值为宽度的百分比 */
-    margin: 5px;
+  .menu.open #right #bottom div{
+    width:96%;
+    height:96%;
+    display:block;
+    margin-left: 2%;
+    margin-top: 2%;
+    /* background: linear-gradient(to bottom, #ede5da, #e1dabd); */
+    overflow-y: auto; /* 垂直滚动条 */
+    overflow-x: hidden; /* 水平滚动条隐藏 */
+
   }
+  .menu.open #right #bottom div::-webkit-scrollbar {
+  width: 2px; /* 设置滚动条的宽度 */
+  }
+  .menu.open #right #bottom div button{
+    width: 20%;
+    height:23%;
+    background-repeat: no-repeat;/*背景图不重复*/
+    background-size: cover; /* 或者您可以使用 '100% 100%' 来精确控制 */
+    background-position: center center;/*背景图按中心对齐*/
+    /* aspect-ratio: 1 / 1; 宽度和高度保持 1:1 比例 */
+    /* padding-top: 20%; 使用padding-top来创建高度，其值为宽度的百分比 */
+    margin-top: 5%;
+    margin-left: 3%;
+  }
+  .menu.open #right #bottom div #menu-right-bottom-1{
+    background-image: url('images/shop.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-2{
+    background-image: url('images/duiwu.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-3{
+    background-image: url('images/haoyou.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-4{
+    background-image: url('images/chengjiu.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-5{
+    background-image: url('images/tujian.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-6{
+    background-image: url('images/juesetujian.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-7{
+    background-image: url('images/juese.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-8{
+    background-image: url('images/tishengzhinan.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-9{
+    background-image: url('images/beibao.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-10{
+    background-image: url('images/renwu.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-11{
+    background-image: url('images/ditu.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-12{
+    background-image: url('images/huodong.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-13{
+    background-image: url('images/maoxianzhizheng.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-14{
+    background-image: url('images/qiyuan.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-15{
+    background-image: url('images/jixing.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-16{
+    background-image: url('images/duorenyouxi.jpg');
+  }
+  .menu.open #right #bottom div #menu-right-bottom-17{
+    background-image: url('images/juesetujian.jpg');
+  }
+
+  .activity{
+    width:100%;
+    height:100%;
+    position: fixed; /* 固定定位 */
+    display: none;
+    background-color:rgba(54, 44, 44, 0.5); /* 第四个参数是透明度，范围从0（完全透明）到1（完全不透明） */; /* 菜单背景颜色 */
+    z-index: 1000; /* 确保菜单在其他内容之上 */
+  }
+
+  .activity #a1{
+    width:100%; 
+    height:10%; 
+    display: flex;
+    /* border: 1px solid black; */
+
+  }
+  .activity #a2{
+    background-repeat: no-repeat;/*背景图不重复*/
+    background-size: cover; /* 或者您可以使用 '100% 100%' 来精确控制 */
+    background-position: center center;/*背景图按中心对齐*/
+  }
+
+  .activity #lis{
+    width:15%;
+    height:77%;
+    justify-content: center;
+    /* position: relative;相对定位 */
+    margin-top:-39%;
+    margin-left:10%;
+    overflow-y: auto; /* 垂直滚动条 */
+    overflow-x: hidden; /* 水平滚动条隐藏 */
+    /* border:solid #0093fc; */
+    background: linear-gradient(to bottom, #424b5c, #727874);
+    z-index: 1001;
+  }
+  .activity #lis::-webkit-scrollbar {
+      width: 2px; /* 设置滚动条的宽度 */
+  }
+  .activity #lis button{
+    /* position: absolute; */
+    width:100%;
+    height:14%;
+    /* position: absolute; 绝对定位，允许按钮超出父元素宽度 */
+    background-color: transparent;/*除背景图之外背景透明*/
+    color: #ffffff;
+    background-repeat: no-repeat;/*背景图不重复*/
+    background-size: cover; /* 或者您可以使用 '100% 100%' 来精确控制 */
+    background-position: center center;/*背景图按中心对齐*/
+    background-size: 120% auto; 
+    border: none;
+    /* z-index: 2000; */
+  }
+
+  .jixing{
+    width:100%;
+    height:100%;
+    position: fixed; /* 固定定位 */
+    display: none;
+    background-color:rgba(54, 44, 44, 0.5); /* 第四个参数是透明度，范围从0（完全透明）到1（完全不透明） */; /* 菜单背景颜色 */
+    z-index: 1000; /* 确保菜单在其他内容之上 */
+  }
+ 
 
 
   .landscape {
@@ -208,17 +397,17 @@
   width: 100vh;
   height: 100vw;
   position: absolute;
-  top: 50%; /* 调整位置 */
-  left: 50%;
-  margin-top: -50vw; /* 根据旋转后的尺寸调整 */
-  margin-left: -50vh;
+  /* top: 50%; 调整位置 */
+  /* left: 50%; */
+  /* margin-top: -50vw; 根据旋转后的尺寸调整 */
+  /* margin-left: -50vh; */
   }
   
 
 </style>
 </head>
 <body>
-<div class="game-menu">
+<div class="game-menu" class="unselectable">
   <div class="top-buttons">
     <div class="top-left-buttons">
       <!-- 左上角的3个按钮 -->
@@ -228,7 +417,7 @@
     </div>
     <div class="top-right-buttons">
       <!-- 右上角的6个按钮 -->
-      <button id="b4"></button>
+      <button id="b4" onclick="activity()"></button>
       <button id="b5"></button>
       <button id="b6"></button>
       <button id="b7"></button>
@@ -256,41 +445,57 @@
         <div id="head">
         </div>
         <div id="qianming">
-          <div>旅行者  </div>
-          <div>暂无签名  </div>
-          <div>冒险等级  </div>
-          <div>冒险阅历  </div>
-          <div>世界等级  </div>
-          <div>生日  </div>
+          <div id="qm1">旅行者  </div>
+          <div id="qm2">暂无签名  </div>
+          <div id="qm3">冒险等级  </div>
+          <div id="qm4">冒险阅历  </div>
+          <div id="qm5">世界等级  </div>
+          <div id="qm6">生日  </div>
         </div>
       </div>
       <div id="bottom"><!-- 商城等等功能-->
-        <button id="menu-right-bottom-1"></button>
-        <button id="menu-right-bottom-2"></button>
-        <button id="menu-right-bottom-3"></button>
-        <button id="menu-right-bottom-4"></button>
-        <button id="menu-right-bottom-5"></button>
-        <button id="menu-right-bottom-6"></button>
-        <button id="menu-right-bottom-7"></button>
-        <button id="menu-right-bottom-8"></button>
-        <button id="menu-right-bottom-9"></button>
-        <button id="menu-right-bottom-10"></button>
-        <button id="menu-right-bottom-11"></button>
-        <button id="menu-right-bottom-12"></button>
-        <button id="menu-right-bottom-13"></button>
-        <button id="menu-right-bottom-14"></button>
-        <button id="menu-right-bottom-15"></button>
-        <button id="menu-right-bottom-16"></button>
-        <button id="menu-right-bottom-17"></button>
-      
-
+        <div>
+          <button id="menu-right-bottom-1"></button>
+          <button id="menu-right-bottom-2"></button>
+          <button id="menu-right-bottom-3"></button>
+          <button id="menu-right-bottom-4"></button>
+          <button id="menu-right-bottom-5"></button>
+          <button id="menu-right-bottom-6"></button>
+          <button id="menu-right-bottom-7"></button>
+          <button id="menu-right-bottom-8"></button>
+          <button id="menu-right-bottom-9"></button>
+          <button id="menu-right-bottom-10"></button>
+          <button id="menu-right-bottom-11"></button>
+          <button id="menu-right-bottom-12"  onclick="menu_activity()"></button>
+          <button id="menu-right-bottom-13"></button>
+          <button id="menu-right-bottom-14"></button>
+          <button id="menu-right-bottom-15"></button>
+          <button id="menu-right-bottom-16"></button>
+          <button id="menu-right-bottom-17"></button>
+        </div>
       </div>
-    
-
-  
   </div>
   <!-- 游戏菜单的其他内容可以在这里添加 -->
-</div>
+  </div>
+  <div class="activity">
+    <div id="a1">
+      <div style=" height:100%; margin-left: 6%; background-image: url('images/activity.png'); background-color: transparent;/*除背景图之外背景透明*/ aspect-ratio: 1 / 1; /* 宽度和高度保持 1:1 比例 */ background-repeat: no-repeat;/*背景图不重复*/ background-size: cover; /* 或者您可以使用 '100% 100%' 来精确控制 */  background-position: center center;/*背景图按中心对齐*/"></div>
+      <div style="width:20%; height:100%; display: flex; color: rgb(213, 183, 122); font-size: 10px; font-weight: 800; align-items: center;  /* 垂直居中 */">活动一览</div>
+      <button style=" height:100%; aspect-ratio: 1 / 1; margin-left: auto; background-image: url('images/fanhui.png'); background-color: transparent;/*除背景图之外背景透明*/ background-repeat: no-repeat;/*背景图不重复*/ background-size: 70% 70%; background-position: center center; border: none;" onclick="activity()"></button>
+    </div>
+    <div id="a2" style="width:100%; height:77%;">
+
+    </div>
+    <div id= "lis">
+      <button onclick="dimaiyiyong(this)">地脉移涌</button>
+      <button onclick="dimaiyiyong(this)">万火归一</button>
+      <button onclick="dimaiyiyong(this)">且试身手</button>
+      
+    </div>
+  </div>
+  <div class="jixing">
+
+  </div>
 </body>
 <script>
 // 检测屏幕方向并应用旋转样式
@@ -317,7 +522,60 @@ function applyLandscapeRotation() {
     menu.classList.toggle('open'); // 添加或移除 'open' 类
     
   }
+  function activity(){
+    var activity = document.querySelector('.activity');
+    // 获取当前的 display 属性
+    var currentDisplay = window.getComputedStyle(activity).display;
+    var buttons = document.querySelectorAll('#lis button');
+    dimaiyiyong(buttons[0]);
+    // 切换 display 属性
+    if (currentDisplay === "none") {
+      activity.style.display = "block"; // 将 display 改为 flex
+    } else {
+      activity.style.display = "none"; // 将 display 改为 none
+    }
+  }
+  function dimaiyiyong(button){
+    handleClick(button);
+    const a2 = document.querySelectorAll('#a2');
+    console.log(button.outerText);
+    switch(button.outerText){
+      case '地脉移涌':
+        a2[0].style.backgroundImage='url("images/sucai/acti/dimaiyiyong.jpg")';
+        break;
+      case '万火归一':
+        a2[0].style.backgroundImage='url("images/sucai/acti/wanhuoguiyi.jpg")';
+        break;
+      case '且试身手':
+        a2[0].style.backgroundImage='url("images/sucai/acti/qieshishenshou.jpg")';
+        break;
 
+    }
+    
+  }
+
+  function handleClick(button) {
+    // 获取所有按钮
+    const buttons = document.querySelectorAll('#lis button');
+
+    // 将所有按钮恢复到原始状态
+    buttons.forEach(btn => {
+        btn.style.backgroundImage='none';
+        btn.style.backgroundColor='transparent';
+        btn.style.color='#ffffff';
+    });
+
+    // 将当前点击的按钮设置
+    button.style.backgroundImage='url("images/11.png")';
+    // button.style.backgroundColor='#faf8f8';
+    button.style.color='#000000';
+    // button.style.width='110%';
+  }
+
+  function menu_activity(){
+    menu();
+    activity();
+  }
   // 在窗口大小改变时检测
   window.addEventListener('resize', applyLandscapeRotation);
 
