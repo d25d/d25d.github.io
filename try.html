@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>TRY</title>
+    <title>追寻</title>
     <link
-      rel="stylesheet"
-      
-    />
+      rel="stylesheet"  />
+      <link rel="stylesheet" href="style1.css">
+
     <!-- 
     git clone https://hgithub.xyz/d25d/d25d.github.io.git
     cd 仓库内
@@ -87,12 +87,15 @@
       }
 
       .machine {
-        display: flex;
+        display: block;
         gap: 1rem;
         justify-content: center;
+        overflow: hidden; /* 隐藏溢出的内容 */
       }
 
       button {
+        width:20%;
+        height:100px;
         background: color-mix(
           in lch,
           canvasText,
@@ -131,34 +134,9 @@
       }
 
       :root {
-        --ease: linear(
-          0 0%,
-          0.7871 2.92%,
-          1.3024 5.5%,
-          1.6128 8.07%,
-          1.6962 9.4%,
-          1.7331 10.78%,
-          1.7332 11.67%,
-          1.7161 12.6%,
-          1.6291 14.65%,
-          1.136 21.61%,
-          0.9679 24.51%,
-          0.869 27.14%,
-          0.8392 28.47%,
-          0.8217 29.84%,
-          0.8168 31.71%,
-          0.8317 33.78%,
-          0.8622 35.91%,
-          0.9975 43.68%,
-          1.0286 46.58%,
-          1.0439 49.53%,
-          1.0459 51.54%,
-          1.0421 53.76%,
-          1.0013 63.48%,
-          0.9894 68.99% 73.67%,
-          1.0023 87.89%,
-          1 100%
-        );
+        --tim:1s;
+		    --timm:1;/*和上一个需要相等的数值*/
+        
       }
 
       .machine__number {
@@ -167,6 +145,49 @@
         aspect-ratio: 1 / 1.25;
         /* background: url(https://image.9game.cn/2020/9/26/178308769.jpg) 50% calc(5vmin + (var(--iterations, 0) * 15vmin)) / 75%; */
         background-size: 100% auto; 
+        overflow: hidden; /* 隐藏溢出的内容 */
+      }
+
+      .machine__number img {
+        position: absolute; /* 绝对定位，允许图片移动 */
+        width: 100%; /* 图片宽度占满槽 */
+        height: 100%; /* 高度自适应 */
+        top: 200%; /* 初始位置在槽机下方 */
+        object-fit: cover;
+      /*left:15%;*/
+        animation: scrollUp var(--tim) linear; /* 设置动画 */
+        animation-fill-mode: forwards; /* 保持动画结束状态 */
+        animation-iteration-count: 0; /* 默认不播放动画 */
+      }
+
+      @keyframes scrollUp {
+        0% { top: -100%; }
+        2.92% { top: -21.29%; }
+        5.5% { top: 30.24%; }
+        8.07% { top: 61.28%; }
+        9.4% { top: 69.62%; }
+        10.78% { top: 73.31%; }
+        11.67% { top: 73.32%; }
+        12.6% { top: 71.61%; }
+        14.65% { top: 62.91%; }
+        21.61% { top: 13.6%; }
+        24.51% { top: -3.21%; }
+        27.14% { top: -13.1%; }
+        28.47% { top: -16.08%; }
+        29.84% { top: -17.83%; }
+        31.71% { top: -18.32%; }
+        33.78% { top: -16.83%; }
+        35.91% { top: -13.78%; }
+        43.68% { top: -0.25%; }
+        46.58% { top: 2.86%; }
+        49.53% { top: 4.39%; }
+        51.54% { top: 4.59%; }
+        53.76% { top: 4.21%; }
+        63.48% { top: 0.13%; }
+        68.99% { top: -1.06%; }
+        73.67% { top: -1.06%; }
+        87.89% { top: -0.77%; }
+        100% { top: 0%; }
       }
 
       @media (prefers-reduced-motion: no-preference) {
@@ -202,99 +223,246 @@
         border-inline: 1px solid color-mix(in lch, canvasText, canvas 65%);
       }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/big.js/5.2.2/big.min.js"></script>
   </head>
   <body>
+    <div class="cards">
+      <div class="card">
+        <div class="wrapper">
+          <img
+            src="	../扭蛋游戏\imgs\leishen.png"
+            class="cover-image"
+          />
+        </div>
+        <img
+          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/dark_rider-title.png"
+          class="title"
+        />
+        <img
+          src="		../扭蛋游戏\imgs\bannite.png"
+          class="character"
+        />
+      </div>
+
+      <div class="card">
+        <div class="wrapper">
+          <img
+            src="../扭蛋游戏\imgs\bannite.png"
+            class="cover-image"
+          />
+        </div>
+        <img
+          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/force_mage-title.png"
+          class="title"
+        />
+        <img
+          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/force_mage-character.webp"
+          class="character"
+        />
+      </div>
+    </div>
     <div class="machine">
       <div aria-hidden="true" class="machine__numbers">
         <div class="machine__number"></div>
         <div class="machine__number"></div>
         <div class="machine__number"></div>
+        <div class="machine__number"></div>
+        <div class="machine__number"></div>
+        <div class="machine__number"></div>
+        <div class="machine__number"></div>
+        <div class="machine__number"></div>
+        <div class="machine__number"></div>
+        <div class="machine__number"></div>
+        
       </div>
       <p aria-live="polite" class="sr-only">000</p>
-      <button>Go!</button>
+      <button class="start-button">祈愿</button>
     </div>
     <canvas id="canvas" style="display: none;"></canvas>
 
-    <script>
+    <script >
       const go = document.querySelector('button');
       const numbers = document.querySelectorAll('.machine__number');
       const result = document.querySelector('[aria-live="polite"]');
       let slides = [0, 0, 0];
-      const images = [
-            'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/bannite.png?raw=true', //班尼特
-            'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/leishen.png?raw=true', // 雷神
-            'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/zhongli.png?raw=true', // 钟离
-            // 添加更多图片 URL
+
+
+      const swords=[//单手剑
+        'imgs/sword/yinjian.png',
+        'imgs/sword/wufengjian.png',
+        'imgs/sword/lvxingjian.png',
+        'imgs/sword/limingshenjian.png',
+        'imgs/sword/lengren.png',
+        'imgs/sword/feitianyujian.png',
+        'imgs/sword/chihuyudao.png',
+        'imgs/sword/antiejian.png',
+        // 'imgs/sword/boluanyuebaijingjin.png'
+
       ];
 
+      const big_swords=[//大剑
+        'imgs/big-swords/baitiedajian.png',
+        'imgs/big-swords/feitiandayujian.png',
+        'imgs/big-swords/muyulongxiedejian.png',
+        'imgs/big-swords/tieyingkuojian.png',
+        'imgs/big-swords/xunliandajian.png',
+        'imgs/big-swords/yilifuren.png',
+        'imgs/big-swords/yongbingzhongjian.png'
+        
+
+
+      ];
+
+      
+      
+      let characters = [
+        'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/bannite.png?raw=true',
+        'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/leishen.png?raw=true',
+        'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/wanye.png?raw=true',
+        'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/xiao.png?raw=true', //
+        'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/xiaogong.png?raw=true', // 
+        'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/zhongli.png?raw=true' //        
+      ];
+
+      let images=[...characters,...swords, ...big_swords];
+
       // 使用 Promise 来加载所有图片
-    var promises = images.map(url => {
-    return new Promise((resolve, reject) => {
-        var img = new Image();
-        img.crossOrigin = 'Anonymous'; // 设置 crossOrigin 属性
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = url;
-    });
-    });
+    
 
-    var dataURL;
-    // 当所有图片都加载完成后，绘制到Canvas上
-Promise.all(promises).then(images => {
-  var canvas = document.getElementById('canvas');
-  var ctx = canvas.getContext('2d');
-  
-  // 假设我们要竖向堆叠图片
-  var y = 0;
-  images.forEach(img => {
-    ctx.drawImage(img, 0, y);
-    y += img.height; // 更新y坐标，以便绘制下一张图片
-  });
-  
-  // 尝试导出Canvas内容
-//   try {
-     dataURL = canvas.toDataURL('image/png');
-     console.log(dataURL);
-    // 你可以使用 dataURL，例如将其设置为图片的src属性
-//   } catch (e) {
-//     console.error(e);
-//   }
-}).catch(error => {
-  console.error('An error occurred:', error);
-});
+    
 
-// 选择所有具有 .machine__number 类的元素
-var machineNumbers = document.querySelectorAll('.machine__number');
+// // 选择所有具有 .machine__number 类的元素
+// var machineNumbers = document.querySelectorAll('.machine__number');
 
-// 遍历所有选中的元素
-machineNumbers.forEach(function(machineNumber, index) {
-  // 设置新的背景图片URL
-  var newBackgroundUrl = 'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/bannite.png?raw=true';//dataURL; // 替换为你想要的新图片URL
-  // 设置新的背景位置，例如，如果你想基于索引来改变背景位置
-  var newBackgroundPosition = '50% ' + (5 + index * 15) + 'vmin'; 
+// // 遍历所有选中的元素
+// machineNumbers.forEach(function(machineNumber, index) {
+//   // 设置新的背景图片URL
+//   var newBackgroundUrl = 'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/bannite.png?raw=true';//dataURL; // 替换为你想要的新图片URL
+//   // 设置新的背景位置，例如，如果你想基于索引来改变背景位置
+//   var newBackgroundPosition = '50% ' + (5 + index * 15) + 'vmin'; 
 
-  // 应用新的背景样式
-  machineNumber.style.background = 'url(' + newBackgroundUrl + ') ' +'50% calc(5vmin + (var(--iterations, 0) * 15vmin)) / 75%';//+ newBackgroundPosition + ' / 75%';
-//   machineNumber.style.backgroundSize = '100% auto'; // 确保背景大小也相应地设置
-});
+//   // 应用新的背景样式
+//   machineNumber.style.background = 'url(' + newBackgroundUrl + ') ' +'50% calc(5vmin + (var(--iterations, 0) * 15vmin)) / 75%';//+ newBackgroundPosition + ' / 75%';
+// //   machineNumber.style.backgroundSize = '100% auto'; // 确保背景大小也相应地设置
+// });
 
 
-      const slide = () => {
-        const first = Math.floor(Math.random() * 20 + 10);
-        const second = first + Math.floor(Math.random() * 10 + 10);
-        const third = second + Math.floor(Math.random() * 10 + 10);
-        slides = [slides[0] + first, slides[1] + second, slides[2] + third];
-        for (let n = 0; n < numbers.length; n++) {
-          const number = numbers[n];
-          number.style.setProperty('--iterations', slides[n]);
-        }
-        // result.innerText = slides
-        //   .map((slide) => 10 - (slide % 10))
-        //   .map((r) => (r === 10 ? 0 : r))
-        //   .join('');
+      // const slide = () => {
+      //   const first = Math.floor(Math.random() * 20 + 10);
+      //   const second = first + Math.floor(Math.random() * 10 + 10);
+      //   const third = second + Math.floor(Math.random() * 10 + 10);
+      //   slides = [slides[0] + first, slides[1] + second, slides[2] + third];
+      //   for (let n = 0; n < numbers.length; n++) {
+      //     const number = numbers[n];
+      //     number.style.setProperty('--iterations', slides[n]);
+      //   }
+      //   // result.innerText = slides
+      //   //   .map((slide) => 10 - (slide % 10))
+      //   //   .map((r) => (r === 10 ? 0 : r))
+      //   //   .join('');
+      // };
+
+      //go.addEventListener('click', slide);
+
+      const createImageSequence = (images, count) => {
+        return Array.from({ length: count }, (_, i) => images[i % images.length]);
       };
 
-      go.addEventListener('click', slide);
+      const machine__numbers = document.querySelectorAll('.machine__number');
+
+        
+      machine__numbers.forEach((slot, index) => {
+        const imageSequence = createImageSequence(images, images.length);
+        imageSequence.forEach((imageUrl, imgIndex) => {
+          const img = document.createElement('img');
+          img.src = imageUrl;
+        /* img.style.animationDelay = `${imgIndex}s`;*/
+          slot.appendChild(img);
+        });
+      });
+
+      document.querySelector('.start-button').addEventListener('click', () => {
+        // 获取CSS变量 --timm 的值
+          const timmValue = getComputedStyle(document.documentElement).getPropertyValue('--timm');
+        
+          machine__numbers.forEach((slot,i) => {
+
+            const imgs = slot.querySelectorAll('img');
+            
+            imgs.forEach((img, index) => {
+              img.style.animationIterationCount = '0'; // 设置动画播放0次
+              //img.style.animationDelay = `${index*timmValue }s`; // 设置动画延迟
+              // 重新设置动画以重新开始
+              //img.style.animationName = 'none';
+              //img.offsetHeight; // 触发重排 
+              img.style.animationName = 'none';
+              img.style.top='-100 %';
+            });
+
+            var  temp=Math.floor(Math.random() * (imgs.length));
+            if (i==0){
+             
+              // 设置精度
+              Big.DP = 20; // 设定小数点后的位数
+              let high_precision_random_number = Big(Math.random());
+              console.log(high_precision_random_number.toString());
+              if(high_precision_random_number<0.006){
+                temp=Math.floor(Math.random() * (characters.length));
+              }
+              else{
+                temp=Math.floor(Math.random() * (imgs.length-characters.length))+characters.length;
+              }
+
+            }
+            else{
+              temp=Math.floor(Math.random() * (imgs.length-characters.length))+characters.length;
+            }
+            //var  temp=Math.floor(Math.random() * (imgs.length));
+            imgs[temp].style.animationIterationCount = '1'; // 设置动画播放一次
+            //imgs[temp].style.animationDelay = `${0 }s`; // 设置动画延迟
+            imgs[temp].style.animationName = 'none';
+            imgs[temp].offsetHeight; // 触发重排 
+            imgs[temp].style.animationName = '';
+          
+
+        });      
+      });
+
+
+
+
+      document.addEventListener("DOMContentLoaded", function() {
+    // 获取按钮元素
+    var button = document.getElementsByClassName('start-button')[0];
+
+    // 模拟点击按钮
+    function simulateClick(element) {
+        // 创建一个鼠标事件
+        var clickEvent = new MouseEvent('click', {
+            'view': window,
+            'bubbles': true,
+            'cancelable': true
+        });
+
+        // 触发点击事件
+        element.dispatchEvent(clickEvent);
+    }
+
+    // 调用函数来模拟点击
+    
+
+    setInterval(function() {
+      simulateClick(button);
+    }, 2000); // 每隔2秒触发一次
+
+    // 添加一个点击事件监听器来验证是否有效
+    // button.addEventListener('click', function() {
+    //     alert('按钮被点击了!');
+    // });
+});
+
+
+
     </script>
   </body>
 </html>
