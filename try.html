@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>追寻</title>
     <link
-      rel="stylesheet"  />
+      rel="stylesheet"  />  
       <link rel="stylesheet" href="style1.css">
 
     <!-- 
@@ -47,7 +47,7 @@
               transparent 1px var(--size)
             )
             0 -5vmin / var(--size) var(--size),
-          linear-gradient(var(--line) 1px, transparent 1px var(--size)) 0 -5vmin /
+          linear-gradient(var(--line) 1px, transparent 1px var(--size)) 0 -5vmin /  
             var(--size) var(--size);
         -webkit-mask: linear-gradient(-15deg, transparent 60%, white);
         mask: linear-gradient(-15deg, transparent 60%, white);
@@ -230,25 +230,25 @@
       <div class="card">
         <div class="wrapper">
           <img
-            src="	../扭蛋游戏\imgs\leishen.png"
-            class="cover-image"
+            src="images\genshin\leishen.png"    
+            class="cover-image"  
           />
         </div>
         <img
-          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/dark_rider-title.png"
+          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/dark_rider-title.png"    
           class="title"
         />
         <img
-          src="		../扭蛋游戏\imgs\bannite.png"
-          class="character"
+          src="images\genshin\bannite.png"    
+          class="character"  
         />
       </div>
 
       <div class="card">
         <div class="wrapper">
           <img
-            src="../扭蛋游戏\imgs\bannite.png"
-            class="cover-image"
+            src="images\genshin\bannite.png"                
+            class="cover-image"  
           />
         </div>
         <img
@@ -256,7 +256,7 @@
           class="title"
         />
         <img
-          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/force_mage-character.webp"
+          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/force_mage-character.webp"  
           class="character"
         />
       </div>
@@ -280,9 +280,9 @@
     </div>
     <canvas id="canvas" style="display: none;"></canvas>
 
-    <script >
+    <script >  
       const go = document.querySelector('button');
-      const numbers = document.querySelectorAll('.machine__number');
+      const numbers = document.querySelectorAll('.machine__number');  
       const result = document.querySelector('[aria-live="polite"]');
       let slides = [0, 0, 0];
 
@@ -421,7 +421,7 @@
             imgs[temp].style.animationIterationCount = '1'; // 设置动画播放一次
             //imgs[temp].style.animationDelay = `${0 }s`; // 设置动画延迟
             imgs[temp].style.animationName = 'none';
-            imgs[temp].offsetHeight; // 触发重排 
+            imgs[temp].offsetHeight; // 触发重排   
             imgs[temp].style.animationName = '';
           
 
@@ -451,12 +451,12 @@
     // 调用函数来模拟点击
     
 
-    setInterval(function() {
-      simulateClick(button);
-    }, 2000); // 每隔2秒触发一次
+    // setInterval(function() {        
+    //   simulateClick(button);    
+    // }, 2000); // 每隔2秒触发一次
 
     // 添加一个点击事件监听器来验证是否有效
-    // button.addEventListener('click', function() {
+    // button.addEventListener('click', function() {  
     //     alert('按钮被点击了!');
     // });
 });
