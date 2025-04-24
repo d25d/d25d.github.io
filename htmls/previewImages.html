@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>链接图片预览</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #link-container {
+            margin-bottom: 10px;
+        }
+        .link-input-group {
+            margin-bottom: 5px;
+        }
+        .link-input {
+            width: calc(100% - 32px);
+            padding: 5px;
+            margin-right: 5px;
+        }
+
+      .link-inputs {
+            width: 100%;
+            height：32px;
+            padding: 5px;
+            margin-right: 5px;
+        }
+        .add-link-btn, #preview-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .remove-link-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: red;
+            color: white;
+            border: none;
+        }
+        #preview-container {
+            margin-top: 20px;
+        }
+        .preview-image {
+            max-width: 50%;
+            height: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div>输入图片链接预览，可输入多个链接自动拆分</div>
+        <textarea class="link-inputs" placeholder="输入多个网址"></textarea>
+    <div id="link-container">
+        <div class="link-input-group">
+            <input type="text" class="link-input" placeholder="输入网址">
+            <button class="add-link-btn" onclick="addLinkInput()">+</button>
+            <button>1</button>
+        </div>
+    </div>
+    <button id="preview-btn" onclick="previewImages()">预览图片</button>
+    <div id="preview-container"></div>
+
+    <script>
+        num=1;
+        function addLinkInput() {
+            num=num+1;
+            const container = document.getElementById('link-container');
+            const newInputGroup = document.createElement('div');
+            newInputGroup.className = 'link-input-group';
+            newInputGroup.innerHTML = `
+                <input type="text" class="link-input" placeholder="输入网址">
+                <button class="remove-link-btn" onclick="removeLinkInput(this)">-</button>
+                <button>${num}</button>
+            `;
+            container.appendChild(newInputGroup);
+          
+        }
+
+        function removeLinkInput(btn) {
+            btn.parentElement.remove();
+          num=num-1;
+        }
+
+        function previewImages() {
+            const previewContainer = document.getElementById('preview-container');
+            previewContainer.innerHTML = ''; // 清空之前的预览
+            const linkInputs = document.querySelectorAll('.link-input');
+            const linkInputs1 = document.querySelectorAll('.link-inputs')[0];
+             const regex = /\/\/[^\s]+/gi;
+            // // 使用 match 方法提取所有匹配的链接
+            links = linkInputs1.value.match(regex);
+            links.forEach(input => {
+                if (input) {
+                    const img = document.createElement('img');
+                    img.className = 'preview-image';
+                    img.src = input;
+                    img.onerror = function() {
+                        img.src = 'placeholder.png'; // 如果图片加载失败，显示占位图
+                    };
+                    previewContainer.appendChild(img);
+                }
+            });
+            
+            
+            linkInputs.forEach(input => {
+                const url = input.value;
+                if (url) {
+                    const img = document.createElement('img');
+                    img.className = 'preview-image';
+                    img.src = url;
+                    img.onerror = function() {
+                        img.src = 'placeholder.png'; // 如果图片加载失败，显示占位图
+                    };
+                    previewContainer.appendChild(img);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
