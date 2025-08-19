@@ -3,13 +3,19 @@
   <head>
     <link rel="stylesheet" type="text/css" href="css/m_wuqinglan.css" media="screen and (max-width:1200px)"/>
 <link rel="stylesheet" type="text/css" href="css/pc_wuqinglan.css" media="screen and (min-width:1201px)"/>
-    <style>      
+    <style> 
+      #ele{
+        box-shadow:
+    -2px -2px 5px rgba(0, 0, 0, 0.1),  /* 左上方向阴影 */
+    2px 2px 5px rgba(0, 0, 0, 0.1);    /* 右下方向阴影 */
+      }     
     </style>
+    <title>有趣的网站</title>
   </head>
 
   <body>
     <div id="top">
-      555
+      <span >有趣的网站</span>
     </div>
 
 
@@ -17,65 +23,6 @@
     
     <div id="exhibit" >
 
-      <div id="ele" >
-        <a class="im"  href="tian.html" >
-            <img alt="地球" src="https://ts1.cn.mm.bing.net/th/id/R-C.19012d882c2a06fa48a9f574761c9454?rik=NuV41cnFaY0nZQ&riu=http%3a%2f%2fwww.imp.cas.cn%2fkxcb%2fkpwz%2f201010%2fW020101028477411802161.gif&ehk=FIrSoBzjiyxJobCnr8yaGi1YdEl7AlmMzwpymo0apjk%3d&risl=&pid=ImgRaw&r=0" >
-        </a>
-        <div class="di" >地球</div>
-      </div>
-
-      <div id="ele" >
-        <a class="im"  href="first.html" >
-            <img alt="留言本" src="https://tse3-mm.cn.bing.net/th/id/OIP-C.-N9n81tGq7D-a9Haf4XrZAHaFE?rs=1&pid=ImgDetMain">
-        </a>
-        <div class="di">留言本</div>
-      </div>
-
-      <div id="ele" >
-        <a class="im"  href="second.html" >
-            <img alt="弹音乐" src="https://ts1.cn.mm.bing.net/th/id/R-C.6128fc9619103be592326063937b4d6c?rik=64a3htwXjp%2blTQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fw%2f2021%2f07-07%2f102953%2fwater_102953_698_698.71_.png&ehk=glr7QUsIUv3pse7KwPci5Wz5PaqX0Xf9HwL0EYY8GJg%3d&risl=&pid=ImgRaw&r=0">
-        </a>
-        <div class="di">弹音乐</div>
-      </div>
-
-      <div id="ele" >
-        <a class="im"  href="four.html" >
-            <img alt="从网页下载图片" src="https://ts1.cn.mm.bing.net/th/id/R-C.9b1a72d9be1422b5371e51b17e46edeb?rik=TOx7Y9K8kZ0Fkw&riu=http%3a%2f%2ficon.chrafz.com%2fuploads%2f151023%2f1-1510232124534A.png&ehk=ji7jjNJWleXMIZYoIip24ffxb8i836gxKl1Y89gkkTM%3d&risl=&pid=ImgRaw&r=0">
-        </a>
-        <div class="di">从网页下载图片</div>
-      </div>
-
-      <div id="ele" >
-        <a class="im"  href="shengyiwu/gg.html" >
-            <img alt="圣遗物？？" src="https://olimg.3dmgame.com/uploads/images/raiders/2023/0814/1691977901617.jpg">
-        </a>
-        <div class="di">圣遗物？？</div>
-      </div>
-
-      <div id="ele" >
-        <a class="im"  href="level.html" >
-            <img alt="genshin" src="https://th.bing.com/th/id/OIP.Z5Vn6_NtQsdkK-FS7lvaKgHaDe?rs=1&pid=ImgDetMain">
-        </a>
-        <div class="di">level</div>
-      </div>
-
-      <div id="ele" >
-        <a class="im"  href="try.html" >
-            <img alt="try" src="https://fastcdn.mihoyo.com/static-resource-v2/2023/10/19/decde675d83a1b5b78fe05b2382b30ae_7623137438469696579.jpg">
-        </a>
-        <div class="di">测运气</div>
-      </div>
-
-      <div id="ele" >
-        <a class="im"  href="htmls/previewImages.html" >
-            <img alt="images" src="https://th.bing.com/th/id/OIP.YGZTqO1eKKV-fcgILhMRCAHaLH?w=202&h=303&c=7&r=0&o=5&dpr=1.3&pid=1.7">
-        </a>
-        <div class="di">根据图片链接预览图片</div>
-      </div>
-
-
-      
-  
     </div>
 
     <div id="right" >
@@ -96,6 +43,86 @@
     </div>
 
   </div>
+  <script>
+    //1.选项数组
+    const cardsData = [
+{
+    href: "tian.html",
+    alt: "地球",
+    src: "https://image-cdn.tuchong.com/weili/image/l/1559337775850192901.jpeg",
+    description: "地球"
+  },
+  {
+    href: "first.html",
+    alt: "留言本",
+    src: "https://tse3-mm.cn.bing.net/th/id/OIP-C.-N9n81tGq7D-a9Haf4XrZAHaFE?rs=1&pid=ImgDetMain",
+    description: "留言本"
+  },
+  {
+    href: "second.html",
+    alt: "弹音乐",
+    src: "https://ts1.cn.mm.bing.net/th/id/R-C.6128fc9619103be592326063937b4d6c?rik=64a3htwXjp%2blTQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fw%2f2021%2f07-07%2f102953%2fwater_102953_698_698.71_.png&ehk=glr7QUsIUv3pse7KwPci5Wz5PaqX0Xf9HwL0EYY8GJg%3d&risl=&pid=ImgRaw&r=0",
+    description: "弹音乐"
+  },
+  {
+    href: "four.html",
+    alt: "从网页下载图片",
+    src: "https://ts1.cn.mm.bing.net/th/id/R-C.9b1a72d9be1422b5371e51b17e46edeb?rik=TOx7Y9K8kZ0Fkw&riu=http%3a%2f%2ficon.chrafz.com%2fuploads%2f151023%2f1-1510232124534A.png&ehk=ji7jjNJWleXMIZYoIip24ffxb8i836gxKl1Y89gkkTM%3d&risl=&pid=ImgRaw&r=0",
+    description: "从网页下载图片"
+  },
+  {
+    href: "shengyiwu/gg.html",
+    alt: "圣遗物？？",
+    src: "https://olimg.3dmgame.com/uploads/images/raiders/2023/0814/1691977901617.jpg",
+    description: "圣遗物？？"
+  },
+  {
+    href: "level.html",
+    alt: "genshin",
+    src: "https://www.yuanshen.com/images/ys.96a55539.png",
+    description: "level"
+  },
+  {
+    href: "try.html",
+    alt: "try",
+    src: "https://fastcdn.mihoyo.com/static-resource-v2/2023/10/19/decde675d83a1b5b78fe05b2382b30ae_7623137438469696579.jpg",
+    description: "原神祈愿测运气"
+  },
+  {
+    href: "htmls/previewImages.html",
+    alt: "imgs",
+    src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",
+    description: "根据图片链接预览图片"
+  },
+  {
+    href: "htmls/free_flight_world/frontend/index.html",
+    alt: "fly",
+    src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",
+    description: "获得随意飞翔的力量"
+  }
+// 你可以继续添加更多对象...
+];
+
+// 2. 获取容器
+const container = document.getElementById("exhibit");
+
+// 3. 遍历数据，动态生成卡片 DOM 并插入
+cardsData.forEach(card => {
+  // 创建单个 card div
+  const cardDiv = document.createElement("div");
+  cardDiv.id = "ele";
+
+  cardDiv.innerHTML = `
+    <a class="im"  href="${card.href}" >
+            <img alt="${card.alt}" src="${card.src}">
+        </a>
+        <div class="di">${card.description}</div>
+
+  `;
+  // 将该卡片插入到容器中
+  container.appendChild(cardDiv);
+});
+  </script>
    
   </body>
 </html>

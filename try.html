@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>追寻</title>
+    <title>祈愿</title>
     <link
       rel="stylesheet"  />  
       <link rel="stylesheet" href="style1.css">
@@ -14,8 +14,9 @@
     git commit -m "描述你的提交"
     git push -u origin main 
     
-    git remote set-url origin https://github.com/d25d/d25d.github.io.git
-    git remote -v
+    git remote add origin https://github.com/d25d/d25d.github.io.git    //如果未经克隆过，但已经init初始化过的本地仓库用此建立这个origin仓库连接
+    git remote set-url origin https://github.com/d25d/d25d.github.io.git   //用此更改origin仓库的链接地址
+    git remote -v    //查看连接状态
     -->
     <style>
       /* @import 'normalize.css'; */
@@ -226,40 +227,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/big.js/5.2.2/big.min.js"></script>
   </head>
   <body>
-    <div class="cards">
-      <div class="card">
-        <div class="wrapper">
-          <img
-            src="images\genshin\leishen.png"    
-            class="cover-image"  
-          />
-        </div>
-        <img
-          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/dark_rider-title.png"    
-          class="title"
-        />
-        <img
-          src="images\genshin\bannite.png"    
-          class="character"  
-        />
-      </div>
-
-      <div class="card">
-        <div class="wrapper">
-          <img
-            src="images\genshin\bannite.png"                
-            class="cover-image"  
-          />
-        </div>
-        <img
-          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/force_mage-title.png"
-          class="title"
-        />
-        <img
-          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/force_mage-character.webp"  
-          class="character"
-        />
-      </div>
+    <div class="cards" id="cards">
+      
     </div>
     <div class="machine">
       <div aria-hidden="true" class="machine__numbers">
@@ -280,12 +249,20 @@
     </div>
     <canvas id="canvas" style="display: none;"></canvas>
 
-    <script >  
+    <script > 
       const go = document.querySelector('button');
-      const numbers = document.querySelectorAll('.machine__number');  
+      const numbers = document.querySelectorAll('.machine__number');
       const result = document.querySelector('[aria-live="polite"]');
       let slides = [0, 0, 0];
 
+      const cardsData = [
+        { cover: "images/genshin/wendi1.png", character: "images/genshin/wendi2.png" },
+        { cover: "images/genshin/zhongli1.png", character: "images/genshin/zhongli.png" },
+        { cover: "images/genshin/leishen1.png", character: "images/genshin/leishen.png" },
+        { cover: "images/genshin/naxida1.png", character: "images/genshin/naxida2.png" },
+        { cover: "images/genshin/funingna1.png", character: "images/genshin/funingna2.png" }
+        // 你可以继续添加更多卡片对象...
+      ];
 
       const swords=[//单手剑
         'imgs/sword/yinjian.png',
@@ -327,6 +304,35 @@
       let images=[...characters,...swords, ...big_swords];
 
       // 使用 Promise 来加载所有图片
+
+      // 2. 获取容器
+    const container = document.getElementById("cards");
+
+    // 3. 遍历数据，动态生成卡片 DOM 并插入
+    cardsData.forEach(card => {
+      // 创建单个 card div
+      const cardDiv = document.createElement("div");
+      cardDiv.className = "card";
+
+      cardDiv.innerHTML = `
+        <div class="wrapper">
+          <img alt="imgs"
+            src="${card.cover}"
+            class="cover-image"
+          />
+        </div>
+        <!-- <img alt="imgs"
+          src="	https://fecoder-pic-1302080640.cos.ap-nanjing.myqcloud.com/force_mage-title.png"
+          class="title"
+        /> -->
+        <img alt="imgs"
+          src="${card.character}"
+          class="character"
+        />
+      `;
+      // 将该卡片插入到容器中
+      container.appendChild(cardDiv);
+    });
     
 
     

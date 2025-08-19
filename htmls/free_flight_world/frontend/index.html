@@ -1,0 +1,234 @@
+
+<!-- free_flight_world/frontend/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>自由飞行世界</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css?family=Press+Start+2P" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+        }
+        /* 隐藏鼠标指针的样式类 */
+        .hide-cursor {
+            cursor: none;
+        }
+        #canvas-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        #ui-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .hud-element {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px;
+            backdrop-filter: blur(5px);
+        }
+        .control-btn {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+        .control-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.4);
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        #pointer-lock-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+            pointer-events: auto;
+        }
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            display: none;
+        }
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: white;
+        }
+        #crosshair::before {
+            width: 2px;
+            height: 20px;
+            left: 9px;
+            top: 0;
+        }
+        #crosshair::after {
+            width: 20px;
+            height: 2px;
+            left: 0;
+            top: 9px;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div id="canvas-container"></div>
+    
+    <div id="ui-container">
+        <!-- 指针锁定提示 -->
+        <!-- <div id="pointer-lock-hint">
+            <h3 class="text-lg mb-4">点击屏幕开始游戏</h3>
+            <p class="text-sm mb-4">使用WASD键移动，鼠标控制视角</p>
+            <button id="fullscreen-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                全屏模式
+            </button>
+        </div> -->
+        
+        <!-- 准星 -->
+        <div id="crosshair"></div>
+        
+        <!-- 左上角状态面板 -->
+        <div class="hud-element absolute top-0 left-0">
+            <div>高度: <span id="altitude">0</span>m</div>
+            <div>速度: <span id="speed">0</span>km/h</div>
+            <div>模式: <span id="flight-mode">悬停</span></div>
+            <div>天气: <span id="weather">晴天</span></div>
+        </div>
+        
+        <!-- 右上角任务面板 -->
+        <div class="hud-element absolute top-0 right-0">
+            <h3 class="text-lg mb-2">任务</h3>
+            <div id="current-task">自由探索</div>
+            <div id="task-progress">进度: 0/0</div>
+        </div>
+        
+        <!-- 底部控制面板 -->
+        <div class="absolute bottom-0 left-0 right-0 flex justify-center mb-4">
+            <div class="grid grid-cols-3 gap-2" style="display: none;">
+                <button class="control-btn" id="jump-btn">🦘</button>
+                <button class="control-btn" id="fly-up-btn">🔼</button>
+                <button class="control-btn" id="mode-btn">✈️</button>
+                <button class="control-btn" id="left-btn">◀️</button>
+                <button class="control-btn" id="stop-btn">⏹️</button>
+                <button class="control-btn" id="right-btn">▶️</button>
+                <button class="control-btn" id="sprint-btn">⚡</button>
+                <button class="control-btn" id="fly-down-btn">🔽</button>
+                <button class="control-btn" id="menu-btn">⚙️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CDN 资源 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+    
+    <!-- <script type="module" src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLTFLoader.js"></script> -->
+    
+    <!-- 本地资源 -->
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/weather.js"></script>
+    <script type="module" src="js/tasks.js"></script>
+    
+    <script>
+        const body = document.body;
+        // 监听鼠标进入窗口事件
+        body.addEventListener('mouseenter', function() {
+        body.classList.add('hide-cursor');
+        });
+
+        // 监听鼠标离开窗口事件
+        body.addEventListener('mouseleave', function() {
+        body.classList.remove('hide-cursor');
+        });
+
+        addEventListener( 'mousedown', () => {
+            document.body.requestPointerLock();//body页面指针锁定
+        });//鼠标锁定
+        
+        // 粒子背景初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: "none", random: true, straight: false, out_mode: "out" }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+            
+            // 全屏按钮事件
+            // document.getElementById('fullscreen-btn').addEventListener('click', () => {
+            //     if (!document.fullscreenElement) {
+            //         document.documentElement.requestFullscreen().catch(err => {
+            //             console.error(`全屏错误: ${err.message}`);
+            //         });
+            //     } else {
+            //         if (document.exitFullscreen) {
+            //             document.exitFullscreen();
+            //         }
+            //     }
+            // });
+            
+            // 指针锁定事件
+            // document.addEventListener('click', () => {
+            //     const canvas = document.querySelector('canvas');
+            //     canvas.requestPointerLock = canvas.requestPointerLock || 
+            //         canvas.mozRequestPointerLock || 
+            //         canvas.webkitRequestPointerLock;
+            //     canvas.requestPointerLock();
+            // });
+            
+            // 指针锁定状态变化
+            // document.addEventListener('pointerlockchange', () => {
+            //     const isLocked = document.pointerLockElement === document.querySelector('canvas');
+            //     document.getElementById('pointer-lock-hint').style.display = isLocked ? 'none' : 'block';
+            //     document.getElementById('crosshair').style.display = isLocked ? 'block' : 'none';
+            // });
+        });
+    </script>
+</body>
+</html>
