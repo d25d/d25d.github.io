@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽奖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #fff;
+            height: 100vh;
+            width:100vw
+        }
+        
+        .container {
+            width: 100%;
+            height:100%;
+            max-width: 900px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #ffcc00;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+        
+        .subtitle {
+            color: #4ecdc4;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        
+        .slot-machine {
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            border: 8px solid #2c3e50;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slot-machine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: linear-gradient(90deg, transparent, #ffcc00, transparent);
+            z-index: 10;
+        }
+        
+        .reels-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .reel {
+            width: 200px;
+            height: 300px;
+            background: #1a1a2e;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+            border: 4px solid #3498db;
+        }
+        
+        .reel-content {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.1s linear;
+        }
+        
+        .reel-item {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #2c3e50;
+        }
+        
+        .reel-item img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .spin-button {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            padding: 15px 40px;
+            font-size: 1.3rem;
+        }
+        
+        .result {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .win {
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .chance-indicator {
+            background: rgba(52, 152, 219, 0.2);
+            border-radius: 10px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            display: inline-block;
+        }
+        
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-btn {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .mode-btn.active {
+            background: #3498db;
+        }
+        
+        @media (max-width: 768px) {
+            .reels-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .reel {
+                width: 150px;
+                height: 225px;
+            }
+            
+            .reel-item {
+                height: 225px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chance-indicator">
+            剩余次数: <span id="chanceCount">10</span>
+        </div>
+        
+        <!-- <div class="mode-selector">
+            <button class="mode-btn active" data-mode="sequential">顺序模式</button>
+            <button class="mode-btn" data-mode="random">随机模式</button>
+            <button class="mode-btn" data-mode="single">单图模式</button>
+        </div> -->
+        
+        <div class="slot-machine">
+            <div class="reels-container">
+                <div class="reel" id="reel1">
+                    <div class="reel-content"></div>
+                </div>
+                <div class="reel" id="reel2">
+                    <div class="reel-content"></div>
+                </div>
+                <div class="reel" id="reel3">
+                    <div class="reel-content"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="spinBtn" class="spin-button">开始</button>
+                <button id="resetBtn">重置</button>
+            </div>
+            
+            <div class="result" id="result">
+                试试吧
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 示例图片URL数组 - 您可以替换为您自己的图片链接
+        const imageUrls = [
+              'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/bannite.png?raw=true',
+              'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/leishen.png?raw=true',
+              'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/wanye.png?raw=true',
+              'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/xiao.png?raw=true', //
+              'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/xiaogong.png?raw=true', // 
+              'https://hgithub.xyz/d25d/d25d.github.io/blob/main/images/genshin/zhongli.png?raw=true' // 
+              
+
+        ];
+        
+        // 游戏状态
+        let isSpinning = false;
+        let chanceCount = 10;
+        let currentMode = 'sequential';
+        
+        // DOM元素
+        const reels = [
+            document.getElementById('reel1').querySelector('.reel-content'),
+            document.getElementById('reel2').querySelector('.reel-content'),
+            document.getElementById('reel3').querySelector('.reel-content')
+        ];
+        
+        const spinBtn = document.getElementById('spinBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const resultDiv = document.getElementById('result');
+        const chanceCountSpan = document.getElementById('chanceCount');
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        
+        // 初始化老虎机
+        function initSlotMachine() {
+            reels.forEach(reel => {
+                reel.innerHTML = '';
+                
+                // 为每个转轴创建多个图片项（用于滚动效果）
+                for (let i = 0; i < imageUrls.length; i++) {
+                    const item = document.createElement('div');
+                    item.className = 'reel-item';
+                    
+                    const img = document.createElement('img');
+                    // 根据模式选择图片
+                    // if (currentMode === 'single') {
+                    //     // 单图模式：所有位置使用同一张图片
+                    //     img.src = imageUrls[0];
+                    // } else if (currentMode === 'random') {
+                        // 随机模式：每个位置随机选择图片
+                        //img.src = imageUrls[Math.floor(Math.random() * imageUrls.length)];
+                    // } else {
+                    //     // 顺序模式：按顺序循环使用图片
+                         img.src = imageUrls[i % imageUrls.length];
+                    // }
+                    
+                    // 添加加载错误处理
+                    img.onerror = function() {
+                        this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%232c3e50"/><text x="50" y="50" font-size="16" fill="%23fff" text-anchor="middle" dominant-baseline="middle">图片加载失败</text></svg>';
+                    };
+                    
+                    item.appendChild(img);
+                    reel.appendChild(item);
+                }
+                let item = document.createElement('div');
+                item.className = 'reel-item';
+                let img = document.createElement('img');
+                img.src = imageUrls[0];
+                item.appendChild(img);
+                reel.appendChild(item);
+                
+                // 初始位置
+                reel.style.transform = 'translateY(0px)';
+            });
+            
+            updateUI();
+        }
+        
+        // 旋转动画
+        function spinReel(reel, duration, finalPosition) {
+            return new Promise(resolve => {
+                const startTime = Date.now();
+                const startPosition = 0;
+                let transformValue = window.getComputedStyle(reel).transform;
+                let regex = /matrix\([^\(]*,[^\(]*,[^\(]*,[^\(]*,[^\(]*,([^\)]+)\)/;
+                let match = transformValue.match(regex);
+                let result = match ? parseFloat(match[1]) : null;
+                let i=-result/300;
+                let time=10;
+                function animate() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // i=i>=imageUrls.length-1 ?0:i+0.1;
+                    if (document.getElementById('spinBtn').textContent==='结束') {
+                        // 快速随机滚动阶段
+                        i=i>=imageUrls.length ?0:i+0.1;
+                        const randomOffset = ( i>=imageUrls.length? 0: i)* 300;
+                        reel.style.transform = `translateY(${startPosition - randomOffset}px)`;
+                        //setTimeout(animate, 10);  
+                        requestAnimationFrame(animate);
+                    } else {
+                        // 最终停止位置
+                        // const randomOffset =( Math.round(i)>=imageUrls.length-1? 0: Math.round(i))* 300;
+                        // reel.style.transition = 'transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                        // reel.style.transform = `translateY(${startPosition - randomOffset}px)`;
+                        // setTimeout(resolve, 800);
+                        if(time<100){
+                        i=i>=imageUrls.length ?0:i+1/time;
+                        const randomOffset = ( i>=imageUrls.length? 0: i)* 300;
+                        if(i===0){reel.style.transition='none';}
+                        reel.style.transform = `translateY(${startPosition - randomOffset}px)`;
+                        // setTimeout(animate, time);
+                        requestAnimationFrame(animate);
+                        time+=1;
+                        }
+                        else{
+                        //i=i>=imageUrls.length-1 ?0:i+0.1;
+                        const randomOffset =( Math.round(i)>=imageUrls.length? 0: Math.round(i))* 300;
+                        // reel.style.transition = 'transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                        // reel.style.transform = `translateY(${startPosition - randomOffset}px)`;
+                        reel.style.transition = 'transform 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55)';
+                        if(randomOffset===0){reel.style.transition='none';}
+                        reel.style.transform = `translateY(${startPosition - randomOffset}px)`;
+                        setTimeout(resolve, 1200);
+                        }
+                    }
+                }
+                
+                reel.style.transition = 'none';
+                animate();
+            });
+        }
+        
+        // 开始旋转
+        async function spin() {
+            if (isSpinning || chanceCount <= 0) return;
+            
+            isSpinning = true;
+            chanceCount--;
+            updateUI();
+            
+            //spinBtn.disabled = true;
+            spinBtn.textContent = '结束';
+            resultDiv.textContent = '...';
+            resultDiv.classList.remove('win');
+            
+            // 为每个转轴设置不同的停止位置
+            const finalPositions = [];
+            for (let i = 0; i < 3; i++) {
+                finalPositions.push(-300 * Math.floor(Math.random() * 5));
+            }
+            
+            // 逐个启动转轴动画（有轻微延迟）
+            const spinPromises = reels.map((reel, index) => {
+                return new Promise(resolve => {
+                    setTimeout(async () => {
+                        await spinReel(reel, 2000 + Math.random() * 1000, finalPositions[index]);
+                        resolve();
+                    }, index * 300);
+                });
+            });
+            
+            // 等待所有转轴停止
+            await Promise.all(spinPromises);
+            
+            // 检查结果
+            checkResult(finalPositions);
+            
+            // 重置按钮状态
+            spinBtn.disabled = false;
+            spinBtn.textContent = '开始';
+            isSpinning = false;
+            
+            if (chanceCount <= 0) {
+                spinBtn.disabled = true;
+                spinBtn.textContent = '机会已用完';
+                resultDiv.textContent = '游戏结束！点击重置按钮重新开始';
+            }
+        }
+        
+        // 检查结果
+        function checkResult(positions) {
+
+            const img1 = reels[0]//getCurrentImage(reels[0]);
+            const img2 = reels[1]//getCurrentImage(reels[1]);
+            const img3 = reels[2]//getCurrentImage(reels[2]);
+
+            if (window.getComputedStyle(img1).transform === window.getComputedStyle(img2).transform && window.getComputedStyle(img2).transform === window.getComputedStyle(img3).transform) {
+                resultDiv.textContent = '🎉 恭喜！三个图案匹配！获得额外5次机会！';
+                resultDiv.classList.add('win');
+                chanceCount += 5;
+                updateUI();
+                
+                // 添加获胜动画效果
+                reels.forEach(reel => {
+                    reel.style.boxShadow = '0 0 20px gold';
+                    setTimeout(() => {
+                        reel.style.boxShadow = 'none';
+                    }, 1000);
+                });
+            } else {
+                resultDiv.textContent = '继续尝试！';
+                resultDiv.classList.remove('win');
+            }
+        }
+        
+        // 更新UI
+        function updateUI() {
+            chanceCountSpan.textContent = chanceCount;
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            chanceCount = 10;
+            isSpinning = false;
+            spinBtn.disabled = false;
+            spinBtn.textContent = '开始';
+            resultDiv.textContent = '游戏已重置';
+            resultDiv.classList.remove('win');
+            initSlotMachine();
+        }
+        
+        // 切换模式
+        function setMode(mode) {
+            currentMode = mode;
+            modeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            initSlotMachine();
+        }
+        function spinn(){
+          if(document.getElementById('spinBtn').textContent==='开始'){spin();}
+          else if(document.getElementById('spinBtn').textContent==='结束'){document.getElementById('spinBtn').textContent='开始'}
+        }
+        // 事件监听
+        spinBtn.addEventListener('click', spinn);
+        
+        resetBtn.addEventListener('click', resetGame);
+        
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => setMode(btn.dataset.mode));
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' && !isSpinning && chanceCount > 0) {
+                e.preventDefault();
+                spin();
+            }
+        });
+        
+        // 初始化游戏
+        initSlotMachine();
+    </script>
+</body>
+</html>
