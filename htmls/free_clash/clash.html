@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动下载Clash配置</title>
+    <script>
+        // 页面加载完成后自动触发下载
+        window.onload = function() {
+            // 创建YAML配置内容
+            const yamlConfig = `
+# Clash配置文件 - 自动生成
+mixed-port: 7890
+socks-port: 7891
+mode: rule
+log-level: info
+
+proxies:
+  - name: "默认节点"
+    type: vmess
+    server: example.com
+    port: 443
+    uuid: 12345678-1234-1234-1234-123456789abc
+    alterId: 0
+    cipher: auto
+    tls: true
+
+proxy-groups:
+  - name: 🚀 自动选择
+    type: url-test
+    proxies:
+      - 默认节点
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+
+rules:
+  - DOMAIN-SUFFIX,google.com,🚀 自动选择
+  - GEOIP,CN,DIRECT
+  - MATCH,🚀 自动选择
+`;
+
+            // 创建Blob对象
+            const blob = new Blob([yamlConfig], { type: 'application/yaml' });
+            
+            // 创建下载链接
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = 'clash-config.yaml';
+            
+            // 触发点击下载
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            
+            // 清理内存
+            setTimeout(() => {
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(downloadLink.href);
+            }, 100);
+            
+            // 显示提示信息（可选）
+            const info = document.createElement('div');
+            info.innerHTML = '<p style="color:green;font-size:18px">配置文件已开始下载，如果未自动弹出请<a href="#" onclick="retryDownload()">点击这里</a></p>';
+            document.body.appendChild(info);
+        };
+        
+        // 重新下载函数
+        function retryDownload() {
+            window.onload(); // 再次执行下载逻辑
+            return false;
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clash配置下载器</h1>
+        <p>您的配置文件应该已经开始自动下载...</p>
+        <p>如果浏览器阻止了自动下载，请：</p>
+        <ul style="text-align: left; display: inline-block;">
+            <li>检查浏览器下载设置</li>
+            <li>尝试允许弹出窗口</li>
+            <li>或<a href="#" onclick="retryDownload()">手动点击下载</a></li>
+        </ul>
+    </div>
+</body>
+</html>
