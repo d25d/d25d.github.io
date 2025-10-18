@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>vivo手机桌面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            user-select: none;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1085/2155;
+            max-width: 100%;
+            max-height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        .phone-screen {
+            width: 100%;
+            /*max-width: 400px;*/
+            height: 100%;
+            /*max-height: 800px;*/
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 状态栏 */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px 8px;
+            /* font-size: 14px; */
+            font-weight: 500;
+            color: white;
+            z-index: 10;
+        }
+        
+        /* 时间日期区域 */
+        .time-display {
+            position: absolute;
+            top: 12%;
+            left: 0;
+            width: 100%;
+            height:15%;
+            text-align: center;
+            color: white;
+        }
+        
+        .current-time {
+            height:60%;
+            /* font-size: 64px; */
+            /* font-weight: 300; */
+            /* letter-spacing: -2px;
+            margin-bottom: 5px; */
+        }
+        
+        .date-info {
+            height:20%;
+            /* font-size: 18px; */
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .weather-info {
+            height:20%;
+            /* font-size: 16px; */
+            opacity: 0.8;
+        }
+        
+        /* 应用页面容器 */
+        .app-pages-container {
+            position: absolute;
+            top: 10%;
+            left: 0;
+            width: 300%;
+            height: 70%;
+            display: flex;
+            transition: transform 0.3s ease;
+        }
+        
+        .app-page {
+            width: 33.333%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            gap: 2px;
+            place-items: center; /* 同时实现水平和垂直居中 */
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        
+        .app-icon {
+            width:60%;
+            
+            aspect-ratio: 1/1; /* 宽高比1:1，高度会自动等于宽度 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* margin-bottom: 8px; */
+            font-size: 80px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-name {
+            font-size: 3vw;
+            color: white;
+            opacity: 0.9;
+            text-align: center;
+        }
+        
+        /* 页面指示器 */
+        .page-indicator {
+            position: absolute;
+            bottom: 15%;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: background-color 0.3s;
+        }
+        
+        .indicator-dot.active {
+            background-color: white;
+        }
+        
+        /* 底部导航栏 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 4%;
+            left: 0;
+            width: 100%;
+            height:7%;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 10%;
+        }
+        
+        .nav-icon {
+            width:80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .nav-icon .icon {
+            width: 10vw;
+            aspect-ratio: 1/1; /* 宽高比1:1，高度会自动等于宽度 */
+            /* margin-bottom: 5px; */
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            align-items: center;     /* 垂直居中 */
+        }
+        
+        .nav-icon .app-name {
+            font-size: 3vw;
+        }
+        
+        /* 背景山脉 */
+        .mountains {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to top, #0a192f 0%, transparent 100%);
+            clip-path: polygon(0% 100%, 10% 70%, 20% 80%, 30% 60%, 40% 85%, 50% 50%, 60% 75%, 70% 55%, 80% 90%, 90% 65%, 100% 100%);
+            opacity: 0.4;
+            z-index: -1;
+        }
+        
+        /* 应用图标样式 */
+        .app-store { background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%); }
+        .music { background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%); }
+        .calendar { background: linear-gradient(135deg, #FFD166 0%, #FFB347 100%); }
+        .theme { background: linear-gradient(135deg, #06D6A0 0%, #04A777 100%); }
+        .alarm { background: linear-gradient(135deg, #118AB2 0%, #0A6E8F 100%); }
+        .settings { background: linear-gradient(135deg, #EF476F 0%, #D90429 100%); }
+        .lock { background: linear-gradient(135deg, #7209B7 0%, #560BAD 100%); }
+        .tools { background: linear-gradient(135deg, #F48C06 0%, #DC6B19 100%); }
+        .manager { background: linear-gradient(135deg, #9D4EDD 0%, #7B2CBF 100%); }
+        .qq { background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%); }
+        .wechat { background: linear-gradient(135deg, #43AA8B 0%, #2D936C 100%); }
+        .gallery { background: linear-gradient(135deg, #F94144 0%, #D00000 100%); }
+        .phone { background: linear-gradient(135deg, #277DA1 0%, #1D3557 100%); }
+        .message { background: linear-gradient(135deg, #F8961E 0%, #F3722C 100%); }
+        .browser { background: linear-gradient(135deg, #577590 0%, #4D6082 100%); }
+        .camera { background: linear-gradient(135deg, #F9844A 0%, #F9C74F 100%); }
+        .email { background: linear-gradient(135deg, #9B5DE5 0%, #7B2CBF 100%); }
+        .maps { background: linear-gradient(135deg, #00BBF9 0%, #0077B6 100%); }
+        .notes { background: linear-gradient(135deg, #F15BB5 0%, #C2185B 100%); }
+        .calculator { background: linear-gradient(135deg, #00F5D4 0%, #00A896 100%); }
+        .files { background: linear-gradient(135deg, #FEE440 0%, #F9C74F 100%); }
+        .downloads { background: linear-gradient(135deg, #FB5607 0%, #D00000 100%); }
+        .games { background: linear-gradient(135deg, #8338EC 0%, #560BAD 100%); }
+        .health { background: linear-gradient(135deg, #3A86FF 0%, #1D3557 100%); }
+        .wallet { background: linear-gradient(135deg, #FF006E 0%, #9D0208 100%); }
+        .translate { background: linear-gradient(135deg, #38B000 0%, #2D936C 100%); }
+        .recorder { background: linear-gradient(135deg, #FF9E00 0%, #DC6B19 100%); }
+        .compass { background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%); }
+        .books { background: linear-gradient(135deg, #7209B7 0%, #560BAD 100%); }
+        .podcasts { background: linear-gradient(135deg, #F48C06 0%, #DC6B19 100%); }
+        .news { background: linear-gradient(135deg, #EF476F 0%, #D90429 100%); }
+        
+        /* 交互效果 */
+        .app-icon, .nav-icon {
+            transition: transform 0.2s;
+        }
+        
+        .app-icon:active, .nav-icon:active {
+            transform: scale(0.9);
+        }
+        
+        /* 说明区域 */
+        .explanation {
+            position: absolute;
+            bottom: -40%;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            box-sizing: border-box;
+            transition: bottom 0.3s;
+            z-index: 20;
+        }
+        
+        .explanation.show {
+            bottom: 0;
+        }
+        
+        .explanation h3 {
+            margin-bottom: 10px;
+        }
+        
+        .explanation p {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .toggle-explanation {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 30;
+        }
+        @media (max-aspect-ratio: 1085/2155) {
+            body {
+                width: auto;
+                height: 100%;
+            }
+        }
+        
+        @media (min-aspect-ratio: 1085/2155) {
+            body {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-screen">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div>4G</div>
+            <div>80.5K/s</div>
+        </div>
+        
+        <!-- 时间日期显示 -->
+        <!-- <div class="time-display">
+            <div class="current-time" id="currentTime">14:15</div>
+            <div class="date-info" id="currentDate">6月18日 星期日</div>
+            <div class="weather-info" id="weatherInfo">28℃ 中国</div>
+        </div> -->
+        
+        <!-- 应用页面容器 -->
+        <div class="app-pages-container" id="appPages">
+            <!-- 第一页应用 -->
+            <div class="app-page" id="page1">
+                <div class="app-icon">
+                    <div class="icon app-store">商</div>
+                    <div class="app-name">应用商店</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon music">音</div>
+                    <div class="app-name">i音乐</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon calendar">历</div>
+                    <div class="app-name">日历</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon theme">主</div>
+                    <div class="app-name">i主题</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon alarm">闹</div>
+                    <div class="app-name">闹钟时钟</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon settings">设</div>
+                    <div class="app-name">设置</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon lock">锁</div>
+                    <div class="app-name">一键锁屏</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon tools">工</div>
+                    <div class="app-name">工具</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon manager">管</div>
+                    <div class="app-name">i管家</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon qq">Q</div>
+                    <div class="app-name">QQ</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon wechat">微</div>
+                    <div class="app-name">微信</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon gallery">相</div>
+                    <div class="app-name">相册</div>
+                </div>
+            </div>
+            
+            <!-- 第二页应用 -->
+            <div class="app-page" id="page2">
+                <div class="app-icon">
+                    <div class="icon email">邮</div>
+                    <div class="app-name">邮件</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon maps">地</div>
+                    <div class="app-name">地图</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon notes">笔</div>
+                    <div class="app-name">备忘录</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon calculator">计</div>
+                    <div class="app-name">计算器</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon files">文</div>
+                    <div class="app-name">文件管理</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon downloads">下</div>
+                    <div class="app-name">下载</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon games">游</div>
+                    <div class="app-name">游戏中心</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon health">健</div>
+                    <div class="app-name">健康</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon wallet">钱</div>
+                    <div class="app-name">钱包</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon translate">翻</div>
+                    <div class="app-name">翻译</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon recorder">录</div>
+                    <div class="app-name">录音机</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon compass">指</div>
+                    <div class="app-name">指南针</div>
+                </div>
+            </div>
+            
+            <!-- 第三页应用 -->
+            <div class="app-page" id="page3">
+                <div class="app-icon">
+                    <div class="icon books">书</div>
+                    <div class="app-name">图书</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon podcasts">播</div>
+                    <div class="app-name">播客</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon news">新</div>
+                    <div class="app-name">新闻</div>
+                </div>
+                <div class="app-icon">
+                    <div class="icon app-store">更</div>
+                    <div class="app-name">更多应用</div>
+                </div>
+                <!-- 空位 -->
+                <div class="app-icon"></div>
+                <div class="app-icon"></div>
+                <div class="app-icon"></div>
+                <div class="app-icon"></div>
+                <div class="app-icon"></div>
+                <div class="app-icon"></div>
+                <div class="app-icon"></div>
+                <div class="app-icon"></div>
+            </div>
+        </div>
+        
+        <!-- 页面指示器 -->
+        <div class="page-indicator">
+            <div class="indicator-dot active" data-page="0"></div>
+            <div class="indicator-dot" data-page="1"></div>
+            <div class="indicator-dot" data-page="2"></div>
+        </div>
+        
+        <!-- 底部导航栏 -->
+        <div class="bottom-nav">
+            <div class="nav-icon">
+                <div class="icon phone">电</div>
+                <div class="app-name">电话</div>
+            </div>
+            <div class="nav-icon">
+                <div class="icon message">信</div>
+                <div class="app-name">信息</div>
+            </div>
+            <div class="nav-icon">
+                <div class="icon browser">浏</div>
+                <div class="app-name">浏览器</div>
+            </div>
+            <div class="nav-icon">
+                <div class="icon camera">相</div>
+                <div class="app-name">相机</div>
+            </div>
+        </div>
+        
+        <!-- 背景山脉 -->
+        <div class="mountains"></div>
+        
+        
+    </div>
+
+    <script>
+        // 更新时间显示
+        // function updateTime() {
+        //     const now = new Date();
+        //     const hours = now.getHours().toString().padStart(2, '0');
+        //     const minutes = now.getMinutes().toString().padStart(2, '0');
+        //     document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        // }
+        
+        // 更新日期显示
+        // function updateDate() {
+        //     const now = new Date();
+        //     const month = now.getMonth() + 1;
+        //     const day = now.getDate();
+        //     const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        //     const weekday = weekdays[now.getDay()];
+        //     document.getElementById('currentDate').textContent = `${month}月${day}日 ${weekday}`;
+        // }
+        
+        // 滑动切换功能
+        let currentPage = 0;
+        const totalPages = 3;
+        const appPages = document.getElementById('appPages');
+        const indicatorDots = document.querySelectorAll('.indicator-dot');
+        let startX = 0;
+        let currentX = 0;
+        let isSwiping = false;
+        
+        // 切换到指定页面
+        function goToPage(pageIndex) {
+            if (pageIndex < 0 || pageIndex >= totalPages) return;
+            
+            currentPage = pageIndex;
+            appPages.style.transform = `translateX(-${currentPage * 33.33}%)`;
+            
+            // 更新指示器
+            indicatorDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentPage);
+            });
+        }
+        
+        // 触摸事件处理
+        appPages.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            currentX = startX;
+            isSwiping = true;
+        });
+        
+        appPages.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            
+            currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+            
+            // 限制滑动范围
+            if ((currentPage === 0 && diff > 0) || (currentPage === totalPages - 1 && diff < 0)) {
+                return;
+            }
+            
+            // 实时跟随手指移动
+            appPages.style.transform = `translateX(calc(-${currentPage * 33.33}% + ${diff}px))`;
+        });
+        
+        appPages.addEventListener('touchend', () => {
+            if (!isSwiping) return;
+            
+            isSwiping = false;
+            const diff = currentX - startX;
+            const threshold = 50; // 滑动阈值
+            
+            if (Math.abs(diff) > threshold) {
+                if (diff < 0 && currentPage < totalPages - 1) {
+                    // 向左滑动，切换到下一页
+                    goToPage(currentPage + 1);
+                } else if (diff > 0 && currentPage > 0) {
+                    // 向右滑动，切换到上一页
+                    goToPage(currentPage - 1);
+                } else {
+                    // 回到当前页
+                    goToPage(currentPage);
+                }
+            } else {
+                // 滑动距离不足，回到当前页
+                goToPage(currentPage);
+            }
+        });
+        
+        // 指示器点击切换
+        indicatorDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const pageIndex = parseInt(dot.getAttribute('data-page'));
+                goToPage(pageIndex);
+            });
+        });
+        
+        // 添加应用图标点击效果
+        // document.querySelectorAll('.app-icon, .nav-icon').forEach(icon => {
+        //     icon.addEventListener('click', function() {
+        //         if (this.querySelector('.app-name')) {
+        //             const appName = this.querySelector('.app-name').textContent;
+        //             alert(`打开${appName}`);
+        //         }
+        //     });
+        // });
+        
+       
+        
+        // 初始化
+        updateTime();
+        updateDate();
+        
+        // 每秒更新时间
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
