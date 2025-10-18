@@ -129,7 +129,7 @@
             justify-content: center;
             align-items: center;
             /* margin-bottom: 8px; */
-            font-size: 80px;
+            font-size: 5vw;
             font-family: Verdana, Geneva, Tahoma, sans-serif;
             color: white;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -314,6 +314,7 @@
     <div class="phone-screen">
         <!-- 状态栏 -->
         <div class="status-bar">
+            <div class="current-time" id="currentTime">14:15</div>
             <div>4G</div>
             <div>80.5K/s</div>
         </div>
@@ -496,12 +497,12 @@
 
     <script>
         // 更新时间显示
-        // function updateTime() {
-        //     const now = new Date();
-        //     const hours = now.getHours().toString().padStart(2, '0');
-        //     const minutes = now.getMinutes().toString().padStart(2, '0');
-        //     document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
-        // }
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        }
         
         // 更新日期显示
         // function updateDate() {
@@ -603,7 +604,7 @@
         
         // 初始化
         updateTime();
-        updateDate();
+        // updateDate();
         
         // 每秒更新时间
         setInterval(updateTime, 1000);
