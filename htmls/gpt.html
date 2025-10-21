@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大模型问答</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+    <style>
+        :root {
+            --my-width: 15px;
+        }
+        @media (max-width: 1090px) {
+            :root {
+                --my-width: 3vw;
+            }
+        }
+        body { 
+            font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; 
+            font-size: var(--my-width);
+        }
+        #chatBox { 
+            width: 90vw; 
+            height: 80vh; 
+            border: 1px solid #ccc; 
+            background: #fff; 
+            padding: 10px; 
+            overflow-y: auto; 
+            margin-bottom: 10px; 
+            word-wrap: break-word; /* 自动换行 */
+            white-space: normal;  /* 使内容正常显示 */
+        }
+        .message { 
+            margin: 10px 0; 
+            padding: 8px 12px; 
+            border-radius: 10px; 
+            max-width: 80%; 
+            word-wrap: break-word;
+        }
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 5px;
+            font-size : var(--my-width);
+        }
+        .user { background: #dcf8c6; align-self: flex-end; margin-left: auto; }
+        .ai { background: #ececec; align-self: flex-start; margin-right: auto; }
+        #inputContainer { display: flex; }
+        #inputField { flex: 1; padding: 8px; 
+         font-size: var(--my-width);
+    }
+        #sendBtn { padding: 8px 12px; 
+         font-size: var(--my-width);
+    }
+
+        /* 特殊样式：代码显示 */
+        .code {
+            background-color: #f4f4f4;
+            padding: 8px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #333;
+            white-space: pre-wrap; /* 保证代码换行 */
+            border: 1px solid #ccc;
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chatBox"></div>
+
+<div id="inputContainer">
+    <textarea id="inputField" rows="4" placeholder="输入你的问题..."></textarea>
+    <button id="sendBtn">发送</button>
+</div>
+
+
+<script>
+    const chatBox = document.getElementById("chatBox");
+    const inputField = document.getElementById("inputField");
+    const sendBtn = document.getElementById("sendBtn");
+
+     // 获取当前时间
+    function getCurrentTime() {
+        const now = new Date();
+        return `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+    }
+
+    // 处理消息，检查是否包含代码
+    function handleMessage(text, sender) {
+        const message = document.createElement("div");
+        message.className = `message ${sender}`;
+
+        
+
+        // 检测是否包含代码
+        const codeRegex = /`{3}([\s\S]*?)`{3}|<code>([\s\S]*?)<\/code>/g;
+        const codeMatch = text.match(codeRegex);
+
+        // if (codeMatch) {
+        //     // 如果包含代码，替换为 code 格式
+        //     text = text.replace(codeRegex, (match, p1, p2) => {
+        //         const codeContent = p1 || p2;
+        //         return `<div class="code">${codeContent}</div>`;
+        //     });
+        //     message.innerHTML = text; // 使用 innerHTML 来插入 HTML（包含代码块）
+        // } else {
+            marked.setOptions({
+                renderer: new marked.Renderer(),
+                highlight: function(code) {
+                    return hljs.highlightAuto(code).value;  // 使用 highlight.js
+                }
+            });
+            message.innerHTML = marked.parse(text); // 普通消息
+        // }
+
+        // 添加时间戳
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'message-time';
+        timeDiv.textContent = getCurrentTime();
+        message.appendChild(timeDiv);
+
+        chatBox.appendChild(message);
+        chatBox.scrollTop = chatBox.scrollHeight; // 滚动到底部
+    }
+
+    // 获取输入并发送
+    async function fetchData() {
+        sendBtn.disabled = true;
+        const userInput = inputField.value.trim();
+        if (!userInput) {sendBtn.disabled = false;return;}
+
+        // 显示用户消息
+        handleMessage(userInput, "user");
+        inputField.value = ""; // 清空输入框
+
+        // AI 回答
+        const aiReply = await generateAIResponse(userInput);
+        await handleMessage(aiReply, "ai");
+        sendBtn.disabled = false;
+    }
+
+    // 模拟 AI 生成的回答
+    async function generateAIResponse(userInput) {
+    const url = 'https://api.siliconflow.cn/v1/chat/completions';
+    const options = {
+        method: 'POST',
+        headers: {
+            Authorization: 'Bearer sk-dcfasnklmidbynugoftyfizlrjrjhcgvfruewojpmxaqaxrm',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: "Qwen/Qwen3-30B-A3B",
+            messages: [{ role: "user", content: userInput }],
+            stream: false,
+            max_tokens: 4096,
+            enable_thinking: false,
+            thinking_budget: 4096,
+            min_p: 0.05,
+            stop: null,
+            temperature: 0.7,
+            top_p: 0.7,
+            top_k: 50,
+            frequency_penalty: 0.5,
+            n: 1,
+            response_format: { type: "text" },
+            tools: [{ type: "function", function: { description: "<string>", name: "<string>", parameters: {}, strict: false } }]
+        })    
+    };
+
+    try {
+        const response = await fetch(url, options);  // 等待请求完成
+        const data = await response.json(); // 等待数据解析
+        //console.log(data.choices[0].message.content);
+        // 返回数据的 content 部分
+        return data.choices[0].message.content;
+    } catch (error) {
+        console.error(error);
+        return "发生了错误，无法获取AI回答。";
+    }
+}
+
+
+    // 绑定发送按钮的点击事件
+    sendBtn.addEventListener("click", fetchData);
+
+    // 绑定回车键和 shift + Enter 的行为
+    inputField.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            // 按回车时发送消息，Shift+Enter不触发
+            e.preventDefault(); // 防止默认换行
+            fetchData();
+        }
+    });
+
+</script>
+
+</body>
+</html>
