@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height:100vh;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: row;
+        }
+        h1 {
+            width:10vw;
+            text-align: center;
+            color: #4CAF50;
+        }
+        .container {
+            width:70vw;
+            height:95%;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .right {
+            width: 20vw;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .chat-box {
+            width: 100%;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-container {
+            /* flex: 1; */
+            overflow-y: auto;
+            /* max-height: 300px; */
+            height:90%;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .local {
+            background-color: #d4edda;
+            text-align: right;
+        }
+        .remote {
+            background-color: #f8d7da;
+            text-align: left;
+        }
+        .system {
+            color: #6c757d;
+            font-style: italic;
+        }
+        input[type="text"] {
+            width: calc(100% - 100px);
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #008d05;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+        .peer-info {
+            text-align: right;
+            font-size: 14px;
+            color: #4CAF50;
+            margin-top: 10px;
+        }
+        .steps {
+            font-size: 14px;
+            color: #777;
+            margin-top: 20px;
+        }
+        .steps .step {
+            margin-bottom: 10px;
+        }
+        .step.active {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        #step-3-container{
+            height:3%;
+        }
+        #message-input {
+            display: inline-block;
+            width:80%;
+            height: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+            vertical-align: middle; /*垂直居中*/
+        }
+        #send-button {
+            display: inline-block;
+            width: 5%;
+            aspect-ratio: 1; /* 设置宽高比为 1:1 */
+            padding: 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            vertical-align: middle; /*垂直居中*/
+        }
+        .file-input {
+            width: 5%;
+            aspect-ratio: 1; /* 设置宽高比为 1:1 */
+            display: inline-block;
+            vertical-align: middle; /*垂直居中*/
+        }
+        .file-upload-label {
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .file-upload-label img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>介怀</h1>
+    <div class="container">
+        <div class="chat-box">
+            <div class="peer-info" id="peer-info">我的ID: </div>
+            <div id="chat-container"></div>
+
+            <!-- 消息输入框 -->
+            <div id="step-3-container" style="display: none;">
+                <input type="text" id="message-input" placeholder="输入消息..." >
+                <button id="send-button" >发送</button>
+                
+                <!-- 文件上传 -->
+                <div class="file-input">
+                    <label for="file-input" class="file-upload-label" style="cursor: pointer;">
+                        <img style="width: 40px;height:40px;" src="https://pic.616pic.com/ys_bnew_img/00/21/47/PmjaKcHmYB.jpg" alt="上传文件" />
+                    </label>
+                    <input type="file" id="file-input" accept="image/*,video/*">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="right">
+        <!-- 步骤菜单 -->
+        <div class="steps">
+            <div class="step active" id="step-1">步骤 1: 创建ID</div>
+            <div class="step" id="step-2">步骤 2: 输入对方的ID并连接</div>
+            <div class="step" id="step-3">步骤 3: 开始聊天</div>
+        </div>
+
+        <!-- 创建Peer的输入框 -->
+        <div id="step-1-container">
+            <input type="text" id="custom-peer-id" placeholder="输入自定义ID（可选）">
+            <button id="create-peer-button">创建</button>
+        </div>
+
+        <!-- 连接输入框 -->
+        <div id="step-2-container" style="display: none;">
+            <input type="text" id="peer-id" placeholder="输入对方的Peer ID">
+            <button id="connect-button">连接</button>
+        </div>
+    </div>
+
+    <script>
+        let peer;
+        let conn;
+
+        // 创建Peer实例，并显示用户ID
+        document.getElementById('create-peer-button').onclick = () => {
+            const customId = document.getElementById('custom-peer-id').value.trim();
+            peer = customId ? new Peer(customId) : new Peer();  // 如果自定义ID不为空，则使用该ID，否则自动生成ID
+
+            peer.on('open', (id) => {
+                document.getElementById('peer-info').innerText = 'ID: ' + id;
+                setStep(2);  // 完成步骤1后跳到步骤2
+            });
+
+            peer.on('connection', (connection) => {
+                conn = connection;
+                conn.on('open', () => {
+                    addMessage('系统', '连接已建立', 'system');
+                    setStep(3);  // 完成步骤2后跳到步骤3
+
+                    conn.on('data', (data) => {
+                        if (data.type === 'file') {
+                            addMessage(conn.peer, '发送了文件', 'remote');
+                            handleFileReceived(data.content);
+                        } else {
+                            addMessage(conn.peer, data, 'remote');
+                        }
+                    });
+                });
+            });
+        };
+
+        // 连接按钮点击事件
+        document.getElementById('connect-button').onclick = () => {
+            const peerId = document.getElementById('peer-id').value.trim();
+            if (!peerId) {
+                alert('请输入有效的Peer ID');
+                return;
+            }
+
+            conn = peer.connect(peerId);
+            conn.on('open', () => {
+                addMessage('系统', '连接已建立', 'system');
+                setStep(3);  // 完成步骤2后跳到步骤3
+
+                conn.on('data', (data) => {
+                    if (data.type === 'file') {
+                        addMessage(conn.peer, '发送了文件', 'remote');
+                        handleFileReceived(data.content);
+                    } else {
+                        addMessage(conn.peer, data, 'remote');
+                    }
+                });
+            });
+
+            conn.on('error', (err) => {
+                alert('连接失败: ' + err);
+            });
+        };
+
+        // 发送按钮点击事件
+        document.getElementById('send-button').onclick = () => {
+            const message = document.getElementById('message-input').value;
+            if (message && conn && conn.open) {
+                conn.send(message);
+                addMessage(peer.id, message, 'local');
+                document.getElementById('message-input').value = '';
+            }
+        };
+
+        // 发送文件按钮点击事件//选择文件之后自动发文件
+        // 获取文件输入框
+        const fileInput = document.getElementById('file-input');
+        // 监听文件选择变化事件
+        fileInput.addEventListener('change', function(event) {
+            const file = fileInput.files[0];
+            if (file && conn && conn.open) {
+                const reader = new FileReader();
+                reader.onload = (eventt) => {
+                    const fileContent = eventt.target.result;
+                    conn.send({ type: 'file', content: fileContent });
+                    addMessage(peer.id, '发送了一个文件', 'local');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 处理接收到的文件
+        function handleFileReceived(fileData) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message remote';
+
+            const fileType = fileData.substring(5, fileData.indexOf('/'));
+            if (fileType === 'image') {
+                const img = document.createElement('img');
+                img.src = fileData;
+                img.style.maxWidth = '300px';
+                messageDiv.appendChild(img);
+            } else if (fileType === 'video') {
+                const video = document.createElement('video');
+                video.src = fileData;
+                video.controls = true;
+                video.style.maxWidth = '300px';
+                messageDiv.appendChild(video);
+            }
+
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;  // 滚动到底部
+        }
+
+        // 添加消息到聊天窗口
+        function addMessage(sender, text, type) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;  // 滚动到底部
+        }
+
+        // 设置步骤状态
+        function setStep(stepNumber) {
+            const steps = document.querySelectorAll('.step');
+            steps.forEach((step, index) => {
+                if (index + 1 === stepNumber) {
+                    step.classList.add('active');
+                    step.style.fontWeight = 'bold';
+                } else {
+                    step.classList.remove('active');
+                    step.style.fontWeight = 'normal';
+                }
+            });
+
+            // 根据步骤显示相应的界面
+            switch (stepNumber) {
+                case 1:
+                    document.getElementById('step-1-container').style.display = 'block';
+                    document.getElementById('step-2-container').style.display = 'none';
+                    document.getElementById('step-3-container').style.display = 'none';
+                    break;
+                case 2:
+                    document.getElementById('step-1-container').style.display = 'none';
+                    document.getElementById('step-2-container').style.display = 'block';
+                    document.getElementById('step-3-container').style.display = 'none';
+                    break;
+                case 3:
+                    document.getElementById('step-1-container').style.display = 'none';
+                    document.getElementById('step-2-container').style.display = 'none';
+                    document.getElementById('step-3-container').style.display = 'block';
+                    break;
+                default:
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
