@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝色机甲核心展示</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0a0a1a, #1a1a3a);
+            font-family: Arial, sans-serif;
+        }
+        #container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            z-index: 100;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        button {
+            background: #3a5a78;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #4a7a98;
+        }
+    </style>
+</head>
+<body>
+    <!-- <iframe frameborder="0" src="https://3dview.laozicloud.com/inset/general?id=ccf5c39082b94b78a4405b6f52b7b232"></iframe> -->
+    <div id="loading">加载机甲模型中...</div>
+    <div id="container"></div>
+    <!-- 模型选择和加载状态区域 -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000; color: white;">
+    <label for="modelFile" style="font-size: 16px; margin-right: 10px;">选择本地.glb模型：</label>
+    <input type="file" id="modelFile" accept=".glb" style="display: inline-block; padding: 5px; background: #333; color: white; border: none; border-radius: 4px;">
+    <div id="loadStatus" style="margin-top: 10px; font-size: 14px;">未选择文件</div>
+    </div>
+    <div id="controls">
+        <button id="rotateHead">旋转头部</button>
+        <button id="rotateArms">旋转手臂</button>
+        <button id="reset">重置姿势</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script type="module">
+        import { GLTFLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader";
+        import { Sky } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/objects/Sky.js";
+
+        function getObjectRealHeight(object) {
+            // 1. 创建包围盒（用于包裹物体所有顶点）
+            const boundingBox = new THREE.Box3();
+
+            // 2. 计算物体的包围盒（关键：递归包含所有子物体）
+            if (object.isMesh) {
+                boundingBox.setFromObject(object);
+            } else {
+                object.traverse((child) => {
+                    if (child.isMesh) {
+                        boundingBox.expandByObject(child);
+                    }
+                });
+            }
+
+            // ---------------- 核心添加：包围盒红色线框可视化 ----------------
+            // 先移除物体上已存在的线框（避免重复创建，导致线框堆积）
+            if (object.userData.boundingBoxHelper) {
+                object.remove(object.userData.boundingBoxHelper);
+            }
+
+            // 创建红色线框辅助器（Box3Helper：基于包围盒生成线框）
+            const boxHelper = new THREE.Box3Helper(
+                boundingBox,        // 绑定计算出的包围盒
+                0xff0000            // 线框颜色：红色（#ff0000）
+            );
+            boxHelper.linewidth = 2; // 线框宽度（2px，清晰可见）
+
+            // 存储线框到物体的 userData 中（方便后续移除）
+            object.userData.boundingBoxHelper = boxHelper;
+            // 将线框添加到物体上（跟随物体移动、旋转，不会错位）
+            object.add(boxHelper);
+            // ----------------------------------------------------------------
+
+            // 3. 计算包围盒的尺寸
+            const size = new THREE.Vector3();
+            boundingBox.getSize(size);
+
+            // 4. 考虑世界缩放
+            const worldScale = new THREE.Vector3();
+            object.getWorldScale(worldScale);
+            const realHeight = size.y * worldScale.y;
+
+            // 打印关键信息（辅助调试：对比线框和日志）
+            // console.log("计算的包围盒范围：");
+            // console.log("底部 Y 坐标：", boundingBox.min.y);
+            // console.log("顶部 Y 坐标：", boundingBox.max.y);
+            // console.log("计算高度：", realHeight);
+
+            return realHeight;
+        }
+        // -------------- 参考刻度柱生成函数（可直接复制使用）--------------
+        function createHeightReferencePole() {
+            // 1. 创建刻度柱的父容器（方便统一管理，后续可整体移动/隐藏）
+            const poleGroup = new THREE.Group();
+            poleGroup.position.set(0, 0, 0); // 刻度柱放在 X=-5 位置（避免和模型重叠，可按需调整）
+
+            // 2. 创建主柱子（高度10，半径0.1，白色半透明）
+            const poleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 10, 32); // 圆柱：上底半径、下底半径、高度、分段数
+            const poleMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xffffff, 
+                transparent: true, 
+                opacity: 0.7 // 半透明，不遮挡模型
+            });
+            const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+            // 圆柱默认中心点在中间（Y=5），调整锚点到底部（Y=0）
+            pole.position.y = 5; 
+            poleGroup.add(pole);
+
+            // 3. 添加刻度标记（每1单位一个红色小球）和数字标签
+            for (let height = 1; height <= 10; height++) {
+                // 3.1 红色标记点（半径0.15，比柱子粗，显眼）
+                const markerGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+                const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // 红色不透明，醒目
+                const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+                marker.position.set(0, height, 0); // 标记点在当前高度的 Y 轴位置
+                poleGroup.add(marker);
+
+                // 3.2 数字标签（显示当前高度，如 "1"、"2"...）
+                // 创建 canvas 作为标签纹理（Three.js 中文字需通过 canvas 实现）
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 128;
+                canvas.height = 64;
+
+                // 设置文字样式（白色字体，黑色背景，居中显示）
+                ctx.fillStyle = '#000000'; // 黑色背景
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ffffff'; // 白色文字
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(height.toString(), canvas.width / 2, canvas.height / 2);
+
+                // 将 canvas 转为 Three.js 纹理
+                const texture = new THREE.CanvasTexture(canvas);
+                const labelMaterial = new THREE.SpriteMaterial({ map: texture });
+                const labelSprite = new THREE.Sprite(labelMaterial);
+
+                // 调整标签大小和位置（在标记点右侧 0.5 单位，避免遮挡）
+                labelSprite.scale.set(1, 0.5, 1); // 标签大小（宽1，高0.5）
+                labelSprite.position.set(0.8, height, 0); // 在标记点右侧 0.8 单位
+                poleGroup.add(labelSprite);
+            }
+
+            return poleGroup;
+        }
+
+        // 初始化场景、相机和渲染器
+        const scene = new THREE.Scene();
+
+        // 创建坐标轴辅助器（参数：坐标轴长度，默认 1，可按需调整）
+        const axesHelper = new THREE.AxesHelper(1); // 这里设为 5，数值越大坐标轴越长
+        scene.add(axesHelper); // 将坐标轴添加到场景
+
+        scene.background = new THREE.Color(0x0a0a1a);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 3, 8);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+
+        document.getElementById('container').appendChild(renderer.domElement);
+        const modelFileInput = document.getElementById('modelFile'); // 文件选择器
+
+        // 添加高度参考刻度柱
+        const heightPole = createHeightReferencePole();
+        scene.add(heightPole); // 添加到场景中
+        
+        // 添加光源
+        // 1. 环境光：均匀照亮所有物体，无阴影，主要用于提亮整体
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // 颜色：白色，强度：0.6（0~1 可调）
+        scene.add(ambientLight);
+
+        // 2. 平行光：模拟太阳光，有方向性，能产生阴影（让物体更立体）
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // 颜色：白色，强度：0.8
+        directionalLight.position.set(5, 10, 7); // 光源位置（调整方向，避免直射或过暗）
+        scene.add(directionalLight);
+
+        // （可选）开启阴影投射（让物体产生真实阴影，更有质感）
+        directionalLight.castShadow = true;
+        // 优化阴影质量（可选，根据性能调整）
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+
+        //控制系统和相机的绑定
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        let targetOffset=null;
+        
+        // 机甲颜色
+        const mechColor = 0x1a75ff;
+        const highlightColor = 0xff5555;
+        
+        // 创建机甲部件
+        const mech = new THREE.Group();
+        mech.name = "Mech";
+        
+        // 创建机甲主体
+        function createMech() {
+            // 躯干
+            const torsoGeometry = new THREE.BoxGeometry(2, 3, 1.5);
+            const torsoMaterial = new THREE.MeshPhongMaterial({ 
+                color: mechColor,
+                shininess: 100,
+                emissive: 0x003366,
+                emissiveIntensity: 0.2
+            });
+            const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
+            torso.position.y = 1.5;
+            torso.castShadow = true;
+            torso.receiveShadow = true;
+            torso.name = "Torso";
+            mech.add(torso);
+            
+            // 头部
+            const headGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+            const headMaterial = torsoMaterial.clone();
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = 1.5;
+            head.castShadow = true;
+            head.receiveShadow = true;
+            head.name = "Head";
+            torso.add(head);
+            
+            // 手臂
+            const armGeometry = new THREE.BoxGeometry(1, 2, 1);
+            const leftArm = new THREE.Mesh(armGeometry, torsoMaterial);
+            leftArm.position.set(-1.5, 0, 0);
+            leftArm.castShadow = true;
+            leftArm.receiveShadow = true;
+            leftArm.name = "LeftArm";
+            torso.add(leftArm);
+            
+            const rightArm = new THREE.Mesh(armGeometry, torsoMaterial);
+            rightArm.position.set(1.5, 0, 0);
+            rightArm.castShadow = true;
+            rightArm.receiveShadow = true;
+            rightArm.name = "RightArm";
+            torso.add(rightArm);
+            
+            // 腿部
+            const legGeometry = new THREE.BoxGeometry(1, 2.5, 1);
+            const leftLeg = new THREE.Mesh(legGeometry, torsoMaterial);
+            leftLeg.position.set(-0.8, -1.5, 0);
+            leftLeg.castShadow = true;
+            leftLeg.receiveShadow = true;
+            leftLeg.name = "LeftLeg";
+            torso.add(leftLeg);
+            
+            const rightLeg = new THREE.Mesh(legGeometry, torsoMaterial);
+            rightLeg.position.set(0.8, -1.5, 0);
+            rightLeg.castShadow = true;
+            rightLeg.receiveShadow = true;
+            rightLeg.name = "RightLeg";
+            torso.add(rightLeg);
+            
+            // 关节
+            const jointGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+            
+            // 肘关节
+            const leftElbow = new THREE.Mesh(jointGeometry, torsoMaterial);
+            leftElbow.position.y = -1.5;
+            leftElbow.name = "LeftElbow";
+            leftArm.add(leftElbow);
+            
+            const rightElbow = new THREE.Mesh(jointGeometry, torsoMaterial);
+            rightElbow.position.y = -1.5;
+            rightElbow.name = "RightElbow";
+            rightArm.add(rightElbow);
+            
+            // 膝关节
+            const leftKnee = new THREE.Mesh(jointGeometry, torsoMaterial);
+            leftKnee.position.y = -1.5;
+            leftKnee.name = "LeftKnee";
+            leftLeg.add(leftKnee);
+            
+            const rightKnee = new THREE.Mesh(jointGeometry, torsoMaterial);
+            rightKnee.position.y = -1.5;
+            rightKnee.name = "RightKnee";
+            rightLeg.add(rightKnee);
+            
+            scene.add(mech);
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // 创建机甲
+        // createMech();
+        const sky = new Sky();
+        sky.scale.setScalar(40); // 根据需要调整天空的大小
+        scene.add(sky);
+        const uniforms = sky.material.uniforms;
+        uniforms['turbidity'].value = 10;
+        uniforms['rayleigh'].value = 3;
+        uniforms['mieCoefficient'].value = 0.1;
+        uniforms['mieDirectionalG'].value = 0.95;
+        // uniforms['sunPosition'].value.set(0.3, -0.038, -0.95);
+        uniforms['sunPosition'].value.set(0, 0, 0);
+        // 根据需要调整太阳的位置
+        const sun = new THREE.Vector3();
+        const phi = THREE.MathUtils.degToRad(88);
+        const theta = THREE.MathUtils.degToRad(180);
+        sun.setFromSphericalCoords(1, phi, theta);
+        uniforms.sunPosition.value.copy(sun);
+
+ 
+
+
+        // const mache = new THREE.Object3D();
+        const mache = new THREE.Group();
+        const loader = new GLTFLoader();
+
+
+        loader.load(
+        "../../../3ds/hutao.glb", // 替换为您的 GLB 文件路径
+        //    "girl/woman.gltf", 
+        function(gltf){
+            
+            mache.add(gltf.scene);
+
+            // 检查模型是否为 THREE.Object3D 的实例
+            if (!(mache instanceof THREE.Object3D)) {
+                console.error('加载的 GLB 模型不是 THREE.Object3D 的实例');
+                return;
+            }
+
+            // 调整模型的大小和位置
+            mache.scale.set(1, 1, 1); // 根据需要调整缩放比例
+            mache.position.set(2, 0, 0); // 根据需要调整位置
+            //player.mesh=mache;
+            // 将模型添加到场景中
+            scene.add(mache);
+            document.getElementById('loading').style.display = 'none';
+
+            // 相机控制
+            // let targetOffset=  new THREE.Vector3(0, getObjectRealHeight(mache)/2, 0);
+            controls.target = mache.position.clone().add(new THREE.Vector3(0,1.2,0)); // 控制器旋转中心设为物体（跟随物体移动）
+            console.log("模型高度：",getObjectRealHeight(mache),"相机从脚底偏移量高度：", targetOffset,mache.position.x,mache.position.y,mache.position.z);
+
+        });
+
+
+        // ------------ 核心：文件选择和加载逻辑 ------------
+        modelFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0]; // 获取选择的文件
+            if (!file) return;
+
+            // 1. 格式校验（只允许 gltf 和 glb）
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            if (!['gltf', 'glb'].includes(fileExt)) {
+                loadStatus.style.color = '#ff4444';
+                loadStatus.textContent = `错误：仅支持.glb 格式，当前文件格式为 .${fileExt}`;
+                return;
+            }
+
+            // 2. 重置状态，显示加载中
+            loadStatus.style.color = '#ffff00';
+            loadStatus.textContent = `加载中：0%`;
+
+            // 3. 清空原有模型（如果有）
+            if (mache.children.length > 0) {
+                mache.remove(...mache.children); // 移除旧模型
+                // 移除旧模型的包围盒线框
+                if (mache.userData.boundingBoxHelper) {
+                mache.remove(mache.userData.boundingBoxHelper);
+                mache.userData.boundingBoxHelper = null;
+                }
+            }
+
+            // 4. 加载本地文件（通过 FileReader 读取文件内容）
+            const reader = new FileReader();
+            reader.onload = function(loadEvent) {
+                const content = loadEvent.target.result; // 文件内容（ArrayBuffer 或 DataURL）
+
+                // 5. 用 GLTFLoader 加载文件内容
+                loader.load(
+                // 本地文件用 Blob URL 或 ArrayBuffer 加载
+                URL.createObjectURL(file), // 生成临时 Blob URL（推荐，支持大文件）
+                // 加载成功回调
+                function(gltf) {
+                    // 添加新模型到父容器
+                    mache.add(gltf.scene);
+                    // 初始位置（可按需调整）
+                    mache.position.set(2, 0, 0);
+                    mache.scale.set(1, 1, 1);
+                    // 确保模型添加到场景
+                    if (!scene.children.includes(mache)) {
+                    scene.add(mache);
+                    document.getElementById('loading').style.display = 'none';
+                    }
+
+                    // 6. 延迟校准锚点和计算高度（确保模型初始化完成）
+                    setTimeout(() => {
+                    // 校准锚点到脚底（排除下方空空间）
+                    // const originalBottomY = getModelBottomY(mache);
+                    // mache.position.y -= originalBottomY;
+
+                    // 计算真实高度（带红色线框可视化）
+                    const realHeight = getObjectRealHeight(mache);
+
+                    // 7. 初始化/更新相机控制器
+                    if (!controls) {
+                        controls = new THREE.OrbitControls(camera, renderer.domElement);
+                        controls.enableDamping = true;
+                        controls.dampingFactor = 0.25;
+                    }
+                    // 更新旋转中心到模型中心
+                    const targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
+                    controls.target = mache.position.clone().add(targetOffset);
+
+                    // 加载成功提示
+                    loadStatus.style.color = '#00ff00';
+                    loadStatus.textContent = `加载成功！模型高度：${realHeight.toFixed(2)} 单位`;
+                    }, 150);
+                },
+                // 加载进度回调
+                function(xhr) {
+                    const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                    loadStatus.textContent = `加载中：${percent}%`;
+                },
+                // 加载失败回调
+                function(error) {
+                    loadStatus.style.color = '#ff4444';
+                    loadStatus.textContent = `加载失败：${error.message.slice(0, 50)}...`;
+                    console.error('模型加载失败：', error);
+                }
+                );
+            };
+
+            // 读取文件（GLTF/GLB 用 ArrayBuffer 格式读取，兼容性更好）
+            reader.readAsArrayBuffer(file);
+        });
+    
+
+        
+        
+        
+        // 窗口大小调整
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onWindowResize);
+        
+        // 控制按钮功能
+        document.getElementById('rotateHead').addEventListener('click', () => {
+            const head = scene.getObjectByName("Head");
+            if (head) {
+                head.rotation.y += 0.5;
+            }
+        });
+        
+        document.getElementById('rotateArms').addEventListener('click', () => {
+            const leftArm = scene.getObjectByName("LeftArm");
+            const rightArm = scene.getObjectByName("RightArm");
+            if (leftArm && rightArm) {
+                leftArm.rotation.z += 0.3;
+                rightArm.rotation.z -= 0.3;
+            }
+        });
+        
+        document.getElementById('reset').addEventListener('click', () => {
+            mech.traverse((child) => {
+                if (child.isObject3D) {
+                    child.rotation.set(0, 0, 0);
+                }
+            });
+        });
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
