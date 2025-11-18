@@ -57,15 +57,30 @@
     <div id="container"></div>
     <!-- 模型选择和加载状态区域 -->
     <div style="position: fixed; top: 20px; left: 20px; z-index: 1000; color: white;">
+        <div style="position: fixed; top: 20px; left: 20px; z-index: 1000; color: white;">
+        <div id="fileButtonsContainer" style="
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap; /* 关键：禁用换行，强制横向排列 */
+            overflow-x: auto; /* 关键：横向溢出时显示滚动条 */
+            overflow-y: hidden; /* 隐藏纵向滚动条 */
+            padding: 10px 0; /* 上下内边距，优化视觉 */
+            height: 5vh; /* 固定容器高度（根据按钮大小调整） */
+            align-items: center; /* 按钮垂直居中 */
+            border: 1px solid #eee; /* 可选：添加边框，突出长条容器 */
+            border-radius: 8px; /* 可选：圆角优化 */
+            background: #fafafa; /* 可选：背景色，区分其他区域 */
+        "></div>
     <label for="modelFile" style="font-size: 16px; margin-right: 10px;">选择本地.glb模型：</label>
     <input type="file" id="modelFile" accept=".glb" style="display: inline-block; padding: 5px; background: #333; color: white; border: none; border-radius: 4px;">
     <div id="loadStatus" style="margin-top: 10px; font-size: 14px;">未选择文件</div>
     </div>
-    <div id="controls">
+    <!-- <div id="controls">
         <button id="rotateHead">旋转头部</button>
         <button id="rotateArms">旋转手臂</button>
         <button id="reset">重置姿势</button>
-    </div>
+    </div> -->
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
@@ -73,6 +88,110 @@
         import { GLTFLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader";
         import { Sky } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/objects/Sky.js";
 
+        // 关键：3ds 文件夹的相对路径（相对于当前 index.html 的路径，需按实际调整！）
+        // 示例：如果 index.html 在「前端项目根目录/dist/html」，3ds 在「前端项目根目录/3ds」，则路径为 '../../../3ds'
+        const GLB_FOLDER_PATH = '../../../3ds';
+
+        // 页面加载后自动扫描 3ds 文件夹
+        window.onload = async () => {
+        try {
+            // statusEl.textContent = '正在扫描 3ds 文件夹...';
+            
+            // 步骤1：请求 3ds 文件夹目录（需服务器/HTTP 服务支持目录列表响应）
+            // 核心原理：HTTP 服务访问文件夹路径时，会返回目录下的文件列表（如 Nginx 默认开启，Live Server 也支持）
+            const response = await fetch(GLB_FOLDER_PATH);
+            
+            if (!response.ok) {
+            throw new Error(`文件夹访问失败（状态码：${response.status}）`);
+            }
+            
+            // 步骤2：解析目录响应（不同 HTTP 服务的目录页面结构不同，以下适配 Live Server/Nginx 默认格式）
+            const html = await response.text();
+            const glbFileNames = parseDirectoryHtml(html); // 提取 .glb 文件名
+            
+            if (glbFileNames.length === 0) {
+            // statusEl.textContent = '3ds 文件夹中未找到 .glb 文件';
+            return;
+            }
+            
+            // statusEl.textContent = `成功扫描到 ${glbFileNames.length} 个 .glb 文件`;
+            
+            // 步骤3：生成每个 .glb 文件对应的按钮
+            glbFileNames.forEach((fileName) => {
+            const btn = document.createElement('button');
+            btn.textContent = fileName;
+            btn.style.padding = '8px 8px';
+            btn.style.cursor = 'pointer';
+            btn.style.background = '#2196F3';
+            btn.style.color = 'white';
+            btn.style.border = 'none';
+            btn.style.borderRadius = '4px';
+            btn.style.transition = 'background 0.2s';
+            
+            btn.addEventListener('mouseover', () => btn.style.background = '#1976D2');
+            btn.addEventListener('mouseout', () => btn.style.background = '#2196F3');
+            
+            // 步骤4：按钮点击事件 - 自动选中对应 .glb 文件
+            btn.addEventListener('click', async () => {
+                try {
+                // 构建 .glb 文件的完整路径（相对路径拼接）
+                const fileFullPath = `${GLB_FOLDER_PATH}/${fileName}`;
+                
+                // 关键：通过 fetch 获取文件 blob，再模拟文件选择器选中
+                const fileResponse = await fetch(fileFullPath);
+                const fileBlob = await fileResponse.blob();
+                
+                // 构建 File 对象（文件名 + blob 数据 + MIME 类型）
+                const glbFile = new File([fileBlob], fileName, { type: 'model/gltf-binary' });
+                
+                // 模拟文件选择器选中文件（DataTransfer API）
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(glbFile);
+                modelFileInput.files = dataTransfer.files;
+                
+                // 触发文件选择器的 change 事件（若后续有依赖该事件的逻辑）
+                modelFileInput.dispatchEvent(new Event('change'));
+                
+                // statusEl.textContent = `已自动选中文件：${fileName}`;
+                } catch (error) {
+                // statusEl.textContent = `选中文件失败：${error.message}`;
+                console.error('文件选中失败：', error);
+                }
+            });
+            
+            fileButtonsContainer.appendChild(btn);
+            });
+        } catch (error) {
+            // statusEl.textContent = `扫描失败：${error.message}`;
+            console.error('文件夹扫描失败：', error);
+        }
+        };
+
+        /**
+         * 解析 HTTP 服务返回的目录 HTML，提取所有 .glb 文件名
+         * 适配 Live Server、Nginx 默认的目录页面结构（可根据实际 HTTP 服务调整）
+         */
+        function parseDirectoryHtml(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const fileNames = [];
+        
+        // 查找所有 <a> 标签（目录页面中文件通常以链接形式展示）
+        const links = doc.querySelectorAll('a');
+        links.forEach((link) => {
+            const href = link.getAttribute('href');
+            // 筛选 .glb 后缀的文件，且排除目录（href 以 / 结尾的是子目录）
+            if (href && href.endsWith('.glb') && !href.endsWith('/')) {
+            // 提取文件名（href 可能是相对路径，取最后一段）
+            const fileName = href.split('/').pop();
+            if (fileName) fileNames.push(fileName);
+            }
+        });
+        
+        // 去重（避免重复文件）
+        return [...new Set(fileNames)];
+        }
+        
         function getObjectRealHeight(object) {
             // 1. 创建包围盒（用于包裹物体所有顶点）
             const boundingBox = new THREE.Box3();
@@ -349,33 +468,33 @@
         const loader = new GLTFLoader();
 
 
-        loader.load(
-        "../../../3ds/hutao.glb", // 替换为您的 GLB 文件路径
-        //    "girl/woman.gltf", 
-        function(gltf){
+        // loader.load(
+        // "../../../3ds/hutao.glb", // 替换为您的 GLB 文件路径
+        // //    "girl/woman.gltf", 
+        // function(gltf){
             
-            mache.add(gltf.scene);
+        //     mache.add(gltf.scene);
 
-            // 检查模型是否为 THREE.Object3D 的实例
-            if (!(mache instanceof THREE.Object3D)) {
-                console.error('加载的 GLB 模型不是 THREE.Object3D 的实例');
-                return;
-            }
+        //     // 检查模型是否为 THREE.Object3D 的实例
+        //     if (!(mache instanceof THREE.Object3D)) {
+        //         console.error('加载的 GLB 模型不是 THREE.Object3D 的实例');
+        //         return;
+        //     }
 
-            // 调整模型的大小和位置
-            mache.scale.set(1, 1, 1); // 根据需要调整缩放比例
-            mache.position.set(2, 0, 0); // 根据需要调整位置
-            //player.mesh=mache;
-            // 将模型添加到场景中
-            scene.add(mache);
-            document.getElementById('loading').style.display = 'none';
+        //     // 调整模型的大小和位置
+        //     mache.scale.set(1, 1, 1); // 根据需要调整缩放比例
+        //     mache.position.set(2, 0, 0); // 根据需要调整位置
+        //     //player.mesh=mache;
+        //     // 将模型添加到场景中
+        //     scene.add(mache);
+        //     document.getElementById('loading').style.display = 'none';
 
-            // 相机控制
-            // let targetOffset=  new THREE.Vector3(0, getObjectRealHeight(mache)/2, 0);
-            controls.target = mache.position.clone().add(new THREE.Vector3(0,1.2,0)); // 控制器旋转中心设为物体（跟随物体移动）
-            console.log("模型高度：",getObjectRealHeight(mache),"相机从脚底偏移量高度：", targetOffset,mache.position.x,mache.position.y,mache.position.z);
+        //     // 相机控制
+        //     // let targetOffset=  new THREE.Vector3(0, getObjectRealHeight(mache)/2, 0);
+        //     controls.target = mache.position.clone().add(new THREE.Vector3(0,1.2,0)); // 控制器旋转中心设为物体（跟随物体移动）
+        //     console.log("模型高度：",getObjectRealHeight(mache),"相机从脚底偏移量高度：", targetOffset,mache.position.x,mache.position.y,mache.position.z);
 
-        });
+        // });
 
 
         // ------------ 核心：文件选择和加载逻辑 ------------
@@ -481,30 +600,30 @@
         }
         window.addEventListener('resize', onWindowResize);
         
-        // 控制按钮功能
-        document.getElementById('rotateHead').addEventListener('click', () => {
-            const head = scene.getObjectByName("Head");
-            if (head) {
-                head.rotation.y += 0.5;
-            }
-        });
+        // // 控制按钮功能
+        // document.getElementById('rotateHead').addEventListener('click', () => {
+        //     const head = scene.getObjectByName("Head");
+        //     if (head) {
+        //         head.rotation.y += 0.5;
+        //     }
+        // });
         
-        document.getElementById('rotateArms').addEventListener('click', () => {
-            const leftArm = scene.getObjectByName("LeftArm");
-            const rightArm = scene.getObjectByName("RightArm");
-            if (leftArm && rightArm) {
-                leftArm.rotation.z += 0.3;
-                rightArm.rotation.z -= 0.3;
-            }
-        });
+        // document.getElementById('rotateArms').addEventListener('click', () => {
+        //     const leftArm = scene.getObjectByName("LeftArm");
+        //     const rightArm = scene.getObjectByName("RightArm");
+        //     if (leftArm && rightArm) {
+        //         leftArm.rotation.z += 0.3;
+        //         rightArm.rotation.z -= 0.3;
+        //     }
+        // });
         
-        document.getElementById('reset').addEventListener('click', () => {
-            mech.traverse((child) => {
-                if (child.isObject3D) {
-                    child.rotation.set(0, 0, 0);
-                }
-            });
-        });
+        // document.getElementById('reset').addEventListener('click', () => {
+        //     mech.traverse((child) => {
+        //         if (child.isObject3D) {
+        //             child.rotation.set(0, 0, 0);
+        //         }
+        //     });
+        // });
         
         // 动画循环
         function animate() {
