@@ -1,0 +1,34 @@
+name: Generate file list (Node.js)
+on:
+  # 触发条件：当 ./docs/files/ 文件夹内容变化时
+  push:
+    paths:
+      - "3ds/**"  # 监控目标文件夹
+  pull_request:
+    paths:
+      - "3ds/**"  # PR 时也触发（可选）
+  workflow_dispatch:  # 允许手动触发（在 GitHub Actions 页面手动运行）
+jobs:
+  generate-list:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 👇 关键：Node.js 环境 GitHub Actions 容器默认自带，无需额外安装步骤
+      - name: Generate file list (Node.js)
+        run: node after-update-3ds.js
+
+      - name: Commit and push changes
+        run: 
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add 3ds.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Auto-update file list (scan ./3ds/)"
+            git push
+          fi
