@@ -86,8 +86,8 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
     <script>
         // 根据当前页面位置动态设置base
-        const basePath = window.location.pathname.includes('/htmls/') ? '../../../' : './';
-        document.write(`<base href="${basePath}">`);    
+        //const basePath = window.location.pathname.includes('/htmls/') ? '../../../' : './';
+       // document.write(`<base href="${basePath}">`);    
     </script>
     <script type="module">
         import { GLTFLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader";
@@ -97,7 +97,7 @@
         // 示例：如果 index.html 在「前端项目根目录/dist/html」，3ds 在「前端项目根目录/3ds」，则路径为 '../../../3ds'
          
         
-        const GLB_FOLDER_PATH = '3ds';
+        const GLB_FOLDER_PATH = '/3ds';
 
         // 页面加载后自动扫描 3ds 文件夹
         window.onload = async () => {
