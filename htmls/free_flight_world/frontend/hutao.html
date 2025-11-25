@@ -84,6 +84,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // 根据当前页面位置动态设置base
+        const basePath = window.location.pathname.includes('/htmls/') ? '../../../' : './';
+        document.write(`<base href="${basePath}">`);    
+    </script>
     <script type="module">
         import { GLTFLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader";
         import { Sky } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/objects/Sky.js";
@@ -91,10 +96,7 @@
         // 关键：3ds 文件夹的相对路径（相对于当前 index.html 的路径，需按实际调整！）
         // 示例：如果 index.html 在「前端项目根目录/dist/html」，3ds 在「前端项目根目录/3ds」，则路径为 '../../../3ds'
          
-        // 根据当前页面位置动态设置base
-        const basePath = window.location.pathname.includes('/htmls/') ? '../../../' : './';
-        document.write(`<base href="${basePath}">`);
-    
+        
         const GLB_FOLDER_PATH = '3ds';
 
         // 页面加载后自动扫描 3ds 文件夹
