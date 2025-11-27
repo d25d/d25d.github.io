@@ -25,14 +25,24 @@ jobs:
         run: |
           # git config --global user.name "GitHub Actions"
           # git config --global user.email "actions@github.com"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add 3ds.json
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
             git commit -m "Auto-update file list (scan ./3ds/)"
             # git remote set-url origin https://d25d:${{ secrets.MY_PAT }}@github.com/d25d/d25d.github.io.git
-            git push
+            #git push
           fi
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        if: ${{ steps.commit-files.outputs.hasChange == 'true' }}
+        with:
+          github_token: ${{ secrets.MY_PAT }}
+          branch: main
+      
       # - name: 到自己仓库
       #   uses: peaceiris/actions-gh-pages@v3
       #   with:
