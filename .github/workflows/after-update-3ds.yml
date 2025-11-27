@@ -23,20 +23,20 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          # git config --global user.name "GitHub Actions"
+          # git config --global user.email "actions@github.com"
           git add 3ds.json
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
             git commit -m "Auto-update file list (scan ./3ds/)"
             # git remote set-url origin https://d25d:${{ secrets.MY_PAT }}@github.com/d25d/d25d.github.io.git
-            # git push
+            git push
           fi
-      - name: 到自己仓库
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          personal_token: ${{ secrets.MY_PAT }}
-          publish_branch: main  # 当前仓库的目标分支
-          publish_dir: 3ds.json  # 要推送的本地目录
-          force_orphan: true  # 只保留最新提交（可选）
+      # - name: 到自己仓库
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     personal_token: ${{ secrets.MY_PAT }}
+      #     publish_branch: main  # 当前仓库的目标分支
+      #     publish_dir: 3ds.json  # 要推送的本地目录
+      #     force_orphan: true  # 只保留最新提交（可选）
