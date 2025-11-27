@@ -38,7 +38,7 @@ jobs:
 
       - name: Push changes
         uses: ad-m/github-push-action@master
-        if: ${{ steps.commit-files.outputs.hasChange == 'true' }}
+        # if: ${{ steps.commit-files.outputs.hasChange == 'true' }}
         with:
           github_token: ${{ secrets.MY_PAT }}
           branch: main
