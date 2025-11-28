@@ -116,14 +116,12 @@
             // 步骤2：解析目录响应（不同 HTTP 服务的目录页面结构不同，以下适配 Live Server/Nginx 默认格式）
             // const html = await response.text();
             // const glbFileNames = parseDirectoryHtml(html); // 提取 .glb 文件名
-            let glbFileNames;
-            fetch('../../../3ds.json')
-              .then(res => res.json())
-              .then(data => {
-               glbFileNames = data.models;
-                  console.log(glbFileNames);
-                // 后续操作
-              });
+            
+            // 改用 await 等待 fetch 结果，避免异步错乱
+            const res = await fetch('../../../3ds.json');
+            const data = await res.json();
+            const glbFileNames = data.models || []; // 兜底空数组，防止 undefined
+            console.log(glbFileNames);
             
             if (glbFileNames.length === 0) {
             // statusEl.textContent = '3ds 文件夹中未找到 .glb 文件';
