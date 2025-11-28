@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蓝色机甲核心展示</title>
+    <title>核心展示</title>
     <style>
         body {
             margin: 0;
@@ -92,12 +92,13 @@
     <script type="module">
         import { GLTFLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader";
         import { Sky } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/objects/Sky.js";
+        import glbData from '../../../3ds.json';
 
         // 关键：3ds 文件夹的相对路径（相对于当前 index.html 的路径，需按实际调整！）
         // 示例：如果 index.html 在「前端项目根目录/dist/html」，3ds 在「前端项目根目录/3ds」，则路径为 '../../../3ds'
          
         
-        const GLB_FOLDER_PATH = '/3ds';
+        const GLB_FOLDER_PATH = '../../../3ds';
 
         // 页面加载后自动扫描 3ds 文件夹
         window.onload = async () => {
@@ -106,15 +107,16 @@
             
             // 步骤1：请求 3ds 文件夹目录（需服务器/HTTP 服务支持目录列表响应）
             // 核心原理：HTTP 服务访问文件夹路径时，会返回目录下的文件列表（如 Nginx 默认开启，Live Server 也支持）
-            const response = await fetch(GLB_FOLDER_PATH);
+            // const response = await fetch(GLB_FOLDER_PATH);
             
-            if (!response.ok) {
-            throw new Error(`文件夹访问失败（状态码：${response.status}）`);
-            }
+            // if (!response.ok) {
+            // throw new Error(`文件夹访问失败（状态码：${response.status}）`);
+            // }
             
             // 步骤2：解析目录响应（不同 HTTP 服务的目录页面结构不同，以下适配 Live Server/Nginx 默认格式）
-            const html = await response.text();
-            const glbFileNames = parseDirectoryHtml(html); // 提取 .glb 文件名
+            // const html = await response.text();
+            // const glbFileNames = parseDirectoryHtml(html); // 提取 .glb 文件名
+            const glbFileNames = glbData.models;
             
             if (glbFileNames.length === 0) {
             // statusEl.textContent = '3ds 文件夹中未找到 .glb 文件';
