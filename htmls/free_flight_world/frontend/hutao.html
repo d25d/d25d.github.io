@@ -339,13 +339,18 @@
         
         // 添加光源
         // 1. 环境光：均匀照亮所有物体，无阴影，主要用于提亮整体
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // 颜色：白色，强度：0.6（0~1 可调）
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1); // 颜色：白色，强度：0.6（0~1 可调）
         scene.add(ambientLight);
 
         // 2. 平行光：模拟太阳光，有方向性，能产生阴影（让物体更立体）
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // 颜色：白色，强度：0.8
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // 颜色：白色，强度：0.8
         directionalLight.position.set(5, 10, 7); // 光源位置（调整方向，避免直射或过暗）
         scene.add(directionalLight);
+
+        // 3. 新增补光（解决阴影处过暗）
+        const fillLight = new THREE.DirectionalLight(0xffffdd, 0.9); // 暖白色补光
+        fillLight.position.set(-8, 10, -5); // 与主光源反向
+        scene.add(fillLight);
 
         // （可选）开启阴影投射（让物体产生真实阴影，更有质感）
         directionalLight.castShadow = true;
@@ -359,127 +364,84 @@
         controls.dampingFactor = 0.25;
         let targetOffset=null;
         
-        // 机甲颜色
-        const mechColor = 0x1a75ff;
-        const highlightColor = 0xff5555;
         
-        // 创建机甲部件
-        const mech = new THREE.Group();
-        mech.name = "Mech";
-        
-        // 创建机甲主体
-        function createMech() {
-            // 躯干
-            const torsoGeometry = new THREE.BoxGeometry(2, 3, 1.5);
-            const torsoMaterial = new THREE.MeshPhongMaterial({ 
-                color: mechColor,
-                shininess: 100,
-                emissive: 0x003366,
-                emissiveIntensity: 0.2
-            });
-            const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
-            torso.position.y = 1.5;
-            torso.castShadow = true;
-            torso.receiveShadow = true;
-            torso.name = "Torso";
-            mech.add(torso);
-            
-            // 头部
-            const headGeometry = new THREE.SphereGeometry(0.8, 16, 16);
-            const headMaterial = torsoMaterial.clone();
-            const head = new THREE.Mesh(headGeometry, headMaterial);
-            head.position.y = 1.5;
-            head.castShadow = true;
-            head.receiveShadow = true;
-            head.name = "Head";
-            torso.add(head);
-            
-            // 手臂
-            const armGeometry = new THREE.BoxGeometry(1, 2, 1);
-            const leftArm = new THREE.Mesh(armGeometry, torsoMaterial);
-            leftArm.position.set(-1.5, 0, 0);
-            leftArm.castShadow = true;
-            leftArm.receiveShadow = true;
-            leftArm.name = "LeftArm";
-            torso.add(leftArm);
-            
-            const rightArm = new THREE.Mesh(armGeometry, torsoMaterial);
-            rightArm.position.set(1.5, 0, 0);
-            rightArm.castShadow = true;
-            rightArm.receiveShadow = true;
-            rightArm.name = "RightArm";
-            torso.add(rightArm);
-            
-            // 腿部
-            const legGeometry = new THREE.BoxGeometry(1, 2.5, 1);
-            const leftLeg = new THREE.Mesh(legGeometry, torsoMaterial);
-            leftLeg.position.set(-0.8, -1.5, 0);
-            leftLeg.castShadow = true;
-            leftLeg.receiveShadow = true;
-            leftLeg.name = "LeftLeg";
-            torso.add(leftLeg);
-            
-            const rightLeg = new THREE.Mesh(legGeometry, torsoMaterial);
-            rightLeg.position.set(0.8, -1.5, 0);
-            rightLeg.castShadow = true;
-            rightLeg.receiveShadow = true;
-            rightLeg.name = "RightLeg";
-            torso.add(rightLeg);
-            
-            // 关节
-            const jointGeometry = new THREE.SphereGeometry(0.5, 8, 8);
-            
-            // 肘关节
-            const leftElbow = new THREE.Mesh(jointGeometry, torsoMaterial);
-            leftElbow.position.y = -1.5;
-            leftElbow.name = "LeftElbow";
-            leftArm.add(leftElbow);
-            
-            const rightElbow = new THREE.Mesh(jointGeometry, torsoMaterial);
-            rightElbow.position.y = -1.5;
-            rightElbow.name = "RightElbow";
-            rightArm.add(rightElbow);
-            
-            // 膝关节
-            const leftKnee = new THREE.Mesh(jointGeometry, torsoMaterial);
-            leftKnee.position.y = -1.5;
-            leftKnee.name = "LeftKnee";
-            leftLeg.add(leftKnee);
-            
-            const rightKnee = new THREE.Mesh(jointGeometry, torsoMaterial);
-            rightKnee.position.y = -1.5;
-            rightKnee.name = "RightKnee";
-            rightLeg.add(rightKnee);
-            
-            scene.add(mech);
-            document.getElementById('loading').style.display = 'none';
-        }
-        
-        // 创建机甲
-        // createMech();
+       
         const sky = new Sky();
-        sky.scale.setScalar(40); // 根据需要调整天空的大小
+        sky.scale.setScalar(400); // 根据需要调整天空的大小
         scene.add(sky);
         const uniforms = sky.material.uniforms;
         uniforms['turbidity'].value = 10;
         uniforms['rayleigh'].value = 3;
         uniforms['mieCoefficient'].value = 0.1;
         uniforms['mieDirectionalG'].value = 0.95;
-        // uniforms['sunPosition'].value.set(0.3, -0.038, -0.95);
+        uniforms['sunPosition'].value.set(0.3, -0.038, -0.95);
         uniforms['sunPosition'].value.set(0, 0, 0);
         // 根据需要调整太阳的位置
-        const sun = new THREE.Vector3();
+        const sun1 = new THREE.Vector3();
         const phi = THREE.MathUtils.degToRad(88);
         const theta = THREE.MathUtils.degToRad(180);
-        sun.setFromSphericalCoords(1, phi, theta);
-        uniforms.sunPosition.value.copy(sun);
+        sun1.setFromSphericalCoords(1, phi, theta);
+        uniforms.sunPosition.value.copy(sun1);
 
- 
+        // 1. 创建太阳球体（可视化，带自发光）
+        const sunGeometry = new THREE.SphereGeometry(1, 32, 32); // 半径1，分段数32
+        const sunMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffff00, // 太阳黄色
+        emissive: 0xffff00, // 自发光颜色
+        emissiveIntensity: 50 // 发光强度（数值越大越亮）
+        });
+        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        sun.position.set(50, 30, 20); // 放在场景远处（避免遮挡模型）
+        scene.add(sun);
+        
+
+        // 2. 绑定强平行光（太阳光源，照亮整个场景）
+        const sunLight = new THREE.DirectionalLight(0xffffff, 5.0); // 强光强度2.0
+        sunLight.position.copy(sun.position); // 光源位置和太阳球体一致
+        scene.add(sunLight);
+
+        // 3. 可选：添加太阳光晕（更真实）
+        const glowGeometry = new THREE.SphereGeometry(1.1, 32, 32);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffdd,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending // 叠加混合，光晕效果
+        });
+        const sunGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+        sun.add(sunGlow); // 光晕跟随太阳
+
+
+        // 1. 创建地板（保留原有配置）
+        const floorGeometry = new THREE.PlaneGeometry(200, 200);
+        const floorMaterial = new THREE.MeshLambertMaterial({
+        color: 0xC39178,
+        transparent: true,
+        opacity: 0.8
+        });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // 2. 添加网格线（关键新增）
+        const gridSize = 200; // 网格大小和地板一致
+        const gridDivisions = 40; // 分割数（40=200/5，每格5单位）
+        const gridHelper = new THREE.GridHelper(
+        gridSize,
+        gridDivisions,
+        0xffffff, // 网格线颜色（白色，醒目）
+        0x444444  // 辅助线颜色（深灰色，不杂乱）
+        );
+        gridHelper.position.y = 0.001; // 略高于地板，避免遮挡
+        scene.add(gridHelper);
+        
 
 
         // const mache = new THREE.Object3D();
-        const mache = new THREE.Group();
-        const loader = new GLTFLoader();
+        let mache = new THREE.Group();
+        let loader = new GLTFLoader();
 
 
         // loader.load(
@@ -551,9 +513,31 @@
                 function(gltf) {
                     // 添加新模型到父容器
                     mache.add(gltf.scene);
-                    // 初始位置（可按需调整）
-                    mache.position.set(2, 0, 0);
-                    mache.scale.set(1, 1, 1);
+                    mache.scale.set(1, 1, 1); // 重置缩放
+                    mache.position.set(2, 0, 0); // 先设目标X/Z位置（脚底最终X/Z=2,0）
+
+                    // 计算原始包围盒（未偏移、未缩放状态）
+                    let box = new THREE.Box3().setFromObject(mache);
+                    let size = new THREE.Vector3();
+                    box.getSize(size);
+                    let center = new THREE.Vector3();
+                    box.getCenter(center);
+
+                    // 1. 计算缩放系数：强制模型最终高度=10
+                    let scale = 10 / size.y; // 按原始高度算，确保缩放后高度=10
+                    mache.scale.set(scale, scale, scale); // 先缩放
+
+                    // 2. 重新计算缩放后的包围盒，获取真实底部偏移
+                    box = new THREE.Box3().setFromObject(mache);
+                    box.getSize(size); // 缩放后尺寸（height=10）
+                    box.getCenter(center); // 缩放后中心点
+
+                    // 3. 计算Y偏移：让脚底贴y=0
+                    let yOffset = -(center.y - size.y / 2);
+                    mache.position.y += yOffset; // 叠加偏移（不覆盖原有Y=0）
+
+                    console.log("最终模型高度：", size.y, "脚底位置：", mache.position);
+
                     // 确保模型添加到场景
                     if (!scene.children.includes(mache)) {
                     scene.add(mache);
@@ -567,7 +551,11 @@
                     // mache.position.y -= originalBottomY;
 
                     // 计算真实高度（带红色线框可视化）
-                    const realHeight = getObjectRealHeight(mache);
+                    let size1 = new THREE.Vector3();
+                    new THREE.Box3().setFromObject(mache).getSize(size1);
+                    const realHeight = size1.y;
+
+                    // const realHeight = getObjectRealHeight(mache);
 
                     // 7. 初始化/更新相机控制器
                     if (!controls) {
@@ -577,7 +565,7 @@
                     }
                     // 更新旋转中心到模型中心
                     const targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
-                    controls.target = mache.position.clone().add(targetOffset);
+                    controls.target = mache.position.clone().add(targetOffset).add(new THREE.Vector3(0, -yOffset, 0));
 
                     // 加载成功提示
                     loadStatus.style.color = '#00ff00';
@@ -614,30 +602,6 @@
         }
         window.addEventListener('resize', onWindowResize);
         
-        // // 控制按钮功能
-        // document.getElementById('rotateHead').addEventListener('click', () => {
-        //     const head = scene.getObjectByName("Head");
-        //     if (head) {
-        //         head.rotation.y += 0.5;
-        //     }
-        // });
-        
-        // document.getElementById('rotateArms').addEventListener('click', () => {
-        //     const leftArm = scene.getObjectByName("LeftArm");
-        //     const rightArm = scene.getObjectByName("RightArm");
-        //     if (leftArm && rightArm) {
-        //         leftArm.rotation.z += 0.3;
-        //         rightArm.rotation.z -= 0.3;
-        //     }
-        // });
-        
-        // document.getElementById('reset').addEventListener('click', () => {
-        //     mech.traverse((child) => {
-        //         if (child.isObject3D) {
-        //             child.rotation.set(0, 0, 0);
-        //         }
-        //     });
-        // });
         
         // 动画循环
         function animate() {
