@@ -49,6 +49,15 @@
         button:hover {
             background: #4a7a98;
         }
+        /* 摇杆容器样式（固定在左下角） */
+        #joystick-container {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            z-index: 10000;
+        }
     </style>
 </head>
 <body>
@@ -72,23 +81,17 @@
             border-radius: 8px; /* 可选：圆角优化 */
             background: #fafafa; /* 可选：背景色，区分其他区域 */
         "></div>
-    <label for="modelFile" style="font-size: 16px; margin-right: 10px;">选择本地.glb模型：</label>
-    <input type="file" id="modelFile" accept=".glb" style="display: inline-block; padding: 5px; background: #333; color: white; border: none; border-radius: 4px;">
-    <div id="loadStatus" style="margin-top: 10px; font-size: 14px;">未选择文件</div>
+        <label for="modelFile" style="font-size: 16px; margin-right: 10px;">选择本地.glb模型：</label>
+        <input type="file" id="modelFile" accept=".glb" style="display: inline-block; padding: 5px; background: #333; color: white; border: none; border-radius: 4px;">
+        <div id="loadStatus" style="margin-top: 10px; font-size: 14px;">未选择文件</div>
+        </div>
     </div>
-    <!-- <div id="controls">
-        <button id="rotateHead">旋转头部</button>
-        <button id="rotateArms">旋转手臂</button>
-        <button id="reset">重置姿势</button>
-    </div> -->
+    <div id="joystick-container"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
-    <script>
-        // 根据当前页面位置动态设置base
-        //const basePath = window.location.pathname.includes('/htmls/') ? '../../../' : './';
-       // document.write(`<base href="${basePath}">`);    
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.10.0/dist/nipplejs.min.js"></script>  
+
     <script type="module">
         import { GLTFLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader";
         import { Sky } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/objects/Sky.js";
@@ -99,24 +102,102 @@
          
         
         const GLB_FOLDER_PATH = '../../../3ds';
+        // -------------------------- 核心新增：键盘控制变量 --------------------------
+        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        const moveSpeed = 6; // 移动速度（单位/秒）
+        let lastTime = performance.now(); // 用于计算帧率时间差
+        let isModelLoaded = false; // 标记模型是否加载完成（避免未加载时触发移动）
+
+        let joystickMoveVec = new THREE.Vector3(); // 摇杆移动方向向量
+
+        // --------------------------------------------------------------------------
+        // -------------------------- 核心新增：键盘事件监听 --------------------------
+        document.addEventListener('keydown', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = true; // 按键按下时设为 true
+        });
+        document.addEventListener('keyup', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = false; // 按键松开时设为 false
+        });
+
+        // 初始化摇杆
+        const joystick = nipplejs.create({
+            zone: document.getElementById('joystick-container'), // 绑定容器
+            mode: 'static', // 固定位置
+            position: { left: '50%', top: '50%' }, // 居中
+            color: 'white', // 白色摇杆（适配深色背景）
+            size: 120, // 大小匹配容器
+            threshold: 0.1, // 避免轻微触摸误触发
+            fadeTime: 200 // 松开后平滑淡出
+        });
+
+        // 摇杆移动时：更新移动方向
+        joystick.on('move', (evt, data) => {
+            const angle = data.angle.radian; // 摇杆角度
+            const force = Math.min(data.force, 1); // 按压力度（0~1）
+            joystickMoveVec.z = -Math.sin(angle) * force; // 左右方向
+            joystickMoveVec.x = Math.cos(angle) * force; // 前后方向（向上=向前）
+        });
+
+        // 松开摇杆：停止移动
+        joystick.on('end', () => {
+            joystickMoveVec.set(0, 0, 0);
+        });
+        // --------------------------------------------------------------------------
+        // -------------------------- 核心新增：模型移动逻辑 --------------------------
+        function moveModel(deltaTime) {
+            if (!isModelLoaded) return; // 模型未加载时直接返回，不执行移动
+            
+            const moveVec = new THREE.Vector3(); // 存储移动方向的向量（x=左右，z=前后）
+            
+            // 1. 根据按键状态设置移动方向
+            if (keys.w || keys.ArrowUp) moveVec.z = -1; // W/上箭头 = 向前（z轴负方向）
+            if (keys.s || keys.ArrowDown) moveVec.z = 1; // S/下箭头 = 向后（z轴正方向）
+            if (keys.a || keys.ArrowLeft) moveVec.x = -1; // A/左箭头 = 向左（x轴负方向）
+            if (keys.d || keys.ArrowRight) moveVec.x = 1; // D/右箭头 = 向右（x轴正方向）
+
+            // 键盘控制优先，摇杆次之（避免冲突）
+            if (moveVec.length() === 0) {
+                moveVec.copy(joystickMoveVec);
+            }
+            
+            
+            // 2. 归一化方向向量：避免斜向移动时速度变快（如同时按W+D，速度不会是单独按的√2倍）
+            if (moveVec.length() > 0) moveVec.normalize();
+            
+            // 3. 更新模型位置：移动向量 × 速度 × 时间差（确保速度稳定）
+            mache.position.addScaledVector(moveVec, moveSpeed * deltaTime);
+            
+            // 4. 相机跟随模型：保持相机相对模型的偏移量（0,3,8），避免模型移出视野
+            //const camOffset = new THREE.Vector3(0, 3, 8); // 相机在模型上方3、前方8的位置
+            //camera.position.copy(mache.position).add(camOffset); // 相机位置 = 模型位置 + 偏移量
+            camera.position.addScaledVector(moveVec, moveSpeed * deltaTime);
+            //controls.target.copy(mache.position).add(new THREE.Vector3(0, 5, 0)); // 控制器旋转中心对准模型中部
+
+            // 计算真实高度（带红色线框可视化）
+            let size1 = new THREE.Vector3();
+            new THREE.Box3().setFromObject(mache).getSize(size1);
+            let realHeight = size1.y;
+
+            let center = new THREE.Vector3();
+            new THREE.Box3().setFromObject(mache).getCenter(center);
+            let yOffset = -(center.y - size1.y / 2);
+
+            // 7. 初始化/更新相机控制器
+            if (!controls) {
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.25;
+            }
+            // 更新旋转中心到模型中心
+            let targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
+            controls.target = mache.position.clone().add(targetOffset).add(new THREE.Vector3(0, -yOffset, 0));
+
+        }
+        // --------------------------------------------------------------------------
 
         // 页面加载后自动扫描 3ds 文件夹
         window.onload = async () => {
-        try {
-            // statusEl.textContent = '正在扫描 3ds 文件夹...';
-            
-            // 步骤1：请求 3ds 文件夹目录（需服务器/HTTP 服务支持目录列表响应）
-            // 核心原理：HTTP 服务访问文件夹路径时，会返回目录下的文件列表（如 Nginx 默认开启，Live Server 也支持）
-            // const response = await fetch(GLB_FOLDER_PATH);
-            
-            // if (!response.ok) {
-            // throw new Error(`文件夹访问失败（状态码：${response.status}）`);
-            // }
-            
-            // 步骤2：解析目录响应（不同 HTTP 服务的目录页面结构不同，以下适配 Live Server/Nginx 默认格式）
-            // const html = await response.text();
-            // const glbFileNames = parseDirectoryHtml(html); // 提取 .glb 文件名
-            
+        try {    
             // 改用 await 等待 fetch 结果，避免异步错乱
             const res = await fetch('../../../3ds.json');
             const data = await res.json();
@@ -180,83 +261,7 @@
             console.error('文件夹扫描失败：', error);
         }
         };
-
-        /**
-         * 解析 HTTP 服务返回的目录 HTML，提取所有 .glb 文件名
-         * 适配 Live Server、Nginx 默认的目录页面结构（可根据实际 HTTP 服务调整）
-         */
-        function parseDirectoryHtml(html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const fileNames = [];
         
-        // 查找所有 <a> 标签（目录页面中文件通常以链接形式展示）
-        const links = doc.querySelectorAll('a');
-        links.forEach((link) => {
-            const href = link.getAttribute('href');
-            // 筛选 .glb 后缀的文件，且排除目录（href 以 / 结尾的是子目录）
-            if (href && href.endsWith('.glb') && !href.endsWith('/')) {
-            // 提取文件名（href 可能是相对路径，取最后一段）
-            const fileName = href.split('/').pop();
-            if (fileName) fileNames.push(fileName);
-            }
-        });
-        
-        // 去重（避免重复文件）
-        return [...new Set(fileNames)];
-        }
-        
-        function getObjectRealHeight(object) {
-            // 1. 创建包围盒（用于包裹物体所有顶点）
-            const boundingBox = new THREE.Box3();
-
-            // 2. 计算物体的包围盒（关键：递归包含所有子物体）
-            if (object.isMesh) {
-                boundingBox.setFromObject(object);
-            } else {
-                object.traverse((child) => {
-                    if (child.isMesh) {
-                        boundingBox.expandByObject(child);
-                    }
-                });
-            }
-
-            // ---------------- 核心添加：包围盒红色线框可视化 ----------------
-            // 先移除物体上已存在的线框（避免重复创建，导致线框堆积）
-            if (object.userData.boundingBoxHelper) {
-                object.remove(object.userData.boundingBoxHelper);
-            }
-
-            // 创建红色线框辅助器（Box3Helper：基于包围盒生成线框）
-            const boxHelper = new THREE.Box3Helper(
-                boundingBox,        // 绑定计算出的包围盒
-                0xff0000            // 线框颜色：红色（#ff0000）
-            );
-            boxHelper.linewidth = 2; // 线框宽度（2px，清晰可见）
-
-            // 存储线框到物体的 userData 中（方便后续移除）
-            object.userData.boundingBoxHelper = boxHelper;
-            // 将线框添加到物体上（跟随物体移动、旋转，不会错位）
-            object.add(boxHelper);
-            // ----------------------------------------------------------------
-
-            // 3. 计算包围盒的尺寸
-            const size = new THREE.Vector3();
-            boundingBox.getSize(size);
-
-            // 4. 考虑世界缩放
-            const worldScale = new THREE.Vector3();
-            object.getWorldScale(worldScale);
-            const realHeight = size.y * worldScale.y;
-
-            // 打印关键信息（辅助调试：对比线框和日志）
-            // console.log("计算的包围盒范围：");
-            // console.log("底部 Y 坐标：", boundingBox.min.y);
-            // console.log("顶部 Y 坐标：", boundingBox.max.y);
-            // console.log("计算高度：", realHeight);
-
-            return realHeight;
-        }
         // -------------- 参考刻度柱生成函数（可直接复制使用）--------------
         function createHeightReferencePole() {
             // 1. 创建刻度柱的父容器（方便统一管理，后续可整体移动/隐藏）
@@ -444,35 +449,6 @@
         let loader = new GLTFLoader();
 
 
-        // loader.load(
-        // "../../../3ds/hutao.glb", // 替换为您的 GLB 文件路径
-        // //    "girl/woman.gltf", 
-        // function(gltf){
-            
-        //     mache.add(gltf.scene);
-
-        //     // 检查模型是否为 THREE.Object3D 的实例
-        //     if (!(mache instanceof THREE.Object3D)) {
-        //         console.error('加载的 GLB 模型不是 THREE.Object3D 的实例');
-        //         return;
-        //     }
-
-        //     // 调整模型的大小和位置
-        //     mache.scale.set(1, 1, 1); // 根据需要调整缩放比例
-        //     mache.position.set(2, 0, 0); // 根据需要调整位置
-        //     //player.mesh=mache;
-        //     // 将模型添加到场景中
-        //     scene.add(mache);
-        //     document.getElementById('loading').style.display = 'none';
-
-        //     // 相机控制
-        //     // let targetOffset=  new THREE.Vector3(0, getObjectRealHeight(mache)/2, 0);
-        //     controls.target = mache.position.clone().add(new THREE.Vector3(0,1.2,0)); // 控制器旋转中心设为物体（跟随物体移动）
-        //     console.log("模型高度：",getObjectRealHeight(mache),"相机从脚底偏移量高度：", targetOffset,mache.position.x,mache.position.y,mache.position.z);
-
-        // });
-
-
         // ------------ 核心：文件选择和加载逻辑 ------------
         modelFileInput.addEventListener('change', function(e) {
             const file = e.target.files[0]; // 获取选择的文件
@@ -489,6 +465,7 @@
             // 2. 重置状态，显示加载中
             loadStatus.style.color = '#ffff00';
             loadStatus.textContent = `加载中：0%`;
+            isModelLoaded = false; // 标记模型未加载完成
 
             // 3. 清空原有模型（如果有）
             if (mache.children.length > 0) {
@@ -555,21 +532,20 @@
                     new THREE.Box3().setFromObject(mache).getSize(size1);
                     const realHeight = size1.y;
 
-                    // const realHeight = getObjectRealHeight(mache);
-
                     // 7. 初始化/更新相机控制器
-                    if (!controls) {
-                        controls = new THREE.OrbitControls(camera, renderer.domElement);
-                        controls.enableDamping = true;
-                        controls.dampingFactor = 0.25;
-                    }
-                    // 更新旋转中心到模型中心
-                    const targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
-                    controls.target = mache.position.clone().add(targetOffset).add(new THREE.Vector3(0, -yOffset, 0));
+                    // if (!controls) {
+                    //     controls = new THREE.OrbitControls(camera, renderer.domElement);
+                    //     controls.enableDamping = true;
+                    //     controls.dampingFactor = 0.25;
+                    // }
+                    // // 更新旋转中心到模型中心
+                    // const targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
+                    // controls.target = mache.position.clone().add(targetOffset).add(new THREE.Vector3(0, -yOffset, 0));
 
                     // 加载成功提示
                     loadStatus.style.color = '#00ff00';
                     loadStatus.textContent = `加载成功！模型高度：${realHeight.toFixed(2)} 单位`;
+                    isModelLoaded = true; // 标记模型加载完成
                     }, 150);
                 },
                 // 加载进度回调
@@ -606,6 +582,10 @@
         // 动画循环
         function animate() {
             requestAnimationFrame(animate);
+             // 计算时间差：当前时间 - 上一帧时间，转换为秒（performance.now() 返回毫秒）
+            const deltaTime = (performance.now() - lastTime) / 1000;
+            lastTime = performance.now(); // 更新上一帧时间为当前时间
+            moveModel(deltaTime); // 调用移动函数，传入时间差
             controls.update();
             renderer.render(scene, camera);
         }
