@@ -16,6 +16,12 @@
             width: 100%;
             height: 100%;
         }
+        /* canvas 强制占满容器 */
+        #container canvas {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover; /* 防止拉伸，保持比例 */
+        }
         #loading {
             position: absolute;
             top: 50%;
@@ -24,18 +30,6 @@
             color: white;
             font-size: 24px;
             z-index: 100;
-        }
-        #controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            padding: 10px;
-            border-radius: 5px;
-            display: flex;
-            gap: 10px;
-            z-index: 10;
         }
         button {
             background: #3a5a78;
@@ -58,6 +52,38 @@
             height: 120px;
             z-index: 10000;
         }
+        /* 适配移动端竖屏：屏幕高度 > 宽度时触发 */
+        @media screen and (orientation: portrait) {
+            body {
+                width: 100vh; /* 宽度设为屏幕高度（旋转后占满屏幕） */
+                height: 100vw; /* 高度设为屏幕宽度 */
+                transform: rotate(90deg) translateY(-100%); /* 顺时针旋转90度 */
+                transform-origin: top left; /* 旋转中心点：左下角（避免偏移） */
+                overflow: hidden; /* 隐藏溢出内容 */
+                position: fixed; /* 固定定位，防止滚动 */
+            }
+            #joystick-container {
+                width: 120px; /* 宽度设为屏幕高度（旋转后占满屏幕） */
+                height: 120px; /* 高度设为屏幕宽度 */
+                transform: rotate(-90deg) translateY(0%); /* 逆时针旋转90度 */
+                transform-origin: top left; /* 旋转中心点：左下角（避免偏移） */
+            }
+        }
+
+        /* 横屏时恢复默认（可选，确保PC端正常） */
+        @media screen and (orientation: landscape) {
+            body {
+                transform: none;
+                width: 100vw;
+                height: 100vh;
+                position: static;
+            }
+            #joystick-container {
+                transform: none;
+                width: 120px;
+                height: 120px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -65,25 +91,25 @@
     <div id="loading">加载机甲模型中...</div>
     <div id="container"></div>
     <!-- 模型选择和加载状态区域 -->
-    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000; color: white;">
+    <div id="menu" style="position: fixed; top: 20px; left: 20px; z-index: 1000; color: white;">
         <div style="position: fixed; top: 20px; left: 20px; z-index: 1000; color: white;">
-        <div id="fileButtonsContainer" style="
-            margin: 20px 0;
-            display: flex;
-            gap: 10px;
-            flex-wrap: nowrap; /* 关键：禁用换行，强制横向排列 */
-            overflow-x: auto; /* 关键：横向溢出时显示滚动条 */
-            overflow-y: hidden; /* 隐藏纵向滚动条 */
-            padding: 10px 0; /* 上下内边距，优化视觉 */
-            height: 5vh; /* 固定容器高度（根据按钮大小调整） */
-            align-items: center; /* 按钮垂直居中 */
-            border: 1px solid #eee; /* 可选：添加边框，突出长条容器 */
-            border-radius: 8px; /* 可选：圆角优化 */
-            background: #fafafa; /* 可选：背景色，区分其他区域 */
-        "></div>
-        <label for="modelFile" style="font-size: 16px; margin-right: 10px;">选择本地.glb模型：</label>
-        <input type="file" id="modelFile" accept=".glb" style="display: inline-block; padding: 5px; background: #333; color: white; border: none; border-radius: 4px;">
-        <div id="loadStatus" style="margin-top: 10px; font-size: 14px;">未选择文件</div>
+            <div id="fileButtonsContainer" style="
+                margin: 20px 0;
+                display: flex;
+                gap: 10px;
+                flex-wrap: nowrap; /* 关键：禁用换行，强制横向排列 */
+                overflow-x: auto; /* 关键：横向溢出时显示滚动条 */
+                overflow-y: hidden; /* 隐藏纵向滚动条 */
+                padding: 10px 0; /* 上下内边距，优化视觉 */
+                height: 5vh; /* 固定容器高度（根据按钮大小调整） */
+                align-items: center; /* 按钮垂直居中 */
+                border: 1px solid #eee; /* 可选：添加边框，突出长条容器 */
+                border-radius: 8px; /* 可选：圆角优化 */
+                background: #fafafa; /* 可选：背景色，区分其他区域 */
+            "></div>
+            <label for="modelFile" style="font-size: 16px; margin-right: 10px;">选择本地.glb模型：</label>
+            <input type="file" id="modelFile" accept=".glb" style="display: inline-block; padding: 5px; background: #333; color: white; border: none; border-radius: 4px;">
+            <div id="loadStatus" style="margin-top: 10px; font-size: 14px;">未选择文件</div>
         </div>
     </div>
     <div id="joystick-container"></div>
@@ -104,7 +130,7 @@
         const GLB_FOLDER_PATH = '../../../3ds';
         // -------------------------- 核心新增：键盘控制变量 --------------------------
         const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
-        const moveSpeed = 6; // 移动速度（单位/秒）
+        const moveSpeed = 8; // 移动速度（单位/秒）
         let lastTime = performance.now(); // 用于计算帧率时间差
         let isModelLoaded = false; // 标记模型是否加载完成（避免未加载时触发移动）
 
@@ -149,31 +175,48 @@
             
             const moveVec = new THREE.Vector3(); // 存储移动方向的向量（x=左右，z=前后）
             
-            // 1. 根据按键状态设置移动方向
-            if (keys.w || keys.ArrowUp) moveVec.z = -1; // W/上箭头 = 向前（z轴负方向）
-            if (keys.s || keys.ArrowDown) moveVec.z = 1; // S/下箭头 = 向后（z轴正方向）
-            if (keys.a || keys.ArrowLeft) moveVec.x = -1; // A/左箭头 = 向左（x轴负方向）
-            if (keys.d || keys.ArrowRight) moveVec.x = 1; // D/右箭头 = 向右（x轴正方向）
+            // 1. 根据按键/摇杆状态设置「本地移动方向」（相对相机的方向）
+            if (keys.w || keys.ArrowUp) moveVec.z = -1; // 相对相机向前（z轴负方向）
+            if (keys.s || keys.ArrowDown) moveVec.z = 1; // 相对相机向后（z轴正方向）
+            if (keys.a || keys.ArrowLeft) moveVec.x = -1; // 相对相机向左（x轴负方向）
+            if (keys.d || keys.ArrowRight) moveVec.x = 1; // 相对相机向右（x轴正方向）
 
             // 键盘控制优先，摇杆次之（避免冲突）
             if (moveVec.length() === 0) {
                 moveVec.copy(joystickMoveVec);
             }
             
-            
-            // 2. 归一化方向向量：避免斜向移动时速度变快（如同时按W+D，速度不会是单独按的√2倍）
+            // 2. 归一化方向向量：避免斜向移动时速度变快
             if (moveVec.length() > 0) moveVec.normalize();
             
-            // 3. 更新模型位置：移动向量 × 速度 × 时间差（确保速度稳定）
+            // -------------------------- 核心修改：将移动向量转换为相机朝向 --------------------------
+            // 创建相机的「局部坐标系」（仅考虑 XZ 平面旋转，忽略 Y 轴高度）
+            const cameraQuaternion = new THREE.Quaternion();
+            camera.getWorldQuaternion(cameraQuaternion); // 获取相机的旋转四元数
+            cameraQuaternion.x = 0; // 锁定 X 轴旋转（避免相机抬头/低头影响移动方向）
+            cameraQuaternion.z = 0; // 锁定 Z 轴旋转（避免相机倾斜影响移动方向）
+            cameraQuaternion.normalize(); // 归一化四元数，确保旋转有效
+            
+            // 将「相对相机的移动向量」应用相机旋转，转换为「世界坐标系的移动向量」
+            moveVec.applyQuaternion(cameraQuaternion);
+            // ----------------------------------------------------------------------------------------
+            moveVec.normalize();
+            // -------------------------- 核心新增：模型朝向移动方向 --------------------------
+            if (moveVec.length() > 0) { // 有移动时才转向
+                mache.lookAt(mache.position.clone().add(moveVec)); // 模型看向移动方向
+                //mache.lookAt(new THREE.Vector3(0,0,0));
+                // mache.rotation.x = 0; // 锁定X轴旋转（避免模型倾斜）
+                // mache.rotation.z = 0; // 锁定Z轴旋转（避免模型侧翻
+            }
+            // --------------------------------------------------------------------------------
+
+            // 3. 更新模型位置：使用转换后的世界坐标系向量
             mache.position.addScaledVector(moveVec, moveSpeed * deltaTime);
             
-            // 4. 相机跟随模型：保持相机相对模型的偏移量（0,3,8），避免模型移出视野
-            //const camOffset = new THREE.Vector3(0, 3, 8); // 相机在模型上方3、前方8的位置
-            //camera.position.copy(mache.position).add(camOffset); // 相机位置 = 模型位置 + 偏移量
+            // 4. 相机跟随模型（保持相对位置，基于转换后的移动向量）
             camera.position.addScaledVector(moveVec, moveSpeed * deltaTime);
-            //controls.target.copy(mache.position).add(new THREE.Vector3(0, 5, 0)); // 控制器旋转中心对准模型中部
 
-            // 计算真实高度（带红色线框可视化）
+            // 计算模型高度和中心，更新相机控制器目标
             let size1 = new THREE.Vector3();
             new THREE.Box3().setFromObject(mache).getSize(size1);
             let realHeight = size1.y;
@@ -182,12 +225,6 @@
             new THREE.Box3().setFromObject(mache).getCenter(center);
             let yOffset = -(center.y - size1.y / 2);
 
-            // 7. 初始化/更新相机控制器
-            if (!controls) {
-                controls = new THREE.OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.25;
-            }
             // 更新旋转中心到模型中心
             let targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
             controls.target = mache.position.clone().add(targetOffset).add(new THREE.Vector3(0, -yOffset, 0));
