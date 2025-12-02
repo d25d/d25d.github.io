@@ -125,10 +125,15 @@
         </div>
     </div>
     <div id="joystick-container"></div>
+    <button style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" onclick="startDash()">冲刺</button>
+    <button style="position: fixed; bottom: 60px; right: 80px; z-index: 1000;" onclick="triggerAttack()">攻击</button>
+
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.10.0/dist/nipplejs.min.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.10.0/dist/nipplejs.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+
 
     <script type="module">
         import { GLTFLoader } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/loaders/GLTFLoader";
@@ -145,8 +150,161 @@
         const moveSpeed = 8; // 移动速度（单位/秒）
         let lastTime = performance.now(); // 用于计算帧率时间差
         let isModelLoaded = false; // 标记模型是否加载完成（避免未加载时触发移动）
+        let modelRealHeight = 0; // 模型实际高度
+        let modelYOffset = 0; // 模型Y轴偏移（脚底贴地用）      
 
         let joystickMoveVec = new THREE.Vector3(); // 摇杆移动方向向量
+
+        let isDashing = false; // 冲刺状态标记
+        const dashSpeed = moveSpeed * 3; // 冲刺速度（原速度的2倍，可调整）
+        const dashDuration = 200; // 冲刺持续时间（500毫秒，可调整）
+        let dashTimer = null; // 冲刺计时器
+
+        // 攻击相关变量
+        let isAttacking = false; // 攻击状态
+        const attackDuration = 150; // 特效持续时间（毫秒）
+        let attackTimer = null; // 攻击计时器
+        let weaponGlow = null; // 头顶武器发光特效
+        let slashEffect = null; // 周身斩击特效
+
+
+        // 2. 右键事件监听（放在键盘事件监听后）
+        document.addEventListener('mousedown', (e) => {
+        if (e.button === 2) { // 右键（button=2）
+            if (!isDashing && isModelLoaded) { // 仅模型加载完成且未冲刺时生效
+            isDashing = true;
+            // 清除之前的计时器（避免重复触发）
+            if (dashTimer) clearTimeout(dashTimer);
+            // 冲刺时间到后恢复原速度
+            dashTimer = setTimeout(() => {
+                isDashing = false;
+            }, dashDuration);
+            }
+        }
+        });
+
+        window.startDash = function(){
+            if (!isDashing && isModelLoaded) { // 仅模型加载完成且未冲刺时生效
+            isDashing = true;
+            // 清除之前的计时器（避免重复触发）
+            if (dashTimer) clearTimeout(dashTimer);
+            // 冲刺时间到后恢复原速度
+            dashTimer = setTimeout(() => {
+                isDashing = false;
+            }, dashDuration);
+            }
+        }
+        window.triggerAttack = function(){
+            triggerAttack();
+        }
+
+        
+
+        // 初始化攻击特效（模型加载成功后调用）
+        function initAttackEffects() {
+            // 1. 头顶武器发光特效（独立添加到场景，不挂载mache）
+            const weaponGeo = new THREE.CylinderGeometry(0.1, 0.15, 1.5, 8);
+            const weaponMat = new THREE.MeshBasicMaterial({
+                color: 0xff4500,
+                emissive: 0xff4500,
+                emissiveIntensity: 3,
+                transparent: true,
+                opacity: 0.8
+            });
+            weaponGlow = new THREE.Mesh(weaponGeo, weaponMat);
+            weaponGlow.rotation.z = Math.PI / 4;
+            weaponGlow.visible = false;
+            scene.add(weaponGlow); // 直接加场景，不挂mache
+
+            // 曲线剑气特效（替换原斩击特效代码）
+            function createSlashCurve() {
+            // 1. 定义斜劈曲线（从模型前方→斜下前方，带弯曲弧度）
+            const curvePoints = [
+                new THREE.Vector3(0, 0.5, 0), // 曲线起点（靠近模型）
+                new THREE.Vector3(2, 0.2, -2), // 曲线中点（向前+向下弯曲）
+                new THREE.Vector3(4, -0.3, -4) // 曲线终点（斜劈远处）
+            ];
+            return new THREE.CatmullRomCurve3(curvePoints, false); // 平滑曲线
+            }
+
+            // 剑气几何形状（管状曲线，有粗细）
+            const slashCurve = createSlashCurve();
+            const slashGeo = new THREE.TubeGeometry(
+            slashCurve, // 弯曲路径
+            30, // 曲线分段数（越多数越平滑）
+            0.3, // 管半径（0.3=中等粗细，可调整）
+            12, // 管侧面分段数（越多数越圆）
+            false // 不闭合
+            );
+
+            // 剑气材质（双面发光，增强厚度感）
+            const slashMat = new THREE.MeshBasicMaterial({
+            color: 0xffff00,
+            emissive: 0xffff00,
+            emissiveIntensity: 3,
+            transparent: true,
+            opacity: 0.8,
+            side: THREE.DoubleSide
+            });
+
+            slashEffect = new THREE.Mesh(slashGeo, slashMat);
+            slashEffect.visible = false;
+            scene.add(slashEffect);
+        }
+
+        // 触发攻击特效
+        function triggerAttack() {
+            if (isAttacking || !isModelLoaded) return;
+            isAttacking = true;
+
+            // 显示特效
+            weaponGlow.visible = true;
+            weaponGlow.visible = true;
+            slashEffect.visible = true;
+            slashEffect.scale.set(1, 1, 1);
+            slashEffect.material.opacity = 0.8;
+            slashEffect.material.emissiveIntensity = 3;
+
+            const attackStartTime = Date.now();
+            let progress = 0;
+            let startRotationZ = -Math.PI / 6; // 初始旋转（斜上）
+            let startY = 1.5; // 初始高度（偏上）
+
+            const animateSlash = () => {
+                progress += 0.03; // 注意：你之前写的0.3太快，改回0.03合理速度
+                // 1. 斜劈核心：局部旋转（相对模型）+ 下移
+                const rotateZ = startRotationZ + progress * (-Math.PI / 3); // 从-30°→30°（局部Z轴）
+
+                // 2. 保留淡出（可选，视觉更自然）
+                slashEffect.material.opacity = 0.8 - progress * 0.8;
+                slashEffect.material.emissiveIntensity = 3 - progress * 3;
+
+                // 3. 同步位置和旋转（关键：先清旋转，再设局部旋转）
+                slashEffect.position.copy(mache.position);
+                const forwardDir = new THREE.Vector3(0, 0, -1).applyQuaternion(mache.quaternion);
+                slashEffect.position.add(forwardDir.multiplyScalar(1 + progress * 0.5));
+                slashEffect.position.y += startY - progress * 1.2; // 下移
+
+                // 核心修复：确保旋转是局部坐标
+                slashEffect.quaternion.copy(mache.quaternion); // 复制模型朝向（局部坐标基准）
+                slashEffect.rotateY(Math.PI); // 反转朝向（相对模型）
+                slashEffect.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), 0); // 锁定世界Y轴，避免干扰
+                slashEffect.rotateZ(rotateZ); // 局部Z轴旋转（相对模型前方斜劈）
+
+                if (progress < 1) requestAnimationFrame(animateSlash);
+            };
+            animateSlash();
+
+            // 结束后隐藏特效（无需给定时器加属性）
+            clearTimeout(attackTimer);
+            attackTimer = setTimeout(() => {
+                isAttacking = false;
+                weaponGlow.visible = false;
+                slashEffect.visible = false;
+                slashEffect.scale.set(1, 1, 1);
+                slashEffect.material.opacity = 0.7;
+            }, attackDuration);
+        }
 
         // --------------------------------------------------------------------------
         // -------------------------- 核心新增：键盘事件监听 --------------------------
@@ -231,11 +389,14 @@
             }
             // --------------------------------------------------------------------------------
 
+
+            const currentSpeed = isDashing ? dashSpeed : moveSpeed;
+
             // 3. 更新模型位置：使用转换后的世界坐标系向量
-            mache.position.addScaledVector(moveVec, moveSpeed * deltaTime);
+            mache.position.addScaledVector(moveVec, currentSpeed * deltaTime);
             
             // 4. 相机跟随模型（保持相对位置，基于转换后的移动向量）
-            camera.position.addScaledVector(moveVec, moveSpeed * deltaTime);
+            camera.position.addScaledVector(moveVec, currentSpeed * deltaTime);
 
             // 计算模型高度和中心，更新相机控制器目标
             let size1 = new THREE.Vector3();
@@ -436,8 +597,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
 
         // -------------------------- 核心补偿：触摸方向适配旋转 --------------------------
         console.log(controls);
-      
-       
+
         // --------------------------------------------------------------------------------
 
                     
@@ -519,6 +679,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
         let mache = new THREE.Group();
         let loader = new GLTFLoader();
 
+        initAttackEffects();//初始化攻击特效
+
 
         // ------------ 核心：文件选择和加载逻辑 ------------
         modelFileInput.addEventListener('change', function(e) {
@@ -571,26 +733,60 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
                     let center = new THREE.Vector3();
                     box.getCenter(center);
 
-                    // 1. 计算缩放系数：强制模型最终高度=10
-                    let scale = 5 / size.y; // 按原始高度算，确保缩放后高度=10
+                    modelRealHeight = size.y;
+                    modelYOffset = -(center.y - size.y / 2);
+                    
+
+                    // 1. 计算缩放系数：强制模型最终高度
+                    let scale = 5 / size.y; // 按原始高度算，确保缩放后高度
                     mache.scale.set(scale, scale, scale); // 先缩放
 
                     // 2. 重新计算缩放后的包围盒，获取真实底部偏移
                     box = new THREE.Box3().setFromObject(mache);
-                    box.getSize(size); // 缩放后尺寸（height=10）
+                    box.getSize(size); // 缩放后尺寸
                     box.getCenter(center); // 缩放后中心点
+                    modelRealHeight = size.y;
+                    modelYOffset = -(center.y - size.y / 2);
+                    
 
                     // 3. 计算Y偏移：让脚底贴y=0
                     let yOffset = -(center.y - size.y / 2);
                     mache.position.y += yOffset; // 叠加偏移（不覆盖原有Y=0）
 
-                    //console.log("最终模型高度：", size.y, "脚底位置：", mache.position);
+                    
 
                     // 确保模型添加到场景
                     if (!scene.children.includes(mache)) {
                     scene.add(mache);
                     document.getElementById('loading').style.display = 'none';
                     }
+
+                    
+
+
+                    // ========== 模型物理体 ==========
+                    // 简化为胶囊体（贴合站立姿态，碰撞更自然）
+                    const cylinderShape = new CANNON.Cylinder(0.5, 0.5, 9, 8); // 半径0.5，高度9，8分段
+                    const sphereShape = new CANNON.Sphere(0.5); // 两端球体（半径和圆柱一致）
+
+                    const macheBody = new CANNON.Body({
+                    mass: 5,
+                    material: physicsMaterial,
+                    linearDamping: 0.1,
+                    angularDamping: 0.8,
+                    });
+
+                    // 添加圆柱（主体）
+                    macheBody.addShape(cylinderShape, new CANNON.Vec3(0, 5, 0)); // 居中在Y=5
+                    // 添加顶部球体
+                    macheBody.addShape(sphereShape, new CANNON.Vec3(0, 9.5, 0)); // 圆柱顶部+球体半径
+                    // 添加底部球体
+                    macheBody.addShape(sphereShape, new CANNON.Vec3(0, 0.5, 0)); // 圆柱底部+球体半径
+
+                    macheBody.position.copy(mache.position);
+                    world.addBody(macheBody);
+                    mache.userData.physicsBody = macheBody;
+                    // ====================================
 
                     // 6. 延迟校准锚点和计算高度（确保模型初始化完成）
                     setTimeout(() => {
@@ -603,16 +799,17 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
                     new THREE.Box3().setFromObject(mache).getSize(size1);
                     const realHeight = size1.y;
 
-                    // 7. 初始化/更新相机控制器
-                    // if (!controls) {
-                    //     controls = new THREE.OrbitControls(camera, renderer.domElement);
-                    //     controls.enableDamping = true;
-                    //     controls.dampingFactor = 0.25;
-                    // }
-                    // // 更新旋转中心到模型中心
-                    // const targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
-                    // controls.target = mache.position.clone().add(targetOffset).add(new THREE.Vector3(0, -yOffset, 0));
+                    //7. 初始化/更新相机控制器
+                    if (!controls) {
+                        controls = new THREE.OrbitControls(camera, renderer.domElement);
+                        controls.enableDamping = true;
+                        controls.dampingFactor = 0.25;
+                    }
+                    // 更新旋转中心到模型中心
+                    const targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
+                    controls.target = mache.position.clone().add(targetOffset).add(new THREE.Vector3(0, -yOffset, 0));
 
+                    // console.log("最终模型高度：", size1.y, "yOffset：  ", yOffset);
                     // 加载成功提示
                     loadStatus.style.color = '#00ff00';
                     loadStatus.textContent = `加载成功！模型高度：${realHeight.toFixed(2)} 单位`;
@@ -648,6 +845,37 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
         window.addEventListener('resize', onWindowResize);
+
+        // ========== 物理世界初始化 ==========
+        const world = new CANNON.World();
+        world.gravity.set(0, -9.82, 0); // Y轴向下重力（模拟现实）
+        world.broadphase = new CANNON.SAPBroadphase(world); // 碰撞检测算法
+        world.solver.iterations = 10; // 碰撞解算精度
+        world.allowSleep = true; // 允许物体休眠（优化性能）
+
+        // 物理材质（控制摩擦、弹性）
+        const physicsMaterial = new CANNON.Material();
+        const contactMaterial = new CANNON.ContactMaterial(
+        physicsMaterial,
+        physicsMaterial,
+        {
+            friction: 0.8, // 摩擦系数（防止模型滑动）
+            restitution: 0.1, // 弹性（碰撞后轻微反弹）
+        }
+        );
+        world.addContactMaterial(contactMaterial);
+        // ====================================
+        // ========== 地板物理体 ==========
+        const floorShape = new CANNON.Plane();
+        const floorBody = new CANNON.Body({
+        mass: 0, // 质量0 = 固定不动（地面不会被推动）
+        material: physicsMaterial,
+        });
+        floorBody.addShape(floorShape);
+        floorBody.quaternion.setFromEuler(-Math.PI/2, 0, 0); // 和视觉地板旋转一致
+        floorBody.position.y = 0;
+        world.addBody(floorBody);
+        // ====================================
         
         
         // 动画循环
@@ -656,7 +884,33 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
              // 计算时间差：当前时间 - 上一帧时间，转换为秒（performance.now() 返回毫秒）
             const deltaTime = (performance.now() - lastTime) / 1000;
             lastTime = performance.now(); // 更新上一帧时间为当前时间
+            world.step(1/60); // 60帧/秒 同步物理状态（重力、碰撞）
             moveModel(deltaTime); // 调用移动函数，传入时间差
+
+            // 核心：同步特效到模型世界位置（不影响模型自身计算）
+            if (isModelLoaded && weaponGlow && slashEffect) {
+                // 武器特效：模型世界位置 + 头顶偏移（y=模型高度+1）
+                weaponGlow.position.copy(mache.position);
+                weaponGlow.position.y += modelRealHeight - modelYOffset + 1;
+
+                // 斩击特效：模型世界位置 + 中部偏移（y=2）
+                slashEffect.position.copy(mache.position);
+                slashEffect.position.y += + modelRealHeight * 0.75-modelYOffset;
+            }
+
+            // 左键攻击（mousedown 触发，避免长按连续攻击）
+            if (!screen.orientation.type.includes('portrait')) {
+                    //代表没有顺时针90度
+                document.getElementById('container').addEventListener('mousedown', (e) => {
+                if (e.button === 0) { // 左键
+                    triggerAttack();
+                }
+                });
+            }
+            else{
+                document.getElementById('container').removeEventListener('mousedown', (e)=>{});
+            }
+
             controls.update();
             renderer.render(scene, camera);
         }
