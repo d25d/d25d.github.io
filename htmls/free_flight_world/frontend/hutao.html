@@ -125,8 +125,8 @@
         </div>
     </div>
     <div id="joystick-container"></div>
-    <button style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" onclick="startDash()">冲刺</button>
-    <button style="position: fixed; bottom: 60px; right: 80px; z-index: 1000;" onclick="triggerAttack()">攻击</button>
+    <button style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" onclick="startDash()" ontouchstart="startDash(); ">冲刺</button>
+    <button style="position: fixed; bottom: 60px; right: 80px; z-index: 1000;" onclick="triggerAttack()" ontouchstart="triggerAttack(); ">攻击</button>
 
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
@@ -183,7 +183,18 @@
         }
         });
 
-        window.startDash = function(){
+        // window.startDash = function(){
+        //     if (!isDashing && isModelLoaded) { // 仅模型加载完成且未冲刺时生效
+        //     isDashing = true;
+        //     // 清除之前的计时器（避免重复触发）
+        //     if (dashTimer) clearTimeout(dashTimer);
+        //     // 冲刺时间到后恢复原速度
+        //     dashTimer = setTimeout(() => {
+        //         isDashing = false;
+        //     }, dashDuration);
+        //     }
+        // }
+        function startDash (){
             if (!isDashing && isModelLoaded) { // 仅模型加载完成且未冲刺时生效
             isDashing = true;
             // 清除之前的计时器（避免重复触发）
@@ -194,9 +205,9 @@
             }, dashDuration);
             }
         }
-        window.triggerAttack = function(){
-            triggerAttack();
-        }
+        // window.triggerAttack = function(){
+        //     triggerAttack();
+        // }
 
         
 
