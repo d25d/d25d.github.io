@@ -72,6 +72,40 @@
 
 <div id="chatBox"></div>
 
+<!-- 模型选择下拉框 -->
+<select id="modelSelect">
+  <option value="Qwen/Qwen2-7B-Instruct">Qwen2-7B-Instruct（免费常用）</option>
+  <option value="Qwen/Qwen1.5-14B-Chat">Qwen1.5-14B-Chat</option>
+    <!-- DeepSeek系列 -->
+    <option value="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B">DeepSeek-R1-Distill-Qwen-14B</option>
+    <option value="deepseek-ai/DeepSeek-R1-Distill-Qwen-7BPro">DeepSeek-R1-Distill-Qwen-7BPro</option>
+    <option value="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B">DeepSeek-R1-Distill-Qwen-7B</option>
+    <option value="deepseek-ai/DeepSeek-V2.5">DeepSeek-V2.5</option>
+    
+    <!-- 通义千问Qwen原生系列 -->
+    <option value="Qwen/Qwen2.5-72B-Instruct-128K">Qwen2.5-72B-Instruct-128K</option>
+    <option value="Qwen/Qwen2.5-72B-Instruct">Qwen2.5-72B-Instruct</option>
+    <option value="Qwen/Qwen2.5-32B-Instruct">Qwen2.5-32B-Instruct</option>
+    <option value="Qwen/Qwen2.5-14B-Instruct">Qwen2.5-14B-Instruct</option>
+    <option value="Qwen/Qwen2.5-7B-Instruct">Qwen2.5-7B-Instruct</option>
+    <option value="Qwen/Qwen2.5-Coder-32B-Instruct">Qwen2.5-Coder-32B-Instruct</option>
+    <option value="Qwen/Qwen2.5-Coder-7B-Instruct">Qwen2.5-Coder-7B-Instruct</option>
+    <option value="Qwen/Qwen2-7B-Instruct">Qwen2-7B-Instruct（免费常用）</option>
+    
+    <!-- 智谱GLM系列 -->
+    <option value="THUDM/gim-4-9b-chat">gim-4-9b-chat</option>
+    <option value="THUDM/glm-4-9b-chat">glm-4-9b-chat</option>
+    
+    <!-- 书生·浦语系列 -->
+    <option value="internlm/internlm2_5-7b-chat">internlm2_5-7b-chat</option>
+    
+    <!-- Pro前缀系列（专属部署/权限模型） -->
+    <option value="Pro/Qwen/Qwen2.5-7B-instruct">Pro-Qwen2.5-7B-instruct</option>
+    <option value="Pro/Qwen/Qwen2-7B-Instruct">Pro-Qwen2-7B-Instruct</option>
+    <option value="Pro/THUDM/glm-4-9b-chat">Pro-glm-4-9b-chat</option>
+      <!-- 可继续添加其他免费/可用模型 -->
+</select>
+
 <div id="inputContainer">
     <textarea id="inputField" rows="4" placeholder="输入你的问题..."></textarea>
     <button id="sendBtn">发送</button>
@@ -133,18 +167,20 @@
         const userInput = inputField.value.trim();
         if (!userInput) {sendBtn.disabled = false;return;}
 
+        let selectedModel = document.getElementById("modelSelect").value;
+
         // 显示用户消息
         handleMessage(userInput, "user");
         inputField.value = ""; // 清空输入框
 
         // AI 回答
-        const aiReply = await generateAIResponse(userInput);
+        const aiReply = await generateAIResponse(userInput, selectedModel);
         await handleMessage(aiReply, "ai");
         sendBtn.disabled = false;
     }
 
     // 模拟 AI 生成的回答
-    async function generateAIResponse(userInput) {
+    async function generateAIResponse(userInput, model) {
     const url = 'https://api.siliconflow.cn/v1/chat/completions';
     const options = {
         method: 'POST',
@@ -153,7 +189,7 @@
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            model: "Qwen/Qwen3-30B-A3B",
+            model: model,
             messages: [{ role: "user", content: userInput }],
             stream: false,
             max_tokens: 4096,
@@ -176,7 +212,7 @@
         const data = await response.json(); // 等待数据解析
         //console.log(data.choices[0].message.content);
         // 返回数据的 content 部分
-        return data.choices[0].message.content;
+        return data?.message || data?.choices?.[0]?.message?.content || "未获取到有效内容";
     } catch (error) {
         console.error(error);
         return "发生了错误，无法获取AI回答。";
