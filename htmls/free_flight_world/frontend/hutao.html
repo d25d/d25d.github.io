@@ -609,6 +609,124 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
         // -------------------------- 核心补偿：触摸方向适配旋转 --------------------------
         console.log(controls);
 
+        let isPortrait = screen.orientation.type.includes('portrait');
+        if (isPortrait) {
+                //代表已经顺时针90度
+                controls.enabled = false;
+                bindManualCameraControl(); // 绑定手动控制
+
+                let isDragging = false;
+                let lastX = 0, lastY = 0;
+                const rotateSpeed = 0.01; // 旋转速度
+                const zoomSpeed = 0.05; // 缩放速度
+
+                function bindManualCameraControl() {
+                const container = document.getElementById('container');
+                // 鼠标/触摸开始
+                container.addEventListener('mousedown', startDrag);
+                container.addEventListener('touchstart', startDrag);
+                // 鼠标/触摸移动
+                container.addEventListener('mousemove', drag);
+                container.addEventListener('touchmove', drag);
+                // 鼠标/触摸结束
+                container.addEventListener('mouseup', endDrag);
+                container.addEventListener('touchend', endDrag);
+                // 滚轮缩放
+                container.addEventListener('wheel', zoom);
+                }
+
+                function unbindManualCameraControl() {
+                const container = document.getElementById('container');
+                // 移除所有手动控制事件
+                container.removeEventListener('mousedown', startDrag);
+                container.removeEventListener('touchstart', startDrag);
+                container.removeEventListener('mousemove', drag);
+                container.removeEventListener('touchmove', drag);
+                container.removeEventListener('mouseup', endDrag);
+                container.removeEventListener('touchend', endDrag);
+                container.removeEventListener('wheel', zoom);
+                isDragging = false;
+                }
+
+                // 开始拖动
+                function startDrag(e) {
+                    console.log("startDragstartDrag");
+
+                isDragging = true;
+                // 兼容鼠标/触摸
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                lastX = clientX;
+                lastY = clientY;
+                e.preventDefault();
+                }
+
+                // 拖动旋转相机
+                function drag(e) {
+                    console.log("dragdrag");
+                if (!isDragging) return;
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                
+                // 计算偏移量
+                const deltaX = (clientX - lastX) * rotateSpeed;
+                const deltaY = (clientY - lastY) * rotateSpeed;
+
+                 console.log("deltaX:",deltaX);
+                // console.log(deltaY);
+                
+                
+                // 手动旋转相机（绕Y轴左右转，绕X轴上下转）
+                // 核心：环绕mache旋转相机
+                // 1. 计算相机到mache的方向向量
+                const offset = new THREE.Vector3().subVectors(camera.position, mache.position);
+                // 2. 计算球面坐标（半径、垂直角、水平角）
+                const spherical = new THREE.Spherical().setFromVector3(offset);
+                // 3. 根据滑动偏移修改球面角（左右滑改水平角，上下滑改垂直角）
+                spherical.theta -= deltaY; // 水平环绕（左右）
+                spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + deltaX)); // 垂直环绕（上下），限制角度避免翻转
+                console.log(spherical.phi);
+                // 4. 更新相机位置
+                offset.setFromSpherical(spherical);
+                camera.position.copy(mache.position).add(offset);
+                // 5. 始终朝向mache
+                camera.lookAt(mache.position);
+                
+                // 限制上下旋转角度（避免翻转）
+                //camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+                
+                lastX = clientX;
+                lastY = clientY;
+                e.preventDefault();
+                }
+
+                // 结束拖动
+                function endDrag() {
+                isDragging = false;
+                }
+
+                // 滚轮缩放相机
+                function zoom(e) {
+                    console.log("zoomzoomzoom");
+
+                /// 1. 计算相机到目标点的向量
+                const offset = new THREE.Vector3().subVectors(camera.position, mache.position.clone().add(GtargetOffset).add(new THREE.Vector3(0, -GyOffset, 0)));
+                // 2. 转球面坐标（仅修改距离radius）
+                const spherical = new THREE.Spherical().setFromVector3(offset);
+                // 3. 根据滚轮方向修改距离（e.deltaY正负对应滚轮上下）
+                spherical.radius += e.deltaY * zoomSpeed;
+                // 4. 限制缩放范围（避免过近/过远）
+                spherical.radius = Math.max(1, Math.min(20, spherical.radius));
+                // 5. 更新相机位置并朝向目标
+                offset.setFromSpherical(spherical);
+                camera.position.copy(mache.position).add(offset);
+                camera.lookAt(mache.position.clone().add(GtargetOffset).add(new THREE.Vector3(0, -GyOffset, 0)));
+                e.preventDefault();
+                }
+
+        }
+
+        
         // --------------------------------------------------------------------------------
 
                     
@@ -690,6 +808,10 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
         let mache = new THREE.Group();
         let loader = new GLTFLoader();
 
+        let GtargetOffset = new THREE.Vector3(0, 0, 0);
+        let GrealHeight = 0;
+        let GyOffset = 0;
+
         initAttackEffects();//初始化攻击特效
 
 
@@ -763,7 +885,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
                     // 3. 计算Y偏移：让脚底贴y=0
                     let yOffset = -(center.y - size.y / 2);
                     mache.position.y += yOffset; // 叠加偏移（不覆盖原有Y=0）
-
+                    GyOffset = yOffset;
                     
 
                     // 确保模型添加到场景
@@ -809,6 +931,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
                     let size1 = new THREE.Vector3();
                     new THREE.Box3().setFromObject(mache).getSize(size1);
                     const realHeight = size1.y;
+                    GrealHeight = realHeight;
 
                     //7. 初始化/更新相机控制器
                     if (!controls) {
@@ -818,6 +941,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
                     }
                     // 更新旋转中心到模型中心
                     const targetOffset = new THREE.Vector3(0, realHeight*0.75, 0);
+                    GtargetOffset = targetOffset;
                     controls.target = mache.position.clone().add(targetOffset).add(new THREE.Vector3(0, -yOffset, 0));
 
                     // console.log("最终模型高度：", size1.y, "yOffset：  ", yOffset);
@@ -923,6 +1047,12 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 软阴影更清晰，减少
             }
 
             controls.update();
+            let isPortrait = screen.orientation.type.includes('portrait');
+        if (isPortrait) {
+                //代表已经顺时针90度
+                controls.enabled = false;
+        }
+        else{controls.enabled = true;}
             renderer.render(scene, camera);
         }
         animate();
