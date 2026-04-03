@@ -160,10 +160,14 @@
     // 模拟 AI 生成的回答
     async function generateAIResponse(userInput, model) {
     const url = 'https://api.siliconflow.cn/v1/chat/completions';
+    
+    // 【安全】不要把密钥硬编码！实际使用请放到环境变量
+    const API_KEY = 'sk-dcfasnklmidbynugoftyfizlrjrjhcgvfruewojpmxaqaxrm';
+
     const options = {
         method: 'POST',
         headers: {
-            Authorization: 'Bearer sk-dcfasnklmidbynugoftyfizlrjrjhcgvfruewojpmxaqaxrm',
+            'Authorization': `Bearer ${API_KEY}`,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -171,29 +175,27 @@
             messages: [{ role: "user", content: userInput }],
             stream: false,
             max_tokens: 4096,
-            enable_thinking: false,
-            thinking_budget: 4096,
-            min_p: 0.05,
-            stop: null,
             temperature: 0.7,
             top_p: 0.7,
             top_k: 50,
             frequency_penalty: 0.5,
+            min_p: 0.05,
             n: 1,
-            response_format: { type: "text" },
-            tools: [{ type: "function", function: { description: "<string>", name: "<string>", parameters: {}, strict: false } }]
-        })    
+            stop: [],        // 修正：不用 null
+            response_format: { type: "text" }
+            // 【删除】非法的 tools 占位符字段
+        })
     };
 
     try {
-        const response = await fetch(url, options);  // 等待请求完成
-        const data = await response.json(); // 等待数据解析
-        //console.log(data.choices[0].message.content);
-        // 返回数据的 content 部分
-        return data?.message || data?.choices?.[0]?.message?.content || "未获取到有效内容";
+        const response = await fetch(url, options);
+        const data = await response.json();
+        
+        // 返回 AI 回答内容
+        return data.choices?.[0]?.message?.content || '';
     } catch (error) {
-        console.error(error);
-        return "发生了错误，无法获取AI回答。";
+        console.error('AI 请求失败:', error);
+        return '';
     }
 }
 
