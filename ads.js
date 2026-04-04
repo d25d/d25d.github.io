@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+
 
   // ==============================================
   // 1. Banner 468x60 横幅
