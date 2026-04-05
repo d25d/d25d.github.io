@@ -1,4 +1,4 @@
-
+document.addEventListener("DOMContentLoaded", function () {
 
   // ==============================================
   // 1. Banner 468x60 横幅
@@ -29,11 +29,11 @@
   smartlinkAd.style.textAlign = "center";
   smartlinkAd.style.margin = "12px 0";
   smartlinkAd.innerHTML = `
-    <a href=" " 
+    <a href="https://www.profitablecpmratenetwork.com/dxpupbas?key=b84795fa2e9d66edfc77fb67673f231e" 
        target="_blank" 
        style="display:inline-block; padding:10px 22px; background:#f8f9fa; border-radius:6px; color:#222; text-decoration:none; font-size:14px;">
       查看推荐内容
-    </a >
+    </a>
   `;
   document.body.appendChild(smartlinkAd);
 
