@@ -38,113 +38,111 @@
   </div>
   <script>
     //1.选项数组
+    // 可以在开头继续添加更多对象...
     const cardsData = [
-   {
-    href: "../htmls/free_flight_world/frontend/hutao.html",                  
-    alt: ".glb",
-    src: "https://simg.doyo.cn/imgfile/bgame/202303/08171356tmj6.jpg",        
-    description: ".glb"
-  },
-  {
-    href: "../htmls/chat.html",      
-    alt: "凭借id聊天",
-    src: "https://simg.doyo.cn/imgfile/bgame/202303/08171356tmj6.jpg",
-    description: "凭借id聊天"
-  },
-  {
-    href: "../htmls/gpt.html",  
-    alt: "ai问答",
-    src: "https://thumb.photo-ac.com/fc/fccc177b1f6c533acc3df95b03c8078e_w.jpeg",  
-    description: "ai问答"
-  },
-  {
-    href: "../htmls/tian.html",
-    alt: "地球",
-    src: "https://image-cdn.tuchong.com/weili/image/l/1559337775850192901.jpeg",
-    description: "地球"  
-  },
-  {
-    href: "../htmls/first.html",
-    alt: "留言本",
-    src: "https://tse3-mm.cn.bing.net/th/id/OIP-C.-N9n81tGq7D-a9Haf4XrZAHaFE?rs=1&pid=ImgDetMain",
-    description: "留言本"
-  },
-  {
-    href: "../htmls/second.html",  
-    alt: "弹音乐",
-    src: "https://ts1.cn.mm.bing.net/th/id/R-C.6128fc9619103be592326063937b4d6c?rik=64a3htwXjp%2blTQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fw%2f2021%2f07-07%2f102953%2fwater_102953_698_698.71_.png&ehk=glr7QUsIUv3pse7KwPci5Wz5PaqX0Xf9HwL0EYY8GJg%3d&risl=&pid=ImgRaw&r=0",
-    description: "弹音乐"
-  },
-  {
-    href: "../htmls/four.html",  
-    alt: "从网页下载图片",
-    src: "https://ts1.cn.mm.bing.net/th/id/R-C.9b1a72d9be1422b5371e51b17e46edeb?rik=TOx7Y9K8kZ0Fkw&riu=http%3a%2f%2ficon.chrafz.com%2fuploads%2f151023%2f1-1510232124534A.png&ehk=ji7jjNJWleXMIZYoIip24ffxb8i836gxKl1Y89gkkTM%3d&risl=&pid=ImgRaw&r=0",  
-    description: "从网页下载图片"
-  },
-  {
-    href: "../shengyiwu/gg.html",    
-    alt: "圣遗物？？",
-    src: "https://olimg.3dmgame.com/uploads/images/raiders/2023/0814/1691977901617.jpg",
-    description: "圣遗物？？"
-  },
-  {
-    href: "../level.html",  
-    alt: "genshin",
-    src: "https://www.yuanshen.com/images/ys.96a55539.png",
-    description: "level"
-  },
-  {
-    href: "../try.html",  
-    alt: "try",
-    src: "https://fastcdn.mihoyo.com/static-resource-v2/2023/10/19/decde675d83a1b5b78fe05b2382b30ae_7623137438469696579.jpg",
-    description: "原神祈愿测运气"
-  },
-  {
-    href: "../htmls/previewImages.html",  
-    alt: "imgs",
-    src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",
-    description: "根据图片链接预览图片"
-  },
-  {
-    href: "../htmls/free_flight_world/frontend/index.html",  
-    alt: "fly",
-    src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",  
-    description: "获得随意飞翔的力量"
-  },
-  {
-    href: "../htmls/xample.html",        
-    alt: "抽奖",
-    src: "https://ts3.tc.mm.bing.net/th/id/OIP-C.27RWcCBILtWeOaeMe6RdiAAAAA?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3",    
-    description: "试试你的运气"
-  },
-  {
-    href: "../htmls/phone.html",    
-    alt: "一个手机？",
-    src:"https://gd-hbimg.huaban.com/d0813d601686f61668cd6111fd9a8eeeb48f461919dfe-FvSAkF_fw658",
-    description: "一个手机？"
-  },
-  {
-    href: "../htmls/tafang/tafang.html",    
-    alt: "塔防",
-    src: "https://ts2.tc.mm.bing.net/th/id/OIP-C.1fh5zvFeit16tpUNtRrOrwHaEK?rs=1&pid=ImgDetMain&o=7&rm=3",
-    description: "塔防"
-  },
-  {
-    href: "./htmls/diqiucun/diqiucun.html",    
-    alt: "看看地球上其他人在做什么",
-    src: "https://ts3.tc.mm.bing.net/th/id/OIP-C.ukX250UFchUQIcglj4rJ9QHaFW?rs=1&pid=ImgDetMain&o=7&rm=3",
-    description: "看看地球上其他人在做什么"
-  },
-  {
-    href: "",    
-    alt: "",
-    src: "",
-    description: ""
-  }
-    
-
-      
-// 可以继续添加更多对象...
+      {
+      href: "",    
+      alt: "",
+      src: "",
+      description: ""
+     },
+     {
+        href: "../htmls/diqiucun/diqiucun.html",    
+        alt: "看看地球上其他人在做什么",
+        src: "https://ts3.tc.mm.bing.net/th/id/OIP-C.ukX250UFchUQIcglj4rJ9QHaFW?rs=1&pid=ImgDetMain&o=7&rm=3",
+        description: "看看地球上其他人在做什么"
+     },
+     
+     {
+      href: "../htmls/free_flight_world/frontend/hutao.html",                  
+      alt: ".glb",
+      src: "https://simg.doyo.cn/imgfile/bgame/202303/08171356tmj6.jpg",        
+      description: ".glb"
+    },
+    {
+      href: "../htmls/chat.html",      
+      alt: "凭借id聊天",
+      src: "https://simg.doyo.cn/imgfile/bgame/202303/08171356tmj6.jpg",
+      description: "凭借id聊天"
+    },
+    {
+      href: "../htmls/gpt.html",  
+      alt: "ai问答",
+      src: "https://thumb.photo-ac.com/fc/fccc177b1f6c533acc3df95b03c8078e_w.jpeg",  
+      description: "ai问答"
+    },
+    {
+      href: "../htmls/tian.html",
+      alt: "地球",
+      src: "https://image-cdn.tuchong.com/weili/image/l/1559337775850192901.jpeg",
+      description: "地球"  
+    },
+    {
+      href: "../htmls/first.html",
+      alt: "留言本",
+      src: "https://tse3-mm.cn.bing.net/th/id/OIP-C.-N9n81tGq7D-a9Haf4XrZAHaFE?rs=1&pid=ImgDetMain",
+      description: "留言本"
+    },
+    {
+      href: "../htmls/second.html",  
+      alt: "弹音乐",
+      src: "https://ts1.cn.mm.bing.net/th/id/R-C.6128fc9619103be592326063937b4d6c?rik=64a3htwXjp%2blTQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fw%2f2021%2f07-07%2f102953%2fwater_102953_698_698.71_.png&ehk=glr7QUsIUv3pse7KwPci5Wz5PaqX0Xf9HwL0EYY8GJg%3d&risl=&pid=ImgRaw&r=0",
+      description: "弹音乐"
+    },
+    {
+      href: "../htmls/four.html",  
+      alt: "从网页下载图片",
+      src: "https://ts1.cn.mm.bing.net/th/id/R-C.9b1a72d9be1422b5371e51b17e46edeb?rik=TOx7Y9K8kZ0Fkw&riu=http%3a%2f%2ficon.chrafz.com%2fuploads%2f151023%2f1-1510232124534A.png&ehk=ji7jjNJWleXMIZYoIip24ffxb8i836gxKl1Y89gkkTM%3d&risl=&pid=ImgRaw&r=0",  
+      description: "从网页下载图片"
+    },
+    {
+      href: "../shengyiwu/gg.html",    
+      alt: "圣遗物？？",
+      src: "https://olimg.3dmgame.com/uploads/images/raiders/2023/0814/1691977901617.jpg",
+      description: "圣遗物？？"
+    },
+    {
+      href: "../level.html",  
+      alt: "genshin",
+      src: "https://www.yuanshen.com/images/ys.96a55539.png",
+      description: "level"
+    },
+    {
+      href: "../try.html",  
+      alt: "try",
+      src: "https://fastcdn.mihoyo.com/static-resource-v2/2023/10/19/decde675d83a1b5b78fe05b2382b30ae_7623137438469696579.jpg",
+      description: "原神祈愿测运气"
+    },
+    {
+      href: "../htmls/previewImages.html",  
+      alt: "imgs",
+      src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",
+      description: "根据图片链接预览图片"
+    },
+    {
+      href: "../htmls/free_flight_world/frontend/index.html",  
+      alt: "fly",
+      src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",  
+      description: "获得随意飞翔的力量"
+    },
+    {
+      href: "../htmls/xample.html",        
+      alt: "抽奖",
+      src: "https://ts3.tc.mm.bing.net/th/id/OIP-C.27RWcCBILtWeOaeMe6RdiAAAAA?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3",    
+      description: "试试你的运气"
+    },
+    {
+      href: "../htmls/phone.html",    
+      alt: "一个手机？",
+      src:"https://gd-hbimg.huaban.com/d0813d601686f61668cd6111fd9a8eeeb48f461919dfe-FvSAkF_fw658",
+      description: "一个手机？"
+    },
+    {
+      href: "../htmls/tafang/tafang.html",    
+      alt: "塔防",
+      src: "https://ts2.tc.mm.bing.net/th/id/OIP-C.1fh5zvFeit16tpUNtRrOrwHaEK?rs=1&pid=ImgDetMain&o=7&rm=3",
+      description: "塔防"
+    }
 ];
 
 errorImgUrl = "https://slsup.com/zb_users/upload/2021/06/20210625090656_99783.jpg";
