@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>星图 · 人物关系图谱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #0a0f1e;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Roboto, 'Helvetica Neue', sans-serif;
+            touch-action: none;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        canvas:active {
+            cursor: grabbing;
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 顶部主题栏 - 增强玻璃质感 */
+        .theme-bar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 25, 45, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 60px;
+            padding: 6px 8px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 8px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+        }
+
+        .theme-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transform: scale(1.02);
+        }
+
+        .theme-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .theme-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* 侧边筛选栏 - 精致玻璃面板 */
+        .filter-sidebar {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(20, 25, 45, 0.65);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 20px 16px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 120px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .filter-sidebar:hover {
+            background: rgba(20, 25, 45, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .filter-title {
+            color: #b8c7ff;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e8eeff;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 12px;
+            transition: background 0.2s ease;
+        }
+
+        .filter-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .filter-option input {
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+            accent-color: #7c5df0;
+            border-radius: 4px;
+        }
+
+        .reset-filter {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: #ffda7c;
+            padding: 8px 0;
+            border-radius: 24px;
+            font-size: 12px;
+            margin-top: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .reset-filter:hover {
+            background: rgba(255, 193, 7, 0.15);
+            border-color: rgba(255, 193, 7, 0.6);
+            color: #ffeaa7;
+            transform: translateY(-1px);
+        }
+
+        .reset-filter:active {
+            transform: scale(0.97);
+        }
+
+        /* 弹窗遮罩层 - 更柔和的暗化 */
+        .popup-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            backdrop-filter: blur(8px);
+        }
+
+        .popup-mask.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 弹窗主体 - 精致卡片 */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.92);
+            width: 320px;
+            max-width: 85vw;
+            background: linear-gradient(145deg, #ffffff, #f8faff);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+            padding: 24px;
+            transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.2s;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .popup.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-title {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .relation-list {
+            max-height: 320px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            padding-right: 6px;
+        }
+
+        .relation-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .relation-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .relation-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .relation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .relation-item:hover {
+            background: #f8fafc;
+            padding-left: 8px;
+            padding-right: 8px;
+            border-radius: 12px;
+        }
+
+        .relation-name {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .relation-text {
+            color: #e67e22;
+            background: #fff7ed;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .close-btn {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 0;
+            border-radius: 60px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            border: none;
+        }
+
+        .close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .close-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* 提示组件 - 优雅低调 */
+        .tip {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(12px);
+            color: #cdd9ff;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: opacity 0.3s;
+        }
+
+        /* 添加淡入动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .theme-bar, .filter-sidebar, .tip {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* 移动端适配微调 */
+        @media (max-width: 700px) {
+            .filter-sidebar { 
+                left: 12px; 
+                padding: 14px 10px; 
+                min-width: 95px;
+                backdrop-filter: blur(16px);
+            }
+            .theme-btn { padding: 6px 16px; font-size: 12px; }
+            .filter-option { font-size: 11px; gap: 6px; }
+            .filter-title { font-size: 11px; }
+            .popup { width: 85vw; padding: 18px; }
+            .popup-title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starChartCanvas"></canvas>
+
+    <!-- 主题切换栏 -->
+    <div class="theme-bar">
+        <button class="theme-btn active" data-theme="genshin">✨ 原神·璃月</button>
+        <button class="theme-btn" data-theme="honkai">⚔️ 王者峡谷</button>
+        <button class="theme-btn" data-theme="demo">🎨 自定义示例</button>
+    </div>
+
+    <!-- 侧边筛选栏 -->
+    <div class="filter-sidebar">
+        <label class="filter-option">
+            <input type="checkbox" value="friend" checked> 🤝 友好/合作
+        </label>
+        <label class="filter-option">
+            <input type="checkbox" value="enemy" checked> ⚡ 敌对/竞争
+        </label>
+        <label class="filter-option">
+            <input type="checkbox" value="family" checked> 👪 亲属/师徒
+        </label>
+        <div class="reset-filter" id="resetFilterBtn">⟳ 重置筛选</div>
+    </div>
+
+    <div class="popup-mask" id="popupMask"></div>
+    <div class="popup" id="popup">
+        <div class="popup-title" id="popupTitle">人物关系</div>
+        <div class="relation-list" id="relationList"></div>
+        <div class="close-btn" id="closeBtn">关 闭</div>
+    </div>
+    
+
+    <script>
+        (function(){
+            // ========== 多主题数据 ==========
+            const THEMES = {
+                genshin: {
+                    name: "原神·璃月",
+                    persons: [
+                        { id: 1, name: "钟离", x: 260, y: 220, color: "#5a9bff", tags: ["friend"] },
+                        { id: 2, name: "胡桃", x: 420, y: 180, color: "#e84393", tags: ["friend"] },
+                        { id: 3, name: "达达利亚", x: 340, y: 390, color: "#f39c12", tags: ["enemy"] },
+                        { id: 4, name: "刻晴", x: 520, y: 320, color: "#9b59b6", tags: ["friend"] },
+                        { id: 5, name: "甘雨", x: 400, y: 470, color: "#2ecc71", tags: ["friend"] },
+                        { id: 6, name: "行秋", x: 120, y: 410, color: "#3498db", tags: ["friend"] },
+                        { id: 7, name: "重云", x: 200, y: 90, color: "#e67e22", tags: ["friend"] },
+                        { id: 8, name: "派蒙", x: 540, y: 120, color: "#f1c40f", tags: ["friend"] },
+                        { id: 9, name: "魈", x: 620, y: 400, color: "#1abc9c", tags: ["friend"] },
+                        { id: 10, name: "凝光", x: 70, y: 140, color: "#e74c3c", tags: ["friend"] }
+                    ],
+                    links: [
+                        { from: 1, to: 2, text: "忘年之交", type: "friend" },
+                        { from: 1, to: 3, text: "亦敌亦友", type: "enemy" },
+                        { from: 2, to: 3, text: "互相调侃", type: "friend" },
+                        { from: 1, to: 4, text: "契约监督", type: "friend" },
+                        { from: 1, to: 5, text: "岩王帝君与半仙", type: "friend" },
+                        { from: 2, to: 6, text: "小说书友", type: "friend" },
+                        { from: 3, to: 9, text: "战斗狂热", type: "enemy" },
+                        { from: 4, to: 5, text: "璃月七星同事", type: "friend" },
+                        { from: 4, to: 8, text: "偶尔被吐槽", type: "friend" },
+                        { from: 5, to: 7, text: "驱邪搭档", type: "friend" },
+                        { from: 6, to: 7, text: "冰水组合", type: "friend" },
+                        { from: 6, to: 10, text: "商业合作", type: "friend" },
+                        { from: 8, to: 1, text: "应急食品", type: "friend" },
+                        { from: 9, to: 1, text: "护法夜叉的信任", type: "friend" },
+                        { from: 10, to: 4, text: "天权与玉衡", type: "friend" }
+                    ]
+                },
+                honkai: {
+                    name: "王者荣耀·峡谷",
+                    persons: [
+                        { id: 1, name: "李白", x: 260, y: 220, color: "#5a9bff", tags: ["friend"] },
+                        { id: 2, name: "韩信", x: 420, y: 180, color: "#e84393", tags: ["friend"] },
+                        { id: 3, name: "诸葛亮", x: 340, y: 390, color: "#f39c12", tags: ["friend"] },
+                        { id: 4, name: "赵云", x: 520, y: 320, color: "#9b59b6", tags: ["friend"] },
+                        { id: 5, name: "貂蝉", x: 400, y: 470, color: "#2ecc71", tags: ["friend"] },
+                        { id: 6, name: "吕布", x: 120, y: 410, color: "#e67e22", tags: ["enemy"] },
+                        { id: 7, name: "露娜", x: 200, y: 90, color: "#3498db", tags: ["family"] },
+                        { id: 8, name: "铠", x: 540, y: 120, color: "#f1c40f", tags: ["family"] },
+                        { id: 9, name: "花木兰", x: 620, y: 400, color: "#1abc9c", tags: ["friend"] },
+                        { id: 10, name: "兰陵王", x: 70, y: 140, color: "#95a5a6", tags: ["enemy"] }
+                    ],
+                    links: [
+                        { from: 1, to: 2, text: "酒友/战友", type: "friend" },
+                        { from: 1, to: 3, text: "智谋切磋", type: "friend" },
+                        { from: 2, to: 4, text: "龙胆将军", type: "friend" },
+                        { from: 3, to: 4, text: "北伐搭档", type: "friend" },
+                        { from: 5, to: 6, text: "倾慕/宿命", type: "enemy" },
+                        { from: 6, to: 1, text: "诗酒剑敌", type: "enemy" },
+                        { from: 7, to: 8, text: "兄妹", type: "family" },
+                        { from: 4, to: 7, text: "战场对手", type: "enemy" },
+                        { from: 9, to: 10, text: "宿敌/暗影", type: "enemy" },
+                        { from: 10, to: 2, text: "刺杀目标", type: "enemy" }
+                    ]
+                },
+                demo: {
+                    name: "自定义示例",
+                    persons: [
+                        { id: 1, name: "小明", x: 300, y: 200, color: "#ff7675", tags: ["friend"] },
+                        { id: 2, name: "小红", x: 500, y: 250, color: "#74b9ff", tags: ["friend"] },
+                        { id: 3, name: "小刚", x: 200, y: 400, color: "#55efc4", tags: ["enemy"] },
+                        { id: 4, name: "小丽", x: 600, y: 450, color: "#fdcb6e", tags: ["family"] },
+                    ],
+                    links: [
+                        { from: 1, to: 2, text: "好朋友", type: "friend" },
+                        { from: 1, to: 3, text: "竞争对手", type: "enemy" },
+                        { from: 2, to: 4, text: "表姐妹", type: "family" },
+                        { from: 3, to: 4, text: "合作伙伴", type: "friend" }
+                    ]
+                }
+            };
+
+            // 当前激活的数据
+            let currentTheme = "genshin";
+            let persons = [], links = [];
+            let neighborsMap = new Map();
+            let nodePositions = new Map();
+            let targetPositions = new Map();
+            let originalPositions = new Map();
+
+            // 画布相关
+            const canvas = document.getElementById('starChartCanvas');
+            const ctx = canvas.getContext('2d');
+            let logicWidth = 1000, logicHeight = 700;
+            canvas.width = logicWidth; canvas.height = logicHeight;
+
+            // 视角偏移（平移）
+            let panOffsetX = 0, panOffsetY = 0;
+            let isPanning = false;
+            let panStart = { x: 0, y: 0 };
+            
+            // 缩放
+            let scale = 1.0;
+            let scaleCenter = { x: logicWidth/2, y: logicHeight/2 };
+            
+            // 拖拽节点状态
+            let drag = { active: false, nodeId: null, lastLogicX: 0, lastLogicY: 0 };
+            let inertia = { vx: 0, vy: 0, enabled: false, friction: 0.92, maxSpeed: 6 };
+            // 新增一个变量记录是否发生过拖拽移动
+            let hasDragged = false;     
+            
+            // 高亮节点
+            let highlightId = null;
+            let starList = [];
+            
+            // 筛选条件
+            let activeFilters = { friend: true, enemy: true, family: true };
+            
+            // 弹窗元素
+            const popupMask = document.getElementById('popupMask');
+            const popup = document.getElementById('popup');
+            const popupTitle = document.getElementById('popupTitle');
+            const relationListDiv = document.getElementById('relationList');
+            const closeBtn = document.getElementById('closeBtn');
+            
+            // ========== 辅助函数 ==========
+            function buildNeighborMap(personsArr, linksArr) {
+                const map = new Map();
+                personsArr.forEach(p => map.set(p.id, new Set()));
+                linksArr.forEach(l => {
+                    if (map.has(l.from)) map.get(l.from).add(l.to);
+                    if (map.has(l.to)) map.get(l.to).add(l.from);
+                });
+                return map;
+            }
+            
+            // 筛选节点和连线（根据当前activeFilters）
+            function filterData() {
+                // 根据关系类型过滤连线
+                let filteredLinks = links.filter(link => {
+                    const type = link.type || "friend";
+                    if (type === "friend" && activeFilters.friend) return true;
+                    if (type === "enemy" && activeFilters.enemy) return true;
+                    if (type === "family" && activeFilters.family) return true;
+                    return false;
+                });
+                // 获取出现的人物ID（基于过滤后的连线）
+                const involvedIds = new Set();
+                filteredLinks.forEach(l => { involvedIds.add(l.from); involvedIds.add(l.to); });
+                // 保留至少有一条关系的人物（避免孤立节点）
+                let filteredPersons = persons.filter(p => involvedIds.has(p.id));
+                // 如果没有连线，保留所有人（防止全空）
+                if (filteredPersons.length === 0) filteredPersons = [...persons];
+                return { filteredPersons, filteredLinks };
+            }
+            
+            // 重新加载当前主题数据（并重置位置、偏移等）
+            function loadTheme(themeKey) {
+                currentTheme = themeKey;
+                const themeData = THEMES[themeKey];
+                persons = JSON.parse(JSON.stringify(themeData.persons)); // 深拷贝
+                links = JSON.parse(JSON.stringify(themeData.links));
+                // 初始化位置映射
+                nodePositions.clear();
+                targetPositions.clear();
+                originalPositions.clear();
+                persons.forEach(p => {
+                    nodePositions.set(p.id, { x: p.x, y: p.y });
+                    targetPositions.set(p.id, { x: p.x, y: p.y });
+                    originalPositions.set(p.id, { x: p.x, y: p.y });
+                });
+                neighborsMap = buildNeighborMap(persons, links);
+                // 重置视角偏移和缩放
+                panOffsetX = 0; panOffsetY = 0;
+                scale = 1.0;
+                scaleCenter = { x: logicWidth/2, y: logicHeight/2 };
+                // 清除高亮
+                highlightId = null;
+                // 重新绘制（渲染循环自动重绘）
+            }
+            
+            // 应用筛选并更新显示（会重建邻居映射基于筛选后的数据）
+            function applyFilterAndRefresh() {
+                const { filteredPersons, filteredLinks } = filterData();
+                // 动态替换全局 persons 和 links 为筛选后的版本（注意要保留原始数据用于后续切换主题）
+                // 但为了不丢失原始数据，我们需要保存原始persons/links（在loadTheme时保存的原始副本）。这里用_currentRawPersons等
+                // 简单方法：直接从当前主题的原始数据拷贝后再筛选，因为我们有THEMES数据源。
+                const raw = THEMES[currentTheme];
+                let rawPersons = JSON.parse(JSON.stringify(raw.persons));
+                let rawLinks = JSON.parse(JSON.stringify(raw.links));
+                // 根据activeFilters过滤
+                let tempLinks = rawLinks.filter(link => {
+                    const type = link.type || "friend";
+                    if (type === "friend" && activeFilters.friend) return true;
+                    if (type === "enemy" && activeFilters.enemy) return true;
+                    if (type === "family" && activeFilters.family) return true;
+                    return false;
+                });
+                const usedIds = new Set();
+                tempLinks.forEach(l => { usedIds.add(l.from); usedIds.add(l.to); });
+                let tempPersons = rawPersons.filter(p => usedIds.has(p.id));
+                if (tempPersons.length === 0) tempPersons = [...rawPersons];
+                persons = tempPersons;
+                links = tempLinks;
+                // 重新初始化位置（基于筛选后的人物坐标）
+                nodePositions.clear();
+                targetPositions.clear();
+                persons.forEach(p => {
+                    nodePositions.set(p.id, { x: p.x, y: p.y });
+                    targetPositions.set(p.id, { x: p.x, y: p.y });
+                });
+                neighborsMap = buildNeighborMap(persons, links);
+                // 视角和缩放保持不变
+            }
+            
+            // 重置筛选
+            function resetFilters() {
+                activeFilters = { friend: true, enemy: true, family: true };
+                document.querySelectorAll('.filter-option input').forEach(cb => {
+                    if (cb.value === 'friend') cb.checked = true;
+                    if (cb.value === 'enemy') cb.checked = true;
+                    if (cb.value === 'family') cb.checked = true;
+                });
+                applyFilterAndRefresh();
+            }
+            
+            // 初始化星星
+            function initStars() {
+                starList = [];
+                for (let i = 0; i < 200; i++) {
+                    starList.push({
+                        x: Math.random() * logicWidth,
+                        y: Math.random() * logicHeight,
+                        r: Math.random() * 1.8 + 0.5,
+                        alpha: Math.random() * 0.6 + 0.2
+                    });
+                }
+            }
+            
+            // 坐标转换（屏幕坐标 -> 逻辑坐标，考虑平移、缩放、缩放中心）
+            function screenToLogic(clientX, clientY) {
+                const rect = canvas.getBoundingClientRect();
+                const ratioX = (clientX - rect.left) / rect.width;
+                const ratioY = (clientY - rect.top) / rect.height;
+                const canvasX = ratioX * canvas.width;
+                const canvasY = ratioY * canvas.height;
+                const centerX = logicWidth / 2;
+                const centerY = logicHeight / 2;
+                // 逆变换： (canvasX - panOffsetX) = (logicX - centerX) * scale + centerX
+                const logicX = (canvasX - panOffsetX - centerX) / scale + centerX;
+                const logicY = (canvasY - panOffsetY - centerY) / scale + centerY;
+                return { x: logicX, y: logicY };
+            }
+            
+            // 获取节点ID
+            function getNodeIdAtLogic(logicX, logicY) {
+                for (let i = persons.length-1; i >= 0; i--) {
+                    const p = persons[i];
+                    const pos = nodePositions.get(p.id);
+                    if (!pos) continue;
+                    const dx = pos.x - logicX;
+                    const dy = pos.y - logicY;
+                    if (Math.hypot(dx, dy) < 28) return p.id;
+                }
+                return null;
+            }
+            
+            // 高亮判断
+            function isNodeHighlighted(nodeId) {
+                if (highlightId === null) return true;
+                if (nodeId === highlightId) return true;
+                const neigh = neighborsMap.get(highlightId);
+                return neigh && neigh.has(nodeId);
+            }
+            function isLinkHighlighted(link) {
+                if (highlightId === null) return true;
+                return (link.from === highlightId || link.to === highlightId);
+            }
+            
+            // 物理更新
+            function updateEasingAndInertia() {
+                if (inertia.enabled) {
+                    for (let p of persons) {
+                        let t = targetPositions.get(p.id);
+                        t.x += inertia.vx;
+                        t.y += inertia.vy;
+                    }
+                    inertia.vx *= inertia.friction;
+                    inertia.vy *= inertia.friction;
+                    if (Math.abs(inertia.vx) < 0.05 && Math.abs(inertia.vy) < 0.05) inertia.enabled = false;
+                }
+                for (let p of persons) {
+                    let curr = nodePositions.get(p.id);
+                    let target = targetPositions.get(p.id);
+                    curr.x += (target.x - curr.x) * 0.25;
+                    curr.y += (target.y - curr.y) * 0.25;
+                    curr.x = Math.min(logicWidth+150, Math.max(-150, curr.x));
+                    curr.y = Math.min(logicHeight+150, Math.max(-150, curr.y));
+                    target.x = Math.min(logicWidth+150, Math.max(-150, target.x));
+                    target.y = Math.min(logicHeight+150, Math.max(-150, target.y));
+                }
+            }
+            
+            function updateAntiOverlap() {
+                const minDist = 70;
+                for (let i=0;i<persons.length;i++) {
+                    for (let j=i+1;j<persons.length;j++) {
+                        const a=persons[i], b=persons[j];
+                        const pa = nodePositions.get(a.id);
+                        const pb = nodePositions.get(b.id);
+                        const dx = pb.x - pa.x, dy = pb.y - pa.y;
+                        const dist = Math.hypot(dx,dy);
+                        if (dist < minDist) {
+                            const force = (minDist - dist) * 0.06;
+                            const nx = dx/dist||0, ny = dy/dist||0;
+                            const ta = targetPositions.get(a.id), tb = targetPositions.get(b.id);
+                            ta.x -= nx*force; ta.y -= ny*force;
+                            tb.x += nx*force; tb.y += ny*force;
+                        }
+                    }
+                }
+            }
+            
+            // 绘制
+            function drawStars() {
+                for (let s of starList) {
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+                    ctx.fillStyle = `rgba(255, 240, 200, ${s.alpha})`;
+                    ctx.fill();
+                    s.alpha += (Math.random()-0.5)*0.02;
+                    s.alpha = Math.min(0.85, Math.max(0.2, s.alpha));
+                }
+            }
+            
+            function drawLinks() {
+                for (let link of links) {
+                    const fromPos = nodePositions.get(link.from);
+                    const toPos = nodePositions.get(link.to);
+                    if (!fromPos || !toPos) continue;
+                    const isHigh = isLinkHighlighted(link);
+                    ctx.save();
+                    ctx.globalAlpha = isHigh ? 1.0 : 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(fromPos.x, fromPos.y);
+                    ctx.lineTo(toPos.x, toPos.y);
+                    ctx.strokeStyle = "rgba(160,200,255,0.8)";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    const mx = (fromPos.x+toPos.x)/2, my = (fromPos.y+toPos.y)/2;
+                    ctx.fillStyle = "#d0e0ff";
+                    ctx.font = "12px 'Segoe UI'";
+                    ctx.fillText(link.text, mx, my-5);
+                    ctx.restore();
+                }
+            }
+            
+            function drawPersons() {
+                for (let p of persons) {
+                    const pos = nodePositions.get(p.id);
+                    if (!pos) continue;
+                    const isHigh = isNodeHighlighted(p.id);
+                    ctx.save();
+                    ctx.globalAlpha = isHigh ? 1.0 : 0.35;
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 26, 0, Math.PI*2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.font = `bold 28px "Segoe UI"`;
+                    ctx.fillStyle = "#fff";
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = "rgba(0,0,0,0.3)";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(p.name.charAt(0), pos.x, pos.y);
+                    ctx.font = "14px 'Segoe UI'";
+                    ctx.fillStyle = "#e6f0ff";
+                    ctx.shadowBlur = 0;
+                    ctx.fillText(p.name, pos.x, pos.y+38);
+                    ctx.restore();
+                }
+            }
+            
+            function render() {
+                if (!ctx) return;
+                updateEasingAndInertia();
+                updateAntiOverlap();
+                ctx.clearRect(0, 0, logicWidth, logicHeight);
+                drawStars();
+                ctx.save();
+                // 先平移，再缩放（以缩放中心缩放），实现视角平移效果
+                const centerX = logicWidth / 2;
+                const centerY = logicHeight / 2;
+                ctx.translate(panOffsetX, panOffsetY);
+                ctx.translate(centerX, centerY);
+                ctx.scale(scale, scale);
+                ctx.translate(-centerX, -centerY);
+                drawLinks();
+                drawPersons();
+                ctx.restore();
+                requestAnimationFrame(render);
+            }
+            
+            // 事件监听实现拖拽节点和画布平移
+            function onPointerDown(e) {
+                e.preventDefault();
+                let clientX, clientY;
+                if (e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+                else { clientX = e.clientX; clientY = e.clientY; }
+                const logic = screenToLogic(clientX, clientY);
+                const hitId = getNodeIdAtLogic(logic.x, logic.y);
+                // 重置拖拽标记
+                hasDragged = false;
+                if (hitId !== null) {
+                    // 拖拽节点
+                    drag.active = true;
+                    drag.nodeId = hitId;
+                    drag.lastLogicX = logic.x;
+                    drag.lastLogicY = logic.y;
+                    inertia.enabled = false;
+                    highlightId = null;
+                } else {
+                    // 画布平移
+                    isPanning = true;
+                    panStart = { x: clientX, y: clientY };
+                }
+            }
+            
+            function onPointerMove(e) {
+                if (!drag.active && !isPanning) {
+                    // 高亮检测
+                    let clientX, clientY;
+                    if (e.touches) { if (e.touches.length===0) return; clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
+                    else { clientX=e.clientX; clientY=e.clientY; }
+                    const logic = screenToLogic(clientX, clientY);
+                    const id = getNodeIdAtLogic(logic.x, logic.y);
+                    if (highlightId !== id) highlightId = id;
+                    return;
+                }
+                e.preventDefault();
+                let clientX, clientY;
+                if (e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+                else { clientX = e.clientX; clientY = e.clientY; }
+                if (drag.active) {
+                    const logic = screenToLogic(clientX, clientY);
+                    const dx = logic.x - drag.lastLogicX;
+                    const dy = logic.y - drag.lastLogicY;
+                    if (dx !== 0 || dy !== 0) {
+                        hasDragged = true;
+                        const target = targetPositions.get(drag.nodeId);
+                        target.x += dx;
+                        target.y += dy;
+                        inertia.vx = dx * 0.9;
+                        inertia.vy = dy * 0.9;
+                        const maxSpd = inertia.maxSpeed;
+                        inertia.vx = Math.min(maxSpd, Math.max(-maxSpd, inertia.vx));
+                        inertia.vy = Math.min(maxSpd, Math.max(-maxSpd, inertia.vy));
+                        drag.lastLogicX = logic.x;
+                        drag.lastLogicY = logic.y;
+                    }
+                } else if (isPanning) {
+                    hasDragged = true;
+                    const deltaX = clientX - panStart.x;
+                    const deltaY = clientY - panStart.y;
+                    panOffsetX += deltaX;
+                    panOffsetY += deltaY;
+                    panStart = { x: clientX, y: clientY };
+                }
+            }
+            
+            function onPointerUp(e) {
+                if (drag.active) {
+                    drag.active = false;
+                    if (Math.abs(inertia.vx) > 0.05 || Math.abs(inertia.vy) > 0.05) inertia.enabled = true;
+                    
+                }
+                if (isPanning) isPanning = false;
+                
+            }
+            
+            function onWheel(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.08 : 0.08;
+                let newScale = scale + delta;
+                newScale = Math.min(2.2, Math.max(0.5, newScale));
+                if (newScale === scale) return;
+            
+                // 获取屏幕中心点（canvas 视口中心）
+                const rect = canvas.getBoundingClientRect();
+                const screenCenter = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
+            
+                // 缩放前屏幕中心点对应的逻辑坐标
+                const logicCenter = screenToLogic(screenCenter.x, screenCenter.y);
+            
+                // 更新缩放
+                scale = newScale;
+            
+            }
+            
+            function onCanvasTap(e) {
+                if (hasDragged) {
+                    hasDragged = false;
+                    return;
+                }
+                let clientX, clientY;
+                if (e.touches) { if (e.touches.length===0) return; clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
+                else { clientX=e.clientX; clientY=e.clientY; }
+                const logic = screenToLogic(clientX, clientY);
+                const id = getNodeIdAtLogic(logic.x, logic.y);
+                if (id !== null) showPopup(id);
+            }
+            
+            function showPopup(personId) {
+                const person = persons.find(p => p.id === personId);
+                if (!person) return;
+                popupTitle.innerText = `${person.name} · 人物关系`;
+                const rels = [];
+                links.forEach(link => {
+                    if (link.from === personId) {
+                        const other = persons.find(p => p.id === link.to);
+                        if (other) rels.push({ name: other.name, relation: link.text });
+                    } else if (link.to === personId) {
+                        const other = persons.find(p => p.id === link.from);
+                        if (other) rels.push({ name: other.name, relation: link.text });
+                    }
+                });
+                if (rels.length === 0) relationListDiv.innerHTML = '<div style="text-align:center;padding:20px;">暂无关联人物</div>';
+                else {
+                    relationListDiv.innerHTML = rels.map(r => `
+                        <div class="relation-item">
+                            <span class="relation-name">${r.name}</span>
+                            <span class="relation-text">${r.relation}</span>
+                        </div>
+                    `).join('');
+                }
+                popupMask.classList.add('show');
+                popup.classList.add('show');
+            }
+            
+            function closePopupFn() {
+                popupMask.classList.remove('show');
+                popup.classList.remove('show');
+            }
+            
+            // 主题切换
+            function bindThemeButtons() {
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const theme = btn.getAttribute('data-theme');
+                        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        loadTheme(theme);
+                        // 重置筛选UI状态
+                        activeFilters = { friend: true, enemy: true, family: true };
+                        document.querySelectorAll('.filter-option input').forEach(cb => {
+                            if (cb.value === 'friend') cb.checked = true;
+                            if (cb.value === 'enemy') cb.checked = true;
+                            if (cb.value === 'family') cb.checked = true;
+                        });
+                        applyFilterAndRefresh();
+                    });
+                });
+            }
+            
+            function bindFilterCheckboxes() {
+                document.querySelectorAll('.filter-option input').forEach(cb => {
+                    cb.addEventListener('change', (e) => {
+                        activeFilters[e.target.value] = e.target.checked;
+                        applyFilterAndRefresh();
+                    });
+                });
+                document.getElementById('resetFilterBtn').addEventListener('click', () => resetFilters());
+            }
+            
+            // 初始化
+            function init() {
+                canvas.width = logicWidth;
+                canvas.height = logicHeight;
+                initStars();
+                loadTheme('genshin');
+                applyFilterAndRefresh(); // 应用筛选（默认全显示）
+                // 事件绑定
+                canvas.addEventListener('mousedown', onPointerDown);
+                window.addEventListener('mousemove', onPointerMove);
+                window.addEventListener('mouseup', onPointerUp);
+                canvas.addEventListener('wheel', onWheel, { passive: false });
+                // canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+                // canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+                // canvas.addEventListener('touchend', onPointerUp);
+                canvas.addEventListener('click', onCanvasTap);
+                closeBtn.addEventListener('click', closePopupFn);
+                popupMask.addEventListener('click', closePopupFn);
+                bindThemeButtons();
+                bindFilterCheckboxes();
+                render();
+            }
+            
+            init();
+        })();
+    </script>
+</body>
+</html>
