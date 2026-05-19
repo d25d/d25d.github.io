@@ -1,119 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>链接图片预览</title>
+    <title>实时图片链接预览</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        #link-container {
-            margin-bottom: 10px;
-        }
-        .link-input-group {
-            margin-bottom: 5px;
-        }
-        .link-input {
-            width: calc(100% - 32px);
-            padding: 5px;
-            margin-right: 5px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-      .link-inputs {
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            background-color: #f5f7fa;
+            line-height: 1.6;
+        }
+
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tips {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* 批量输入框 */
+        .batch-input {
             width: 100%;
-            height:32px;
-            padding: 5px;
-            margin-right: 5px;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            resize: vertical;
+            font-size: 14px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border 0.3s;
         }
-        .add-link-btn, #preview-btn {
-            padding: 5px 10px;
-            cursor: pointer;
+
+        .batch-input:focus {
+            border-color: #409eff;
         }
-        .remove-link-btn {
-            padding: 5px 10px;
-            cursor: pointer;
-            background-color: red;
-            color: white;
+
+        /* 单条链接区域 */
+        #link-container {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .link-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .link-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .link-input:focus {
+            border-color: #409eff;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 14px;
             border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
         }
+
+        .btn-add {
+            background-color: #67c23a;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background-color: #5eb833;
+        }
+
+        .btn-remove {
+            background-color: #f56c6c;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background-color: #e45656;
+        }
+
+        .num-tag {
+            padding: 6px 10px;
+            background: #e9eefb;
+            color: #409eff;
+            border-radius: 4px;
+            font-size: 13px;
+            min-width: 36px;
+            text-align: center;
+        }
+
+        /* 预览区域 - 核心优化：自适应网格布局 */
         #preview-container {
-            margin-top: 20px;
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
+
+        .preview-title {
+            grid-column: 1 / -1;
+            font-size: 18px;
+            color: #333;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+
+        /* 图片卡片：带边框、间距、阴影，清晰区分 */
+        .image-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
         .preview-image {
-            max-width: 50%;
-            height: auto;
-            margin-top: 10px;
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        .empty-tip {
+            grid-column: 1 / -1;
+            color: #999;
+            text-align: center;
+            padding: 40px 0;
+            font-size: 14px;
+        }
+
+        .error-tip {
+            color: #f56c6c;
+            font-size: 12px;
+            text-align: center;
+            word-break: break-all;
         }
     </style>
 </head>
+
 <body>
-    <div>输入图片链接预览，可输入多个链接自动拆分</div>
-        <textarea class="link-inputs" placeholder="输入多个网址"></textarea>
+    <p class="tips">✅ 输入内容自动预览 ✅ 多图网格布局 ✅ 图片带边框清晰区分</p>
+
+    <!-- 批量输入 -->
+    <textarea class="batch-input" placeholder="自动提取链接，输入/粘贴后立即预览" oninput="previewImages()"></textarea>
+
+    <!-- 单条输入 -->
     <div id="link-container">
         <div class="link-input-group">
-            <input type="text" class="link-input" placeholder="输入网址">
-            <button class="add-link-btn" onclick="addLinkInput()">+</button>
-            <button>1</button>
+            <input type="text" class="link-input" placeholder="输入单张图片网址" oninput="previewImages()">
+            <button class="btn btn-add" onclick="addLinkInput()">+ 添加</button>
+            <span class="num-tag">1</span>
         </div>
     </div>
-    <button id="preview-btn" onclick="previewImages()">预览图片</button>
-    <div id="preview-container"></div>
+
+    <!-- 实时预览区域 -->
+    <div id="preview-container">
+        <div class="preview-title">图片预览</div>
+        <div class="empty-tip">请输入图片链接...</div>
+    </div>
 
     <script>
-        num=1;
+        let linkNum = 1;
+
+        // 添加输入框
         function addLinkInput() {
-            num=num+1;
+            linkNum++;
             const container = document.getElementById('link-container');
             const newInputGroup = document.createElement('div');
             newInputGroup.className = 'link-input-group';
             newInputGroup.innerHTML = `
-                <input type="text" class="link-input" placeholder="输入网址">
-                <button class="remove-link-btn" onclick="removeLinkInput(this)">-</button>
-                <button>${num}</button>
+                <input type="text" class="link-input" placeholder="输入单张图片网址" oninput="previewImages()">
+                <button class="btn btn-remove" onclick="removeLinkInput(this)">- 删除</button>
+                <span class="num-tag">${linkNum}</span>
             `;
             container.appendChild(newInputGroup);
-          
+            previewImages();
         }
 
+        // 删除输入框
         function removeLinkInput(btn) {
             btn.parentElement.remove();
-          num=num-1;
+            previewImages();
         }
 
+        // 实时预览核心函数
         function previewImages() {
-            const previewContainer = document.getElementById('preview-container');
-            previewContainer.innerHTML = ''; // 清空之前的预览
-            const linkInputs = document.querySelectorAll('.link-input');
-            const linkInputs1 = document.querySelectorAll('.link-inputs')[0];
-             const regex = /\/\/[^\s]+/gi;
-            // // 使用 match 方法提取所有匹配的链接
-            links = linkInputs1.value.match(regex);
-            links.forEach(input => {
-                if (input) {
-                    const img = document.createElement('img');
-                    img.className = 'preview-image';
-                    img.src = input;
-                    img.onerror = function() {
-                        img.src = 'placeholder.png'; // 如果图片加载失败，显示占位图
-                    };
-                    previewContainer.appendChild(img);
-                }
+            const container = document.getElementById('preview-container');
+            container.innerHTML = `<div class="preview-title">图片预览</div>`;
+
+            // 获取所有输入
+            const batchInput = document.querySelector('.batch-input').value.trim();
+            const singleInputs = document.querySelectorAll('.link-input');
+            const allLinks = [];
+
+            // 提取链接
+            const urlRegex = /https?:\/\/[^\s]+/gi;
+            const batchLinks = batchInput.match(urlRegex) || [];
+            allLinks.push(...batchLinks);
+
+            singleInputs.forEach(input => {
+                const val = input.value.trim();
+                if (val) allLinks.push(val);
             });
-            
-            
-            linkInputs.forEach(input => {
-                const url = input.value;
-                if (url) {
-                    const img = document.createElement('img');
-                    img.className = 'preview-image';
-                    img.src = url;
-                    img.onerror = function() {
-                        img.src = 'placeholder.png'; // 如果图片加载失败，显示占位图
-                    };
-                    previewContainer.appendChild(img);
-                }
+
+            // 无链接提示
+            if (allLinks.length === 0) {
+                container.innerHTML += `<div class="empty-tip">请输入图片链接...</div>`;
+                return;
+            }
+
+            // 渲染图片卡片
+            allLinks.forEach(link => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                
+                const img = document.createElement('img');
+                img.className = 'preview-image';
+                img.src = link;
+                
+                // 加载失败处理
+                img.onerror = function() {
+                    card.innerHTML += `<div class="error-tip">❌ 加载失败<br>${link}</div>`;
+                };
+
+                card.appendChild(img);
+                container.appendChild(card);
             });
         }
     </script>
