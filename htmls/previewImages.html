@@ -33,7 +33,6 @@
             font-size: 14px;
         }
 
-        /* 批量输入框 */
         .batch-input {
             width: 100%;
             min-height: 100px;
@@ -51,7 +50,6 @@
             border-color: #409eff;
         }
 
-        /* 单条链接区域 */
         #link-container {
             margin-bottom: 20px;
             display: flex;
@@ -79,7 +77,6 @@
             border-color: #409eff;
         }
 
-        /* 按钮样式 */
         .btn {
             padding: 8px 14px;
             border: none;
@@ -117,7 +114,6 @@
             text-align: center;
         }
 
-        /* 预览区域 - 核心优化：自适应网格布局 */
         #preview-container {
             margin-top: 30px;
             padding: 20px;
@@ -132,14 +128,15 @@
         .preview-title {
             grid-column: 1 / -1;
             font-size: 18px;
+            text-align: center;
             color: #333;
             padding-bottom: 10px;
             border-bottom: 1px solid #eee;
             margin-bottom: 10px;
         }
 
-        /* 图片卡片：带边框、间距、阴影，清晰区分 */
         .image-card {
+            position: relative;
             border: 1px solid #eee;
             border-radius: 8px;
             padding: 10px;
@@ -158,6 +155,31 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
 
+        .link-tooltip {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            padding: 8px;
+            font-size: 12px;
+            word-break: break-all;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+
+        .image-card:hover .link-tooltip {
+            opacity: 1;
+        }
+
+        .link-tooltip:active{
+            background:rgba(0,0,0,0.9);
+        }
+
         .empty-tip {
             grid-column: 1 / -1;
             color: #999;
@@ -172,16 +194,28 @@
             text-align: center;
             word-break: break-all;
         }
+
+        .copy-tip {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            z-index: 9999;
+        }
     </style>
 </head>
 
 <body>
-    <p class="tips">✅ 输入内容自动预览 ✅ 多图网格布局 ✅ 图片带边框清晰区分</p>
+    <h1 class="title">实时图片链接预览</h1>
+    <p class="tips">✅ 输入自动预览 ✅ 悬停显示链接 ✅ 点击图片复制链接</p>
 
-    <!-- 批量输入 -->
-    <textarea class="batch-input" placeholder="自动提取链接，输入/粘贴后立即预览" oninput="previewImages()"></textarea>
+    <textarea class="batch-input" placeholder="多个图片链接  自动提取链接，输入/粘贴后立即预览" oninput="previewImages()"></textarea>
 
-    <!-- 单条输入 -->
     <div id="link-container">
         <div class="link-input-group">
             <input type="text" class="link-input" placeholder="输入单张图片网址" oninput="previewImages()">
@@ -190,63 +224,102 @@
         </div>
     </div>
 
-    <!-- 实时预览区域 -->
     <div id="preview-container">
         <div class="preview-title">图片预览</div>
         <div class="empty-tip">请输入图片链接...</div>
     </div>
 
     <script>
-        let linkNum = 1;
+        // 统一刷新所有序号
+        function refreshNumber(){
+            const groups = document.querySelectorAll('.link-input-group');
+            groups.forEach((item,idx)=>{
+                item.querySelector('.num-tag').innerText = idx + 1;
+            });
+        }
+
+        // 清洗链接多余符号
+        function cleanUrl(url){
+            return url.replace(/[，。、；:;"'()（）\[\],\s\n\r]+$/g,'').replace(/^[，。、；:;"'()（）\[\],\s]+/g,'');
+        }
+
+        // 提取纯净链接
+        function getPureUrls(text){
+            if(!text) return [];
+            let reg = /https?:\/\/[^，。、；:;"'()（）\[\],\s\n\r]+/gi;
+            let arr = text.match(reg) || [];
+            return [...new Set(arr.map(item=>cleanUrl(item)).filter(v=>v))];
+        }
+
+        // 轻提示 1秒自动消失
+        function showTip(text){
+            let tip = document.createElement('div');
+            tip.className = 'copy-tip';
+            tip.innerText = text;
+            document.body.appendChild(tip);
+            setTimeout(()=>{
+                tip.remove();
+            },1000);
+        }
+
+        // 复制链接函数
+        async function copyLink(text){
+            try{
+                await navigator.clipboard.writeText(text);
+                showTip("链接复制成功");
+            }catch(e){
+                let input = document.createElement('input');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showTip("链接复制成功");
+            }
+        }
 
         // 添加输入框
         function addLinkInput() {
-            linkNum++;
             const container = document.getElementById('link-container');
             const newInputGroup = document.createElement('div');
             newInputGroup.className = 'link-input-group';
             newInputGroup.innerHTML = `
                 <input type="text" class="link-input" placeholder="输入单张图片网址" oninput="previewImages()">
                 <button class="btn btn-remove" onclick="removeLinkInput(this)">- 删除</button>
-                <span class="num-tag">${linkNum}</span>
+                <span class="num-tag"></span>
             `;
             container.appendChild(newInputGroup);
+            refreshNumber();
             previewImages();
         }
 
         // 删除输入框
         function removeLinkInput(btn) {
             btn.parentElement.remove();
+            refreshNumber();
             previewImages();
         }
 
-        // 实时预览核心函数
         function previewImages() {
             const container = document.getElementById('preview-container');
             container.innerHTML = `<div class="preview-title">图片预览</div>`;
 
-            // 获取所有输入
-            const batchInput = document.querySelector('.batch-input').value.trim();
+            const batchVal = document.querySelector('.batch-input').value;
             const singleInputs = document.querySelectorAll('.link-input');
-            const allLinks = [];
-
-            // 提取链接
-            const urlRegex = /https?:\/\/[^\s]+/gi;
-            const batchLinks = batchInput.match(urlRegex) || [];
-            allLinks.push(...batchLinks);
+            let allLinks = getPureUrls(batchVal);
 
             singleInputs.forEach(input => {
-                const val = input.value.trim();
-                if (val) allLinks.push(val);
+                let val = input.value.trim();
+                if(val) allLinks.push(cleanUrl(val));
             });
 
-            // 无链接提示
+            allLinks = [...new Set(allLinks)].filter(u=>u);
+
             if (allLinks.length === 0) {
                 container.innerHTML += `<div class="empty-tip">请输入图片链接...</div>`;
                 return;
             }
 
-            // 渲染图片卡片
             allLinks.forEach(link => {
                 const card = document.createElement('div');
                 card.className = 'image-card';
@@ -255,12 +328,17 @@
                 img.className = 'preview-image';
                 img.src = link;
                 
-                // 加载失败处理
+                const tooltip = document.createElement('div');
+                tooltip.className = 'link-tooltip';
+                tooltip.innerText = link;
+                tooltip.onclick = ()=>copyLink(link);
+
                 img.onerror = function() {
                     card.innerHTML += `<div class="error-tip">❌ 加载失败<br>${link}</div>`;
                 };
 
                 card.appendChild(img);
+                card.appendChild(tooltip);
                 container.appendChild(card);
             });
         }
