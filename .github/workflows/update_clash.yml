@@ -8,14 +8,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install tools
-        run: sudo apt update && sudo apt install -y curl libxml2-utils git
-      - name: Fetch sub url & download config
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright Chromium
+        run: |
+          npm init -y
+          npm i playwright
+          npx playwright install chromium --with-deps
+
+      - name: Fetch dynamic sub link
         run: |
           PAGE_URL="https://www.freeclash.top/ui/free_clash"
-          SUB_URL=$(curl -s "$PAGE_URL" | xmllint --html --xpath '/html/body/div[1]/main/section[2]/div/div[3]/div[2]/text()' - 2>/dev/null | tr -d ' ')
-          # 覆盖写入指定路径
+          SUB_URL=$(npx playwright evaluate --browser chromium "$PAGE_URL" "document.querySelector('html>body>div:nth-child(1)>main>section:nth-child(2)>div>div:nth-child(3)>div:nth-child(2)').innerText.trim()")
+          echo "Get sub link: $SUB_URL"
+          if [ -z "$SUB_URL" ]; then echo "Link empty, exit"; exit 1; fi
           curl -s "$SUB_URL" -o htmls/free_clash/config.yaml
+
       - name: Commit & push
         run: |
           git config user.name "SubBot"
