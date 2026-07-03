@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -16,22 +18,34 @@ jobs:
 
       - name: Install Playwright Chromium
         run: |
-          npm init -y
+          [ ! -f package.json ] && npm init -y
           npm i playwright
           npx playwright install chromium --with-deps
 
       - name: Fetch dynamic sub link
         run: |
-          PAGE_URL="https://www.freeclash.top/ui/free_clash"
-          SUB_URL=$(npx playwright evaluate --browser chromium "$PAGE_URL" "document.querySelector('html>body>div:nth-child(1)>main>section:nth-child(2)>div>div:nth-child(3)>div:nth-child(2)').innerText.trim()")
+          mkdir -p htmls/free_clash
+          cat > getlink.js << 'EOF'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: "new" });
+            const page = await browser.newPage();
+            await page.goto('https://www.freeclash.top/ui/free_clash', { waitUntil:'networkidle', timeout:30000 });
+            const txt = await page.$eval('html>body>div:nth-child(1)>main>section:nth-child(2)>div>div:nth-child(3)>div:nth-child(2)', el=>el.innerText.trim());
+            console.log(txt);
+            await browser.close();
+          })();
+          EOF
+          SUB_URL=$(node getlink.js)
           echo "Get sub link: $SUB_URL"
           if [ -z "$SUB_URL" ]; then echo "Link empty, exit"; exit 1; fi
-          curl -s "$SUB_URL" -o htmls/free_clash/config.yaml
+          curl -s --retry 3 "$SUB_URL" -o htmls/free_clash/config.yaml
 
       - name: Commit & push
         run: |
           git config user.name "SubBot"
           git config user.email "bot@github.com"
+          git remote set-url origin https://${{ github.token }}@github.com/${{ github.repository }}.git
           git add htmls/free_clash/config.yaml
           git commit -m "Auto update clash config" || true
           git push
