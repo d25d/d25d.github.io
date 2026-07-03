@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install tools
-        run: sudo apt update && sudo apt install -y curl xmllint git
+        run: sudo apt update && sudo apt install -y curl libxml2-utils git
       - name: Fetch sub url & download config
         run: |
           PAGE_URL="https://www.freeclash.top/ui/free_clash"
