@@ -1,0 +1,25 @@
+name: Update Sub
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: apt update && apt install -y curl xmllint git
+      - name: Fetch sub url
+        run: |
+          PAGE_URL="https://www.freeclash.top/ui/free_clash"
+          # 提取div内文本订阅链接
+          SUB_URL=$(curl -s "$PAGE_URL" | xmllint --html --xpath '/html/body/div[1]/main/section[2]/div/div[3]/div[2]/text()' - 2>/dev/null | tr -d ' ')
+          curl -s "$SUB_URL" -o sub.yaml
+      - name: Commit & push
+        run: |
+          git config user.name "SubBot"
+          git config user.email "bot@github.com"
+          git add sub.yaml
+          git commit -m "Auto update sub" || true
+          git push
