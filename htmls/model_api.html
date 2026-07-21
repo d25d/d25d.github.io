@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e8e8e8;
+            --accent-color: #333333;
+            --accent-hover: #555555;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 顶部导航 */
+        .navbar {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem;
+            margin: -1rem -1rem 1rem -1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 1px;
+        }
+
+        /* 配置面板 */
+        .config-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.6rem;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .config-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .input-wrapper .config-input {
+            flex: 1;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        .input-action-btn {
+            width: 26px;
+            height: 26px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-action-btn:hover {
+            background: var(--text-primary);
+            color: white;
+            border-color: var(--text-primary);
+        }
+
+        .config-input {
+            padding: 0.7rem 0.9rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.2s;
+            outline: none;
+            font-family: inherit;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .config-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.1);
+        }
+
+        .config-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* 类型选择 */
+        .type-selector {
+            display: flex;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .type-btn {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            font-weight: 500;
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .type-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+
+        .type-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        /* 智能提取面板 */
+        .extract-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .extract-wrapper {
+            position: relative;
+        }
+
+        .extract-actions-row {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.4rem;
+            display: flex;
+            gap: 0.2rem;
+            z-index: 10;
+        }
+
+        .extract-title {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        .extract-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s;
+            line-height: 1.5;
+        }
+
+        .extract-textarea.text-mode {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .extract-textarea.password-mode {
+            -webkit-text-security: disc;
+            font-family: inherit;
+        }
+
+        .extract-textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.1);
+        }
+
+        .extract-textarea::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .extract-actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 0.8rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--accent-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+
+        /* 结果展示区 */
+        .result-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            min-height: 300px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-title {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .result-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            min-height: 200px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .result-content img {
+            max-width: 100%;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .result-content audio,
+        .result-content video {
+            width: 100%;
+            max-width: 400px;
+            margin: 0.8rem 0;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .status-loading {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffc107;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.8rem;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .type-selector {
+                flex-direction: column;
+            }
+
+            .type-btn {
+                width: 100%;
+            }
+
+            .extract-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .result-header {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-brand {
+                font-size: 1.1rem;
+            }
+
+            .config-panel {
+                padding: 1rem;
+            }
+
+            .input-wrapper {
+                flex-wrap: wrap;
+            }
+
+            .input-actions {
+                width: 100%;
+                justify-content: flex-end;
+                margin-top: 0.3rem;
+            }
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        /* 隐藏/显示控制 */
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航 -->
+        <nav class="navbar">
+            <div class="nav-brand">⟨ AI_MODEL_HUB ⟩</div>
+            <div class="status-indicator" id="statusIndicator">
+                <span>●</span> 就绪
+            </div>
+        </nav>
+
+        <!-- 配置面板 -->
+        <div class="config-panel">
+            <h2 class="panel-title">◈ 模型配置</h2>
+            
+            <div class="config-grid">
+                <div class="config-item">
+                    <label class="config-label">Base URL</label>
+                    <div class="input-wrapper">
+                        <input type="text" class="config-input" id="baseUrl" placeholder="https://api.openai.com/v1">
+                        <div class="input-actions">
+                            <button class="input-action-btn" onclick="toggleVisibility('baseUrl')" title="显示/隐藏">👁</button>
+                            <button class="input-action-btn" onclick="copyToClipboard('baseUrl')" title="复制">📋</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <label class="config-label">Model Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" class="config-input" id="modelName" placeholder="gpt-4, dall-e-3, whisper-1">
+                        <div class="input-actions">
+                            <button class="input-action-btn" onclick="toggleVisibility('modelName')" title="显示/隐藏">👁</button>
+                            <button class="input-action-btn" onclick="copyToClipboard('modelName')" title="复制">📋</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <label class="config-label">API Key</label>
+                    <div class="input-wrapper">
+                        <input type="password" class="config-input" id="apiKey" placeholder="sk-xxxxxxxxxxxxxxxx">
+                        <div class="input-actions">
+                            <button class="input-action-btn" onclick="toggleVisibility('apiKey')" title="显示/隐藏">👁</button>
+                            <button class="input-action-btn" onclick="copyToClipboard('apiKey')" title="复制">📋</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 类型选择 -->
+            <div class="type-selector">
+                <button class="type-btn active" onclick="selectType('text')">◈ 文本生成</button>
+                <button class="type-btn" onclick="selectType('image')">◈ 图像生成</button>
+                <button class="type-btn" onclick="selectType('audio')">◈ 语音处理</button>
+            </div>
+
+            <!-- 智能提取面板 -->
+            <div class="extract-panel">
+                <h3 class="extract-title">◈ 智能参数提取</h3>
+                <div class="extract-wrapper">
+                    <div class="extract-actions-row">
+                        <button class="input-action-btn" onclick="toggleTextareaMode('extractInput')" title="切换显示模式">👁</button>
+                        <button class="input-action-btn" onclick="copyToClipboard('extractInput')" title="复制">📋</button>
+                    </div>
+                    <textarea class="extract-textarea text-mode" id="extractInput" placeholder="支持多种格式自动识别：&#10;&#10;格式1 - 一行一个：&#10;https://api.openai.com/v1&#10;gpt-4&#10;sk-abc123def456&#10;&#10;格式2 - Key=Value：&#10;base_url=https://api.example.com&#10;model=gpt-3.5-turbo&#10;api_key=sk-test123&#10;&#10;格式3 - 自然语言：&#10;使用 gpt-4 模型，API地址是 https://api.openai.com/v1，密钥是 sk-test123"></textarea>
+                </div>
+                <div class="extract-actions">
+                    <button class="btn btn-primary" onclick="extractParams()">[ 提取参数 ]</button>
+                    <button class="btn btn-secondary" onclick="clearExtract()">[ 清空 ]</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入面板 -->
+        <div class="config-panel" id="inputPanel">
+            <h2 class="panel-title">◈ 输入内容</h2>
+            <div class="extract-wrapper">
+                <div class="extract-actions-row">
+                    <button class="input-action-btn" onclick="toggleTextareaMode('userInput')" title="切换显示模式">👁</button>
+                    <button class="input-action-btn" onclick="copyToClipboard('userInput')" title="复制">📋</button>
+                </div>
+                <textarea class="extract-textarea text-mode" id="userInput" style="min-height: 150px;" placeholder="输入您的问题或描述..."></textarea>
+            </div>
+            <div class="extract-actions">
+                <button class="btn btn-primary" onclick="sendRequest()">[ 发送请求 ]</button>
+                <button class="btn btn-secondary" onclick="clearInput()">[ 清空 ]</button>
+            </div>
+        </div>
+
+        <!-- 结果展示 -->
+        <div class="result-panel">
+            <div class="result-header">
+                <h2 class="result-title">◈ 输出结果</h2>
+                <button class="btn btn-secondary" onclick="copyResult()">[ 复制 ]</button>
+            </div>
+            <div class="result-content" id="resultContent">
+                <div style="color: var(--text-tertiary); text-align: center; padding: 3rem;">
+                    等待请求...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentType = 'text';
+
+        // 选择类型
+        function selectType(type) {
+            currentType = type;
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 更新占位符
+            const userInput = document.getElementById('userInput');
+            const placeholders = {
+                'text': '输入您的问题或描述...',
+                'image': '描述你想要生成的图像，例如：A futuristic cyberpunk city at night with neon lights',
+                'audio': '输入要转换的文本（TTS）或留空以上传音频文件（STT）...'
+            };
+            userInput.placeholder = placeholders[type];
+        }
+
+        // 切换输入框可见性（密码模式）
+        function toggleVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                input.style.textSecurity = 'none';
+            } else {
+                input.type = 'password';
+            }
+        }
+
+        // 切换文本域显示模式
+        function toggleTextareaMode(textareaId) {
+            const textarea = document.getElementById(textareaId);
+            if (textarea.classList.contains('text-mode')) {
+                textarea.classList.remove('text-mode');
+                textarea.classList.add('password-mode');
+            } else {
+                textarea.classList.remove('password-mode');
+                textarea.classList.add('text-mode');
+            }
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.value || element.textContent;
+            
+            if (!text.trim()) {
+                setStatus('error', '内容为空，无法复制');
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                setStatus('success', '已复制到剪贴板');
+                
+                // 视觉反馈
+                const originalBg = element.style.background;
+                element.style.background = 'rgba(57, 255, 20, 0.2)';
+                setTimeout(() => {
+                    element.style.background = originalBg;
+                }, 300);
+            }).catch(err => {
+                // 降级方案
+                element.select();
+                document.execCommand('copy');
+                setStatus('success', '已复制到剪贴板');
+            });
+        }
+
+        // 智能提取参数
+        function extractParams() {
+            const input = document.getElementById('extractInput').value;
+            if (!input.trim()) {
+                setStatus('error', '请输入包含参数的文本');
+                return;
+            }
+
+            let extracted = { baseUrl: '', modelName: '', apiKey: '' };
+
+            // 按行分割处理
+            const lines = input.split(/\n|,|;|\|/);
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+
+                // 1. 提取 API Key (sk- 或 pk- 开头，不含双引号)
+                const apiKeyMatch = line.match(/(?:^|[\s,;|])(sk-[a-zA-Z0-9_-]+|pk-[a-zA-Z0-9_-]+)/i);
+                if (apiKeyMatch && !extracted.apiKey) {
+                    extracted.apiKey = apiKeyMatch[1];
+                    return;
+                }
+
+                // 2. 提取 URL (http/https 开头，不含双引号)
+                const urlMatch = line.match(/(https?:\/\/[^\s"'`,;|]+)/);
+                if (urlMatch && !extracted.baseUrl) {
+                    // 判断是否是 API 地址
+                    const url = urlMatch[1];
+                    if (url.includes('api') || url.includes('v1') || url.includes('openai') || url.includes('azure')) {
+                        extracted.baseUrl = url;
+                    }
+                    return;
+                }
+
+                // 3. 提取 Model Name (常见模型名)
+                const modelPatterns = [
+                    /(?:^|[\s,;|])(gpt[-_]?\d+[+-]?[a-z0-9]*|claude[-_]?\d+[+-]?[a-z0-9]*|dall[-_]?e[-_]?\d+|whisper[-_]?\d+|stable[-_]?diffusion|llama[-_]?\d+|qwen|chatglm|yi[-_]?\d+)/i,
+                    /(?:model|model[_-]?name|model_name)[\s]*[:=][\s]*["']?([a-zA-Z0-9_-]+)/i
+                ];
+                
+                for (const pattern of modelPatterns) {
+                    const match = line.match(pattern);
+                    if (match && !extracted.modelName) {
+                        extracted.modelName = match[1] || match[0].trim();
+                        // 清理可能的引号
+                        extracted.modelName = extracted.modelName.replace(/["']/g, '').trim();
+                        return;
+                    }
+                }
+
+                // 4. 尝试 Key=Value 格式
+                const kvMatch = line.match(/^([^:=]+)[=:]\s*["']?([^"'\s,;|]+)["']?$/);
+                if (kvMatch) {
+                    const key = kvMatch[1].trim().toLowerCase().replace(/[_\s-]+/g, '');
+                    const value = kvMatch[2].trim().replace(/["']/g, '');
+                    
+                    if (!extracted.baseUrl && (key.includes('url') || key.includes('endpoint') || key.includes('address') || key.includes('addr'))) {
+                        extracted.baseUrl = value;
+                    } else if (!extracted.modelName && (key.includes('model'))) {
+                        extracted.modelName = value;
+                    } else if (!extracted.apiKey && (key.includes('apikey') || key.includes('api_key') || key.includes('token') || key.includes('secret') || key.includes('key'))) {
+                        extracted.apiKey = value;
+                    }
+                }
+            });
+
+            // 5. 如果整行没有分隔符，尝试从长文本中提取
+            if (!extracted.baseUrl && !extracted.modelName && !extracted.apiKey) {
+                // 提取 URL
+                const urlMatch = input.match(/(https?:\/\/[^\s"'`,;|]+)/);
+                if (urlMatch) {
+                    const url = urlMatch[1];
+                    if (url.includes('api') || url.includes('v1') || url.includes('openai') || url.includes('azure')) {
+                        extracted.baseUrl = url;
+                    }
+                }
+
+                // 提取 API Key
+                const apiKeyMatch = input.match(/(sk-[a-zA-Z0-9_-]+)/i);
+                if (apiKeyMatch) {
+                    extracted.apiKey = apiKeyMatch[1];
+                }
+
+                // 提取 Model Name
+                const modelMatch = input.match(/(?:^|[\s,;|])(gpt[-_]?\d+[+-]?[a-z0-9]*|claude[-_]?\d+[+-]?[a-z0-9]*|dall[-_]?e[-_]?\d+|whisper[-_]?\d+|llama[-_]?\d+|qwen|chatglm|yi[-_]?\d+)/i);
+                if (modelMatch) {
+                    extracted.modelName = modelMatch[1];
+                }
+            }
+
+            // 填充到输入框
+            if (extracted.baseUrl) {
+                document.getElementById('baseUrl').value = extracted.baseUrl;
+            }
+            if (extracted.modelName) {
+                document.getElementById('modelName').value = extracted.modelName;
+            }
+            if (extracted.apiKey) {
+                document.getElementById('apiKey').value = extracted.apiKey;
+            }
+
+            const count = [extracted.baseUrl, extracted.modelName, extracted.apiKey].filter(Boolean).length;
+            setStatus('success', `成功提取 ${count}/3 个参数`);
+            
+            // 清空提取输入
+            document.getElementById('extractInput').value = '';
+        }
+
+        // 清空提取输入
+        function clearExtract() {
+            document.getElementById('extractInput').value = '';
+        }
+
+        // 清空输入
+        function clearInput() {
+            document.getElementById('userInput').value = '';
+        }
+
+        // 发送请求
+        async function sendRequest() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const modelName = document.getElementById('modelName').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const userInput = document.getElementById('userInput').value.trim();
+
+            // 验证必填字段
+            if (!baseUrl || !modelName || !apiKey) {
+                setStatus('error', '请填写 Base URL、Model Name 和 API Key');
+                return;
+            }
+
+            if (!userInput && currentType === 'text') {
+                setStatus('error', '请输入文本内容');
+                return;
+            }
+
+            setStatus('loading', '请求中...');
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div><p style="margin-top: 1rem; color: var(--neon-blue);">处理中...</p></div>';
+
+            try {
+                let response;
+                let result;
+
+                switch (currentType) {
+                    case 'text':
+                        result = await requestText(baseUrl, modelName, apiKey, userInput);
+                        displayTextResult(result);
+                        break;
+                    case 'image':
+                        result = await requestImage(baseUrl, modelName, apiKey, userInput);
+                        displayImageResult(result);
+                        break;
+                    case 'audio':
+                        result = await requestAudio(baseUrl, modelName, apiKey, userInput);
+                        displayAudioResult(result);
+                        break;
+                }
+
+                setStatus('success', '请求成功');
+            } catch (error) {
+                setStatus('error', `请求失败: ${error.message}`);
+                resultContent.innerHTML = `<div style="color: #ff3366; padding: 1rem;">错误: ${error.message}</div>`;
+            }
+        }
+
+        // 文本请求
+        async function requestText(baseUrl, modelName, apiKey, prompt) {
+            const url = `${baseUrl}/chat/completions`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: modelName,
+                    messages: [{ role: 'user', content: prompt }]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        // 图像请求
+        async function requestImage(baseUrl, modelName, apiKey, prompt) {
+            const url = `${baseUrl}/images/generations`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: modelName,
+                    prompt: prompt,
+                    n: 1,
+                    size: '1024x1024'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        // 语音请求
+        async function requestAudio(baseUrl, modelName, apiKey, text) {
+            const url = `${baseUrl}/audio/speech`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: modelName,
+                    input: text,
+                    voice: 'alloy'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.blob();
+        }
+
+        // 显示文本结果
+        function displayTextResult(data) {
+            const resultContent = document.getElementById('resultContent');
+            const content = data.choices?.[0]?.message?.content || JSON.stringify(data, null, 2);
+            resultContent.textContent = content;
+        }
+
+        // 显示图像结果
+        function displayImageResult(data) {
+            const resultContent = document.getElementById('resultContent');
+            if (data.data && data.data[0]) {
+                const imageUrl = data.data[0].url || data.data[0].b64_json;
+                if (data.data[0].url) {
+                    resultContent.innerHTML = `<img src="${data.data[0].url}" alt="Generated Image"><p style="margin-top: 1rem; color: var(--text-secondary);">图像已生成</p>`;
+                } else if (data.data[0].b64_json) {
+                    resultContent.innerHTML = `<img src="data:image/png;base64,${data.data[0].b64_json}" alt="Generated Image"><p style="margin-top: 1rem; color: var(--text-secondary);">图像已生成 (Base64)</p>`;
+                }
+            } else {
+                resultContent.textContent = JSON.stringify(data, null, 2);
+            }
+        }
+
+        // 显示音频结果
+        function displayAudioResult(blob) {
+            const resultContent = document.getElementById('resultContent');
+            const url = URL.createObjectURL(blob);
+            resultContent.innerHTML = `
+                <audio controls src="${url}"></audio>
+                <p style="margin-top: 1rem; color: var(--text-secondary);">音频已生成</p>
+                <a href="${url}" download="audio.mp3" class="btn btn-secondary" style="margin-top: 1rem; display: inline-block;">[ 下载音频 ]</a>
+            `;
+        }
+
+        // 设置状态
+        function setStatus(type, message) {
+            const indicator = document.getElementById('statusIndicator');
+            const colors = {
+                'loading': 'var(--neon-blue)',
+                'success': 'var(--neon-green)',
+                'error': '#ff3366'
+            };
+            
+            indicator.className = `status-indicator status-${type}`;
+            indicator.innerHTML = type === 'loading' ? 
+                `<div class="spinner"></div> ${message}` : 
+                `<span style="color: ${colors[type]}">●</span> ${message}`;
+        }
+
+        // 复制结果
+        function copyResult() {
+            const resultContent = document.getElementById('resultContent');
+            const text = resultContent.textContent || resultContent.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                setStatus('success', '已复制到剪贴板');
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            setStatus('success', '就绪');
+        });
+    </script>
+</body>
+</html>
