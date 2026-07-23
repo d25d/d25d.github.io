@@ -288,14 +288,14 @@ window.onload = loadNoteList;
 //   }
 // }
 
-const owner = "你的github用户名";
-const repo = "你的仓库名称";
+const owner = "d25d";
+const repo = "d25d.github.io";
 const branch = "main"; // 仓库默认分支
 
 async function loadNoteList(){
   try {
     // 调用github api读取paper目录文件
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/paper?ref=${branch}`);
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/htmls/biji/paper?ref=${branch}`);
     const fileList = await res.json();
     if(fileList.message){
       throw new Error("目录读取失败");
@@ -334,7 +334,7 @@ async function openNote(name){
   contentDom.innerText = "正在读取笔记内容...";
   try {
     // 获取文件raw原始文本链接
-    const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/paper/${name}?ref=${branch}`);
+    const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/htmls/biji/paper/${name}?ref=${branch}`);
     const fileInfo = await fileRes.json();
     const textRes = await fetch(fileInfo.download_url);
     contentDom.innerText = await textRes.text();
