@@ -237,56 +237,6 @@ const contentDom = document.getElementById("noteContent");
 
 window.onload = loadNoteList;
 
-// async function loadNoteList(){
-//   try {
-//     const res = await fetch(baseDir);
-//     const html = await res.text();
-//     const doc = new DOMParser().parseFromString(html, "text/html");
-//     const files = [];
-
-//     doc.querySelectorAll("a").forEach(a => {
-//       const name = a.querySelector(".name")?.textContent.trim();
-//       if (!name) return;
-//       if (["../","..","/"].includes(name)) return;
-//       if (!name.includes(".")) return;
-//       files.push(name);
-//     });
-
-//     countDom.innerText = `📚 现有笔记：${files.length} 份`;
-//     listDom.innerHTML = "";
-
-//     if (files.length === 0) {
-//       listDom.innerHTML = '<div class="empty-tip">暂无托管笔记</div>';
-//       return;
-//     }
-
-//     files.forEach(name => {
-//       const card = document.createElement("div");
-//       card.className = "note-card";
-//       card.innerHTML = `
-//         <div class="card-title">${name}</div>
-//         <div class="card-desc">点击查看全文</div>
-//       `;
-//       card.onclick = () => openNote(name);
-//       listDom.appendChild(card);
-//     });
-//   } catch {
-//     countDom.innerText = "目录读取异常";
-//     listDom.innerHTML = '<div class="empty-tip">无法加载笔记目录</div>';
-//   }
-// }
-
-// async function openNote(name){
-//   modal.style.display = "flex";
-//   titleDom.innerText = name;
-//   contentDom.innerText = "正在读取笔记内容...";
-//   try {
-//     const res = await fetch(baseDir + name);
-//     contentDom.innerText = await res.text();
-//   } catch {
-//     contentDom.innerText = "笔记内容读取失败";
-//   }
-// }
 
 const owner = "d25d";
 const repo = "d25d.github.io";
@@ -301,7 +251,7 @@ async function loadNoteList(){
       throw new Error("目录读取失败");
     }
     // 只保留文件，过滤子文件夹
-    const files = fileList.filter(item => item.type === "blob").map(item => item.name);
+    const files = fileList.filter(item => item.type === "file").map(item => item.name);
 
     countDom.innerText = `📚 现有笔记：${files.length} 份`;
     listDom.innerHTML = "";
@@ -333,12 +283,21 @@ async function openNote(name){
   titleDom.innerText = name;
   contentDom.innerText = "正在读取笔记内容...";
   try {
-    // 获取文件raw原始文本链接
-    const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/htmls/biji/paper/${name}?ref=${branch}`);
-    const fileInfo = await fileRes.json();
-    const textRes = await fetch(fileInfo.download_url);
-    contentDom.innerText = await textRes.text();
-  } catch {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/htmls/biji/paper/${name}?ref=${branch}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // 高兼容Base64转UTF8，兼容中文、特殊符号、所有现代浏览器
+    const decodeBase64Utf8 = (b64) => {
+      const raw = atob(b64);
+      const bytes = Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+      return new TextDecoder("utf-8").decode(bytes);
+    };
+
+    const text = decodeBase64Utf8(data.content);
+    contentDom.innerText = text;
+  } catch (err) {
+    console.error(err);
     contentDom.innerText = "笔记内容读取失败";
   }
 }
