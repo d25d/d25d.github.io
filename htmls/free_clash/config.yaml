@@ -60,7 +60,7 @@ proxies:
     name: Free SSR Proxy Server03
     obfs: http_simple
     obfs-param: bing.com
-    password: fec06c0e
+    password: c1db6ab3
     port: 8894
     protocol: origin
     protocol-param: ''
