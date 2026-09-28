@@ -1,204 +1,614 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta name="baidu_union_verify" content="5ef2c241a82898fa2a2fae4f765341f6">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>每日资讯 · 质感导航</title>
+  <title>bby</title>
+  <meta name="description" content="一个持续更新的在线小工具集合。图片链接在线浏览，ai在线调用等实用功能，其他奇思妙想，浏览器打开即用，无需注册。记录灵感，也能学习。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff3355'/%3E%3Cstop offset='100%25' style='stop-color:%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='18' fill='url(%23g)'/%3E%3Ctext x='50' y='80' text-anchor='middle' font-size='90' font-weight='300' fill='%23fff' font-family='Arial, sans-serif'%3EB%3C/text%3E%3C/svg%3E">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
-      min-height: 100vh;
+      height: 100%;
+      overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    :root {
+      --red: #ff3355;
+      --purple: #7c3aed;
+      --bg: #faf8fc;
+      --ink: #1a1520;
+      --ink-soft: #6b6478;
+      --ink-faint: #b8b0c4;
+      --line: #e8e4ee;
+      --grad: linear-gradient(135deg, #ff3355 0%, #7c3aed 100%);
     }
 
     body {
-      background: linear-gradient(-45deg, #1a2a6c, #2a0845, #141e30, #243b55);
-      background-size: 400% 400%;
-      animation: gradientBg 15s ease infinite;
-      color: #fff;
-      padding-bottom: 120px;
+      background: var(--bg);
+      color: var(--ink);
+      position: relative;
     }
 
-    @keyframes gradientBg {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    /* 纸张质感 */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' seed='5'/><feColorMatrix type='saturate' values='0'/></filter><rect width='300' height='300' filter='url(%23f)' opacity='0.5'/></svg>");
+      opacity: 0.035;
+      pointer-events: none;
+      z-index: 0;
+      mix-blend-mode: multiply;
     }
 
-    /* 毛玻璃通用样式 */
-    .glass {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    /* ============ 主容器 ============ */
+    .app {
+      position: relative;
+      z-index: 2;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 28px 56px 24px;
+      max-width: 1600px;
+      margin: 0 auto;
     }
 
-    /* 头部 */
-    header {
-      padding: 36px 20px;
-      text-align: center;
-      border-radius: 0 0 24px 24px;
-      margin-bottom: 40px;
-    }
-
-    header h1 {
-      font-size: 30px;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-
-    header p {
-      opacity: 0.85;
-      font-size: 15px;
-    }
-
-    /* 进入按钮 */
-    .nav-box {
-      text-align: center;
-      margin: 0 auto 40px;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 16px 42px;
-      border-radius: 99px;
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 17px;
-      transition: all 0.3s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(255, 255, 255, 0.15);
-    }
-
-    /* 资讯卡片 */
-    .card {
-      max-width: 720px;
-      margin: 0 auto 30px;
-      padding: 32px 28px;
-      border-radius: 22px;
-      text-align: left;
-    }
-
-    .card h2 {
-      font-size: 20px;
-      margin-bottom: 20px;
+    /* ============ 顶栏 ============ */
+    .topbar {
       display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      z-index: 3;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar .brand {
+      font-family: Georgia, "Songti SC", serif;
+      font-style: italic;
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    .topbar .brand::after {
+      content: ".";
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
+    .topbar .date {
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      font-weight: 500;
+    }
+
+    /* ============ 主区：三栏 ============ */
+    .main {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 200px;
+      gap: 56px;
+      min-height: 0;
+      align-items: stretch;
+      padding: 44px 0;
+    }
+
+    /* ============ 左栏：格言 ============ */
+    .col-quote {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .kicker {
+      font-size: 10px;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .kicker::before {
+      content: "";
+      display: inline-block;
+      width: 24px;
+      height: 1.5px;
+      background: var(--grad);
+    }
+
+    .quote-block {
+      display: flex;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .quote-bar {
+      width: 2px;
+      background: var(--grad);
+      flex-shrink: 0;
+    }
+
+    .quote-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .quote-text {
+      font-family: Georgia, "Songti SC", "STSong", serif;
+      font-size: clamp(24px, 3vw, 40px);
+      font-weight: 400;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: 28px;
+    }
+
+    .quote-text em {
+      font-style: italic;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .quote-author {
+      font-size: 11px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .quote-author::before {
+      content: "";
+      display: inline-block;
+      width: 32px;
+      height: 1px;
+      background: var(--ink-faint);
+    }
+
+    /* ============ 中栏：导航 ============ */
+    .col-nav {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .nav-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-decoration: none;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line);
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      min-height: 280px;
+      width: 100%;
+    }
+
+    .nav-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--grad);
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-card::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 0;
+      height: 2px;
+      background: var(--grad);
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-card:hover::before,
+    .nav-card:hover::after {
+      width: 100%;
+    }
+
+    .nav-card:hover {
+      border-color: transparent;
+    }
+
+    .nav-card .nav-label {
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      font-weight: 600;
+      display: inline-flex;
       align-items: center;
       gap: 10px;
+      color: var(--ink-soft);
     }
 
-    #quote {
-      font-size: 17px;
-      line-height: 1.9;
-      opacity: 0.95;
-      margin-bottom: 14px;
+    .nav-card .nav-label::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--grad);
     }
 
-    #author {
-      text-align: right;
-      opacity: 0.7;
-      font-size: 15px;
+    .nav-card .nav-title {
+      font-family: Georgia, "Songti SC", serif;
+      font-size: clamp(20px, 1.8vw, 26px);
+      font-weight: 400;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin: 20px 0;
     }
 
-    /* 广告位 */
-    .ad-area {
-      max-width: 728px;
-      margin: 50px auto;
-      text-align: center;
-      padding: 20px;
-      border-radius: 18px;
+    .nav-card .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding-bottom: 4px;
+      align-self: flex-start;
+      color: var(--ink);
+      transition: gap 0.4s;
+      position: relative;
     }
 
-    /* 底部 */
-    footer {
-      position: fixed;
-      bottom: 0;
+    .nav-card .nav-cta::after {
+      content: "";
+      position: absolute;
       left: 0;
-      width: 100%;
-      padding: 20px;
-      text-align: center;
-      border-radius: 20px 20px 0 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: var(--grad);
+      transform: scaleX(1);
+      transform-origin: left;
+      transition: transform 0.4s;
+    }
+
+    .nav-card:hover .nav-cta { gap: 18px; }
+
+    .nav-card .nav-cta .arrow-icon {
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       font-size: 14px;
-      opacity: 0.8;
+    }
+
+    /* ============ 右栏：广告 ============ */
+    .col-ad {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .side-ad-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: transparent;
+      border: 1px solid var(--line);
+      padding: 28px 22px;
+      text-decoration: none;
+      color: var(--ink);
+      min-height: 280px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s;
+    }
+
+    .side-ad-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 2px;
+      height: 0;
+      background: var(--grad);
+      transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .side-ad-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--grad);
+      transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .side-ad-card:hover::before {
+      height: 100%;
+    }
+
+    .side-ad-card:hover::after {
+      width: 100%;
+    }
+
+    .side-ad-card:hover {
+      border-color: transparent;
+    }
+
+    .side-ad-card .ad-tag {
+      font-size: 9px;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--ink-faint);
+    }
+
+    .side-ad-card .ad-tag::before {
+      content: "";
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--grad);
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .side-ad-card .ad-title {
+      font-family: Georgia, "Songti SC", serif;
+      font-style: italic;
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.35;
+      margin: 16px 0;
+      color: var(--ink);
+    }
+
+    .side-ad-card .ad-cta {
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      font-weight: 600;
+      align-self: flex-start;
+      padding-bottom: 3px;
+      position: relative;
+      color: var(--ink);
+      transition: gap 0.4s;
+    }
+
+    .side-ad-card .ad-cta::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: var(--grad);
+    }
+
+    /* ============ 底栏 ============ */
+    .bottombar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      z-index: 3;
+      gap: 24px;
+      font-size: 11px;
+    }
+
+    .bottombar .footer-mark {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .bottombar .footer-mark::after {
+      content: ".";
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
+    .bottombar .center-text {
+      flex: 1;
+      text-align: center;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      font-weight: 500;
+      font-size: 9px;
+    }
+
+    .bottombar .copyright {
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      font-weight: 500;
+      font-size: 9px;
+    }
+
+    /* ============ 响应式 ============ */
+    @media (max-width: 1280px) {
+      .main {
+        grid-template-columns: 1.5fr 1fr 180px;
+        gap: 36px;
+      }
+    }
+
+    @media (max-width: 1000px) {
+      .app { padding: 20px 28px; }
+      .main {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 32px;
+        padding: 28px 0;
+      }
+      .col-quote { grid-column: 1 / -1; }
+      .col-ad {
+        grid-column: 1 / -1;
+      }
+      .side-ad-card {
+        min-height: auto;
+        flex-direction: row;
+        align-items: center;
+        padding: 18px 22px;
+      }
+      .side-ad-card .ad-title {
+        font-size: 15px;
+        margin: 0 16px;
+        flex: 1;
+        font-style: normal;
+      }
+      .side-ad-card::before {
+        width: 2px;
+      }
+      .nav-card { min-height: 220px; padding: 24px 22px; }
+      .nav-card .nav-title { font-size: 18px; }
+      .quote-text { font-size: 26px; }
+    }
+
+    @media (max-width: 640px) {
+      .app { padding: 16px 18px; }
+      .main {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 16px 0;
+      }
+      .col-quote, .col-nav, .col-ad {
+        grid-column: 1;
+      }
+      .quote-text { font-size: 20px; margin-bottom: 20px; }
+      .quote-bar { width: 2px; }
+      .quote-block { gap: 14px; }
+      .kicker { margin-bottom: 18px; font-size: 9px; }
+      .kicker::before { width: 18px; }
+      .nav-card { min-height: 160px; padding: 20px 18px; }
+      .nav-card .nav-title { font-size: 16px; margin: 10px 0; }
+      .side-ad-card { padding: 14px 16px; }
+      .side-ad-card .ad-title { font-size: 13px; }
+      .bottombar { padding-top: 14px; }
+      .bottombar .center-text { display: none; }
     }
   </style>
 </head>
 
 <body>
 
-  <header class="glass">
-    <h1>✨ 每日灵感 · 精致导航</h1>
-    <p>每天打开都有新内容 · 高级质感 · 实用便捷</p>
-  </header>
+  <div class="app">
 
-  <div class="nav-box">
-    <a href="htmls/navigation.html" class="btn glass">
-      🧭 进入导航中心
-    </a>
+    <!-- 顶栏 -->
+    <div class="topbar">
+      <div class="brand">bby</div>
+      <div class="date" id="todayDate">—</div>
+    </div>
+
+    <!-- 主区：三栏 -->
+    <div class="main">
+
+      <!-- 左栏：格言 -->
+      <div class="col-quote">
+        <div class="kicker">今日语录 · Quote of the Day</div>
+        <div class="quote-block">
+          <div class="quote-bar"></div>
+          <div class="quote-body">
+            <div class="quote-text" id="quoteText">正在获取今日内容...</div>
+            <div class="quote-author" id="quoteAuthor">...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中栏：导航 -->
+      <div class="col-nav">
+        <a href="htmls/navigation.html" class="nav-card">
+          <div class="nav-label">Navigation</div>
+          <div class="nav-title">前往导航中心<br>浏览各种工具和创意</div>
+          <div class="nav-cta">
+            <span>进入</span>
+            <span class="arrow-icon">→</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 右栏：广告 -->
+      <div class="col-ad">
+        <a href="https://你的真实落地页链接"
+           target="_blank" rel="noopener"
+           class="side-ad-card"
+           onmouseover="this.querySelector('.ad-tag').textContent='这是广告'"
+           onmouseout="this.querySelector('.ad-tag').textContent='Sponsored'">
+          <div class="ad-tag">Sponsored</div>
+          <div class="ad-title">点击查看<br>详情 →</div>
+          <div class="ad-cta">Learn More</div>
+        </a>
+      </div>
+
+    </div>
+
+    
+
   </div>
-
-   <a href="https://crayondrunkcontend.com/i30wf6wvb?key=fab4096ae1c3c1bcdc47d315ae9ee435"
-     target="_blank" rel="noopener"
-     onmouseover="this.querySelector('.tip').textContent='真的真的真的是广告'"
-     onmouseout="this.querySelector('.tip').textContent='这是广告，不必理会'"
-     style="display:inline-block;padding:12px 28px;background:#fff;color:#333;border:1px solid #ddd;border-radius:8px;text-decoration:none;font-family:sans-serif;text-align:center;">
-    <div class="tip" style="font-size:11px;color:#999;margin-bottom:2px;">这是广告，不必理会</div>
-    <div style="font-size:14px;font-weight:600;">查看详情</div>
-  </a>
-
-  <div class="card glass">
-    <h2>📅 今日精选句子</h2>
-    <div id="quote">正在获取今日内容...</div>
-    <div id="author"></div>
-  </div>
-
-  <div class="ad-area glass">
-    <!-- 广告自动加载区域 -->
-  </div>
-
-  <footer class="glass">
-    © 2025 每日精致导航 · 每天都值得来看一眼
-  </footer>
 
   <script src="./ads.js"></script>
 
   <script>
-    // 动态获取一句话（真实接口）
-    fetch('https://rickandmortyapi.com/api/character')
+    const d = new Date();
+    const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    document.getElementById('todayDate').textContent =
+      `${months[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')} · ${d.getFullYear()}`;
+  </script>
+
+  <script>
+    fetch('https://v1.hitokoto.cn/')
       .then(r => r.json())
       .then(data => {
-        document.getElementById('quote').textContent = data.data?.quote || '保持热爱，奔赴山海';
-        document.getElementById('author').textContent = data.data?.author ? `—— ${data.data.author}` : '—— 佚名';
+        document.getElementById('quoteText').textContent =
+          data.hitokoto || '保持热爱，奔赴山海';
+        document.getElementById('quoteAuthor').textContent =
+          data.from ? ` ${data.from}` : '—— 佚名';
       })
       .catch(() => {
-        document.getElementById('quote').textContent = '生活原本沉闷，但跑起来就有风';
+        document.getElementById('quoteText').textContent = '生活原本沉闷，但跑起来就有风';
+        document.getElementById('quoteAuthor').textContent = '—— 佚名';
       });
   </script>
-  
-  <div id="list"></div>
-
-<script>
-fetch("https://rickandmortyapi.com/api/character")
-  .then(res => res.json())
-  .then(data => {
-    let html = "";
-    data.slice(0,10).forEach(item => {
-      html += `<h3>${item.title}</h3><p>${item.body}</p><hr>`;
-    });
-    document.getElementById("list").innerHTML = html;
-  })
-</script>
 
 </body>
 </html>
