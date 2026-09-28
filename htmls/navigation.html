@@ -1,190 +1,444 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <link rel="stylesheet" type="text/css" href="../css/m_wuqinglan.css" media="screen and (max-width:1200px)"/>      
-    <link rel="stylesheet" type="text/css" href="../css/pc_wuqinglan.css" media="screen and (min-width:1201px)"/>  
-    <title>有趣的东西</title>
-  </head>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>有趣的东西</title>
+<meta name="description" content="一个持续更新的在线小工具集合。AI问答、图片预览、关系图、塔防、飞翔世界等实用好玩的小工具，浏览器打开即用，无需注册。">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  <body>
-    <div id="top">
-      <span >有趣的东西</span>
-    </div>
+  :root {
+    --red: #ff3355;
+    --purple: #7c3aed;
+    --bg: #faf8fc;
+    --ink: #1a1520;
+    --ink-soft: #6b6478;
+    --ink-faint: #b8b0c4;
+    --line: #e8e4ee;
+    --grad: linear-gradient(135deg, #ff3355 0%, #7c3aed 100%);
+  }
 
+  html, body {
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
 
-  <div style="width: 100%; height:100%; display: flex; ">
-    
-    <div id="exhibit" >
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    padding: 32px 40px 60px;
+    position: relative;
+  }
 
-    </div>
+  /* 纸张质感 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' seed='5'/><feColorMatrix type='saturate' values='0'/></filter><rect width='300' height='300' filter='url(%23f)' opacity='0.5'/></svg>");
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: multiply;
+  }
 
-    <div id="right" >
-        <div style="width: 80%; height:100%; display: flex; border: 1px solid #dde3e9;">
-          
-          <div style="width: 50%; height:100%; ">
-            <h2 >赞助本站</h2>
-            <p>感谢您的喜爱</p>
-          </div>
+  /* ============ 顶栏 ============ */
+  #top {
+    max-width: 1440px;
+    margin: 0 auto 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    position: relative;
+    z-index: 1;
+  }
 
-          <div style="width: 50%;">
-            <img alt="" loading="lazy" width="100" height="100" decoding="async" data-nimg="1" class="mx-auto"  src="../images/my-zfb.jpg" style="color: transparent;">    
-          </div>
+  #top span {
+    font-family: Georgia, "Songti SC", serif;
+    font-style: italic;
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
 
-        </div>
-          
-          
+  #top span::after {
+    content: ".";
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+  }
+
+  #top .count {
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+
+  /* ============ 主区 ============ */
+  .main {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 40px;
+    align-items: start;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 卡片网格 */
+  #exhibit {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  .ele {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .ele:hover {
+    transform: translateY(-4px);
+  }
+
+  .ele .im {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+    position: relative;
+    transition: border-color 0.3s;
+  }
+
+  .ele:hover .im {
+    border-color: transparent;
+  }
+
+  .ele .im::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 2px solid transparent;
+    background: var(--grad);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s;
+    pointer-events: none;
+  }
+
+  .ele:hover .im::after {
+    opacity: 1;
+  }
+
+  .ele img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .ele:hover img {
+    transform: scale(1.05);
+  }
+
+  .ele .di {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    letter-spacing: 0.01em;
+    padding-left: 2px;
+    transition: color 0.3s;
+  }
+
+  .ele:hover .di {
+    color: var(--ink);
+  }
+
+  /* ============ 右侧赞助栏 ============ */
+  #right {
+    position: sticky;
+    top: 32px;
+  }
+
+  .sponsor {
+    border: 1px solid var(--line);
+    padding: 24px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .sponsor::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--grad);
+  }
+
+  .sponsor h2 {
+    font-family: Georgia, "Songti SC", serif;
+    font-style: italic;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .sponsor p {
+    font-size: 12px;
+    color: var(--ink-faint);
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+  }
+
+  .sponsor img {
+    width: 100%;
+    max-width: 160px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto;
+    border: 1px solid var(--line);
+  }
+
+  /* ============ 响应式 ============ */
+  @media (max-width: 900px) {
+    body { padding: 20px 20px 40px; }
+    #top span { font-size: 20px; }
+    .main {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    #right {
+      position: static;
+      max-width: 100%;
+    }
+    .sponsor {
+      max-width: 320px;
+    }
+    #exhibit {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+    }
+    .ele .di { font-size: 12px; }
+  }
+</style>
+</head>
+
+<body>
+
+  <div id="top">
+    <span>有趣的东西</span>
+    <div class="count" id="count">—</div>
+  </div>
+
+  <div class="main">
+
+    <div id="exhibit"></div>
+
+    <div id="right">
+      <div class="sponsor">
+        <h2>赞助本站</h2>
+        <p>感谢您的喜爱</p>
+        <img alt="赞助二维码" loading="lazy" src="../images/my-zfb.jpg">
+      </div>
     </div>
 
   </div>
+
   <script>
-    //1.选项数组
-    // 可以在开头继续添加更多对象...
+    // ============================================================
+    //  工具列表：往这里加对象就行
+    //  格式：
+    //  {
+    //    href: 链接,
+    //    alt:  图片说明（SEO 和无障碍用）,
+    //    src:  图片链接,
+    //    description: 卡片下方显示的文字
+    //  }
+    // ============================================================
     const cardsData = [
       {
-      href: "",    
-      alt: "",
-      src: "",
-      description: ""
-     },
+        href: "../htmls/model_api.html",
+        alt: "调用大模型API",
+        src: "https://picsum.photos/400/300",
+        description: "调用大模型 API"
+      },
       {
-      href: "../htmls/model_api.html",    
-      alt: "调用大模型api",
-      src: "https://picsum.photos/400/300",
-      description: "调用大模型api"
-     },
+        href: "../htmls/biji/index.html",
+        alt: "笔记",
+        src: "https://image-cdn.tuchong.com/weili/image/l/2493521466525614099.jpeg",
+        description: "📚 笔记"
+      },
       {
-      href: "../htmls/biji/index.html",    
-      alt: "笔记",
-      src: "https://image-cdn.tuchong.com/weili/image/l/2493521466525614099.jpeg",
-      description: "📚笔记"
-     },
+        href: "../htmls/xingtu.html",
+        alt: "关系图",
+        src: "https://pic1.zhimg.com/v2-8cba019a08cf4b93a043e82aad4c3159_r.jpg?source=1940ef5c",
+        description: "关系图"
+      },
       {
-      href: "../htmls/xingtu.html",    
-      alt: "关系图",
-      src: "https://pic1.zhimg.com/v2-8cba019a08cf4b93a043e82aad4c3159_r.jpg?source=1940ef5c",
-      description: "关系图"
-     },
-     {
-        href: "../htmls/diqiucun/diqiucun.html",    
+        href: "../htmls/diqiucun/diqiucun.html",
         alt: "看看地球上其他人在做什么",
         src: "https://ts3.tc.mm.bing.net/th/id/OIP-C.ukX250UFchUQIcglj4rJ9QHaFW?rs=1&pid=ImgDetMain&o=7&rm=3",
         description: "看看地球上其他人在做什么"
-     },
-     
-     {
-      href: "../htmls/free_flight_world/frontend/hutao.html",                  
-      alt: ".glb",
-      src: "https://simg.doyo.cn/imgfile/bgame/202303/08171356tmj6.jpg",        
-      description: ".glb"
-    },
-    {
-      href: "../htmls/chat.html",      
-      alt: "凭借id聊天",
-      src: "https://simg.doyo.cn/imgfile/bgame/202303/08171356tmj6.jpg",
-      description: "凭借id聊天"
-    },
-    {
-      href: "../htmls/gpt.html",  
-      alt: "ai问答",
-      src: "https://thumb.photo-ac.com/fc/fccc177b1f6c533acc3df95b03c8078e_w.jpeg",  
-      description: "ai问答"
-    },
-    {
-      href: "../htmls/tian.html",
-      alt: "地球",
-      src: "https://image-cdn.tuchong.com/weili/image/l/1559337775850192901.jpeg",
-      description: "地球"  
-    },
-    {
-      href: "../htmls/first.html",
-      alt: "留言本",
-      src: "https://tse3-mm.cn.bing.net/th/id/OIP-C.-N9n81tGq7D-a9Haf4XrZAHaFE?rs=1&pid=ImgDetMain",
-      description: "留言本"
-    },
-    {
-      href: "../htmls/second.html",  
-      alt: "弹音乐",
-      src: "https://ts1.cn.mm.bing.net/th/id/R-C.6128fc9619103be592326063937b4d6c?rik=64a3htwXjp%2blTQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fw%2f2021%2f07-07%2f102953%2fwater_102953_698_698.71_.png&ehk=glr7QUsIUv3pse7KwPci5Wz5PaqX0Xf9HwL0EYY8GJg%3d&risl=&pid=ImgRaw&r=0",
-      description: "弹音乐"
-    },
-    {
-      href: "../htmls/four.html",  
-      alt: "从网页下载图片",
-      src: "https://ts1.cn.mm.bing.net/th/id/R-C.9b1a72d9be1422b5371e51b17e46edeb?rik=TOx7Y9K8kZ0Fkw&riu=http%3a%2f%2ficon.chrafz.com%2fuploads%2f151023%2f1-1510232124534A.png&ehk=ji7jjNJWleXMIZYoIip24ffxb8i836gxKl1Y89gkkTM%3d&risl=&pid=ImgRaw&r=0",  
-      description: "从网页下载图片"
-    },
-    {
-      href: "../shengyiwu/gg.html",    
-      alt: "圣遗物？？",
-      src: "https://olimg.3dmgame.com/uploads/images/raiders/2023/0814/1691977901617.jpg",
-      description: "圣遗物？？"
-    },
-    {
-      href: "../level.html",  
-      alt: "genshin",
-      src: "https://www.yuanshen.com/images/ys.96a55539.png",
-      description: "level"
-    },
-    {
-      href: "../try.html",  
-      alt: "try",
-      src: "https://fastcdn.mihoyo.com/static-resource-v2/2023/10/19/decde675d83a1b5b78fe05b2382b30ae_7623137438469696579.jpg",
-      description: "原神祈愿测运气"
-    },
-    {
-      href: "../htmls/previewImages.html",  
-      alt: "imgs",
-      src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",
-      description: "根据图片链接预览图片"
-    },
-    {
-      href: "../htmls/free_flight_world/frontend/index.html",  
-      alt: "fly",
-      src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",  
-      description: "获得随意飞翔的力量"
-    },
-    {
-      href: "../htmls/xample.html",        
-      alt: "抽奖",
-      src: "https://ts3.tc.mm.bing.net/th/id/OIP-C.27RWcCBILtWeOaeMe6RdiAAAAA?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3",    
-      description: "试试你的运气"
-    },
-    {
-      href: "../htmls/phone.html",    
-      alt: "一个手机？",
-      src:"https://gd-hbimg.huaban.com/d0813d601686f61668cd6111fd9a8eeeb48f461919dfe-FvSAkF_fw658",
-      description: "一个手机？"
-    },
-    {
-      href: "../htmls/tafang/tafang.html",    
-      alt: "塔防",
-      src: "https://ts2.tc.mm.bing.net/th/id/OIP-C.1fh5zvFeit16tpUNtRrOrwHaEK?rs=1&pid=ImgDetMain&o=7&rm=3",
-      description: "塔防"
-    }
-];
+      },
+      {
+        href: "../htmls/free_flight_world/frontend/hutao.html",
+        alt: "3D 模型预览",
+        src: "https://simg.doyo.cn/imgfile/bgame/202303/08171356tmj6.jpg",
+        description: "3D 模型预览"
+      },
+      {
+        href: "../htmls/chat.html",
+        alt: "凭借 id 聊天",
+        src: "https://simg.doyo.cn/imgfile/bgame/202303/08171356tmj6.jpg",
+        description: "凭借 ID 聊天"
+      },
+      {
+        href: "../htmls/gpt.html",
+        alt: "AI 问答",
+        src: "https://thumb.photo-ac.com/fc/fccc177b1f6c533acc3df95b03c8078e_w.jpeg",
+        description: "AI 问答"
+      },
+      {
+        href: "../htmls/tian.html",
+        alt: "地球",
+        src: "https://image-cdn.tuchong.com/weili/image/l/1559337775850192901.jpeg",
+        description: "地球"
+      },
+      {
+        href: "../htmls/first.html",
+        alt: "留言本",
+        src: "https://tse3-mm.cn.bing.net/th/id/OIP-C.-N9n81tGq7D-a9Haf4XrZAHaFE?rs=1&pid=ImgDetMain",
+        description: "留言本"
+      },
+      {
+        href: "../htmls/second.html",
+        alt: "弹音乐",
+        src: "https://ts1.cn.mm.bing.net/th/id/R-C.6128fc9619103be592326063937b4d6c?rik=64a3htwXjp%2blTQ&riu=http%3a%2f%2fwww.kuaipng.com%2fUploads%2fpic%2fw%2f2021%2f07-07%2f102953%2fwater_102953_698_698.71_.png&ehk=glr7QUsIUv3pse7KwPci5Wz5PaqX0Xf9HwL0EYY8GJg%3d&risl=&pid=ImgRaw&r=0",
+        description: "弹音乐"
+      },
+      {
+        href: "../htmls/four.html",
+        alt: "从网页下载图片",
+        src: "https://ts1.cn.mm.bing.net/th/id/R-C.9b1a72d9be1422b5371e51b17e46edeb?rik=TOx7Y9K8kZ0Fkw&riu=http%3a%2f%2ficon.chrafz.com%2fuploads%2f151023%2f1-1510232124534A.png&ehk=ji7jjNJWleXMIZYoIip24ffxb8i836gxKl1Y89gkkTM%3d&risl=&pid=ImgRaw&r=0",
+        description: "从网页下载图片"
+      },
+      {
+        href: "../shengyiwu/gg.html",
+        alt: "圣遗物",
+        src: "https://olimg.3dmgame.com/uploads/images/raiders/2023/0814/1691977901617.jpg",
+        description: "圣遗物？？"
+      },
+      {
+        href: "../level.html",
+        alt: "Genshin 等级",
+        src: "https://www.yuanshen.com/images/ys.96a55539.png",
+        description: "Genshin 等级"
+      },
+      {
+        href: "../try.html",
+        alt: "原神祈愿测运气",
+        src: "https://fastcdn.mihoyo.com/static-resource-v2/2023/10/19/decde675d83a1b5b78fe05b2382b30ae_7623137438469696579.jpg",
+        description: "原神祈愿测运气"
+      },
+      {
+        href: "../htmls/previewImages.html",
+        alt: "根据图片链接预览图片",
+        src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",
+        description: "根据图片链接预览图片"
+      },
+      {
+        href: "../htmls/free_flight_world/frontend/index.html",
+        alt: "自由飞翔",
+        src: "https://pic.pngsucai.com/00/93/27/3f0269325182ba38.webp",
+        description: "获得随意飞翔的力量"
+      },
+      {
+        href: "../htmls/xample.html",
+        alt: "抽奖",
+        src: "https://ts3.tc.mm.bing.net/th/id/OIP-C.27RWcCBILtWeOaeMe6RdiAAAAA?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3",
+        description: "试试你的运气"
+      },
+      {
+        href: "../htmls/phone.html",
+        alt: "一个手机",
+        src: "https://gd-hbimg.huaban.com/d0813d601686f61668cd6111fd9a8eeeb48f461919dfe-FvSAkF_fw658",
+        description: "一个手机？"
+      },
+      {
+        href: "../htmls/tafang/tafang.html",
+        alt: "塔防",
+        src: "https://ts2.tc.mm.bing.net/th/id/OIP-C.1fh5zvFeit16tpUNtRrOrwHaEK?rs=1&pid=ImgDetMain&o=7&rm=3",
+        description: "塔防"
+      }
+    ];
 
-errorImgUrl = "https://slsup.com/zb_users/upload/2021/06/20210625090656_99783.jpg";
+    const errorImgUrl = "https://slsup.com/zb_users/upload/2021/06/20210625090656_99783.jpg";
 
-// 2. 获取容器
-const container = document.getElementById("exhibit");  
+    const container = document.getElementById("exhibit");
+    const countEl = document.getElementById("count");
 
-// 3. 遍历数据，动态生成卡片 DOM 并插入
-cardsData.forEach(card => {
-  // 创建单个 card div
-  const cardDiv = document.createElement("div");
-  cardDiv.id = "ele";
+    // 用 DocumentFragment 批量插入，性能更好
+    const fragment = document.createDocumentFragment();
 
-  cardDiv.innerHTML = `
-    <a class="im"  href="${card.href}" >
-            <img alt="${card.alt}" src="${card.src}" onerror="this.onerror=null; this.src='${errorImgUrl}'" >  
-        </a>
-        <div class="di">${card.description}</div>  
+    cardsData.forEach(card => {
+      const cardDiv = document.createElement("div");
+      cardDiv.className = "ele";
 
-  `;
-  // 将该卡片插入到容器中
-  container.appendChild(cardDiv);
-});
+      // 直接用 DOM API 创建，避免 innerHTML 注入风险
+      const a = document.createElement("a");
+      a.className = "im";
+      a.href = card.href;
+
+      const img = document.createElement("img");
+      img.alt = card.alt;
+      img.src = card.src;
+      img.loading = "lazy";
+      img.onerror = function () {
+        this.onerror = null;
+        this.src = errorImgUrl;
+      };
+
+      a.appendChild(img);
+
+      const desc = document.createElement("div");
+      desc.className = "di";
+      desc.textContent = card.description;
+
+      cardDiv.appendChild(a);
+      cardDiv.appendChild(desc);
+
+      fragment.appendChild(cardDiv);
+    });
+
+    container.appendChild(fragment);
+
+    // 数量统计
+    countEl.textContent = cardsData.length + " ITEMS";
   </script>
-   
-  </body>
+
+</body>
 </html>
