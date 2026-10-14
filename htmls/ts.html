@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基金净值查询</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #eef1f6; color: #2c3e50;
+    font-size: 14px;
+  }
+  .container { max-width: 1280px; margin: 0 auto; }
+
+  /* 顶部标题栏 */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #1f2d3d; color: #fff;
+    padding: 14px 24px; border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  .topbar h1 {
+    font-size: 17px; font-weight: 600; margin: 0; letter-spacing: 0.5px;
+  }
+  .topbar .sub { font-size: 12px; color: #8a9bb0; }
+
+  /* 面板 */
+  .panel {
+    background: #fff;
+    border: 1px solid #dfe4ec;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: #f7f9fc;
+    border-bottom: 1px solid #e6ebf2;
+    font-size: 13px; font-weight: 600; color: #1f2d3d;
+  }
+  .panel-head .actions { display: flex; gap: 8px; align-items: center; }
+  .panel-head .clear-btn {
+    font-size: 12px; color: #909399; background: none;
+    border: none; cursor: pointer; padding: 2px 6px;
+  }
+  .panel-head .clear-btn:hover { color: #f56c6c; }
+  .panel-body { padding: 14px 16px; }
+
+  /* 搜索 */
+  .search-wrap { position: relative; }
+  .search-row {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .search-row input {
+    flex: 1; padding: 8px 12px; font-size: 14px;
+    border: 1px solid #cfd6e0; border-radius: 4px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-row input:focus { border-color: #409eff; }
+  .search-row button {
+    padding: 8px 18px; font-size: 14px; color: #fff;
+    background: #2c6fbb; border: none; border-radius: 4px;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .search-row button:hover { background: #245d9e; }
+
+  .status { font-size: 12px; color: #8a9bb0; margin-top: 6px; min-height: 16px; }
+  .status.error { color: #e04b4b; }
+  .status.success { color: #2e9e5b; }
+
+  /* 搜索结果 */
+  .search-results {
+    margin-top: 8px; max-height: 280px; overflow-y: auto;
+    border: 1px solid #e6ebf2; border-radius: 4px;
+    background: #fff;
+  }
+  .search-results:empty { display: none; }
+  .result-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; border-bottom: 1px solid #f0f3f8;
+    cursor: pointer; transition: background 0.12s;
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-item:hover { background: #f5f8fd; }
+  .result-item .info { flex: 1; min-width: 0; }
+  .result-item .name {
+    font-size: 13px; color: #1f2d3d; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .result-item .code { font-size: 12px; color: #909399; margin-top: 2px; }
+  .result-item .add-btn {
+    padding: 4px 10px; font-size: 12px; color: #2c6fbb;
+    background: #eaf2fb; border: 1px solid #c9ddf5;
+    border-radius: 3px; cursor: pointer; white-space: nowrap;
+    margin-left: 10px;
+  }
+  .result-item .add-btn:hover { background: #d6e8f8; }
+
+  .highlight {
+    color: #e04b4b; font-weight: 600;
+    background: #fdeaea; border-radius: 2px; padding: 0 1px;
+  }
+
+  /* 自选表格 */
+  .watch-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  .watch-table thead th {
+    text-align: left; padding: 8px 10px;
+    font-weight: 500; color: #6b7a90;
+    border-bottom: 1px solid #e6ebf2;
+    background: #fafbfd;
+    font-size: 12px;
+  }
+  .watch-table thead th.num { text-align: right; }
+  .watch-table tbody tr {
+    cursor: pointer; transition: background 0.12s;
+    border-bottom: 1px solid #f0f3f8;
+  }
+  .watch-table tbody tr:last-child { border-bottom: none; }
+  .watch-table tbody tr:hover { background: #f5f8fd; }
+  .watch-table tbody tr.active {
+    background: #eaf2fb;
+    box-shadow: inset 3px 0 0 #2c6fbb;
+  }
+  .watch-table td {
+    padding: 9px 10px; vertical-align: middle;
+  }
+  .watch-table td.name {
+    font-weight: 500; color: #1f2d3d;
+    max-width: 320px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .watch-table td.code { color: #8a9bb0; font-family: Consolas, monospace; }
+  .watch-table td.num { text-align: right; font-family: Consolas, monospace; }
+  .watch-table td.actions { text-align: right; width: 40px; }
+  .watch-table .del-btn {
+    color: #c0c8d4; background: none; border: none;
+    cursor: pointer; font-size: 14px; padding: 0 4px;
+  }
+  .watch-table .del-btn:hover { color: #e04b4b; }
+  .watch-empty {
+    padding: 24px; text-align: center;
+    color: #a8b3c4; font-size: 13px;
+  }
+
+  /* 涨跌色 */
+  .up { color: #e04b4b; }     /* 红涨 */
+  .down { color: #2e9e5b; }   /* 绿跌 */
+  .flat { color: #8a9bb0; }
+
+  /* 图表 */
+  .chart-header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px; margin-bottom: 12px;
+  }
+  .chart-header .title {
+    font-size: 15px; font-weight: 600; color: #1f2d3d;
+  }
+  .chart-header .range-select {
+    padding: 6px 10px; font-size: 13px;
+    border: 1px solid #cfd6e0; border-radius: 4px; outline: none;
+    background: #fff; cursor: pointer;
+  }
+  .chart-header .range-select:focus { border-color: #409eff; }
+
+  .info-bar {
+    display: flex; flex-wrap: wrap; gap: 24px;
+    font-size: 13px; color: #6b7a90;
+    padding: 10px 0 14px;
+    border-bottom: 1px dashed #e6ebf2;
+    margin-bottom: 14px;
+  }
+  .info-bar b { color: #1f2d3d; font-family: Consolas, monospace; }
+
+  .chart { width: 100%; height: 380px; }
+  .legend-tip { font-size: 12px; color: #a8b3c4; margin-top: 4px; }
+
+  .empty {
+    text-align: center; padding: 60px 0;
+    color: #a8b3c4; font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <h1>基金净值查询</h1>
+    <span class="sub">数据来源：好买基金</span>
+  </div>
+
+  <!-- 搜索 -->
+  <div class="panel">
+    <div class="panel-head">
+      <span>基金搜索</span>
+    </div>
+    <div class="panel-body">
+      <div class="search-wrap">
+        <div class="search-row">
+          <input id="searchInput" type="text" placeholder="输入基金代码或名称，如 005555 / 南方恒生" autocomplete="off">
+          <button id="searchBtn">搜索</button>
+        </div>
+        <div id="searchStatus" class="status"></div>
+        <div id="searchResults" class="search-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自选表格 -->
+  <div class="panel">
+    <div class="panel-head">
+      <span>我的自选</span>
+      <div class="actions">
+        <button id="clearBtn" class="clear-btn">清空</button>
+      </div>
+    </div>
+    <div id="watchlistWrap">
+      <!-- 表格由 JS 渲染 -->
+    </div>
+  </div>
+
+  <!-- 图表区 -->
+  <div id="chartArea" style="display:none;">
+    <div class="panel">
+      <div class="panel-head">
+        <span id="fundTitle">-</span>
+        <select id="rangeSelect" class="range-select">
+          <option value="1">近 1 月</option>
+          <option value="3" selected>近 3 月</option>
+          <option value="6">近 6 月</option>
+          <option value="12">近 1 年</option>
+          <option value="36">近 3 年</option>
+          <option value="0">全部</option>
+        </select>
+      </div>
+      <div class="panel-body">
+        <div class="info-bar">
+          <span>最新日期 <b id="latestDate">-</b></span>
+          <span>单位净值 <b id="latestUnitNav">-</b></span>
+          <span>累计净值 <b id="latestAccNav">-</b></span>
+          <span>日涨跌幅 <b id="latestReturn">-</b></span>
+          <span>区间数据 <b id="dataCount">-</b> 条</span>
+        </div>
+        <div id="navChart" class="chart"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span>每日涨跌幅（%）</span>
+      </div>
+      <div class="panel-body">
+        <div id="returnChart" class="chart"></div>
+        <div class="legend-tip">根据前一日单位净值自动计算，保留两位小数；红涨绿跌。</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="emptyTip" class="empty">请搜索并选择一只基金查看净值走势</div>
+</div>
+
+<script>
+/* ============================================================
+ * 配置
+ * ============================================================ */
+const STORAGE_KEY = 'fund_watchlist_v2';
+
+/* ============================================================
+ * 状态
+ * ============================================================ */
+let watchlist = [];        // [{code, name, latestUnitNav, latestAccNav, latestReturn, latestDate, loaded}]
+let currentFund = null;
+let allNavData = [];
+let navChart = null;
+let returnChart = null;
+let navScriptEl = null;
+let searchScriptEl = null;
+let searchTimer = null;
+
+/* ============================================================
+ * 工具：清除 ###xxx$$$ 标记
+ * ============================================================ */
+function stripHighlight(str) {
+  if (str == null) return '';
+  return String(str).replace(/###(.*?)\$\$\$/g, '$1');
+}
+
+/* ============================================================
+ * 工具：解析 ###xxx$$$ 为高亮 HTML
+ * ============================================================ */
+function parseHighlight(str) {
+  if (str == null) return '';
+  const safe = escapeHtml(String(str));
+  return safe.replace(/###(.*?)\$\$\$/g, '<span class="highlight">$1</span>');
+}
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/* ============================================================
+ * 工具：JSONP 搜索
+ * ============================================================ */
+function searchFunds(q) {
+  return new Promise((resolve, reject) => {
+    const cbName = '__howbuyCb';
+
+    if (searchScriptEl && searchScriptEl.parentNode) {
+      searchScriptEl.parentNode.removeChild(searchScriptEl);
+    }
+    if (window[cbName]) delete window[cbName];
+
+    window[cbName] = function (resp) {
+      try {
+        let list = [];
+        if (resp && typeof resp.content === 'string') {
+          list = JSON.parse(resp.content);
+        } else if (Array.isArray(resp)) {
+          list = resp;
+        } else if (resp && Array.isArray(resp.content)) {
+          list = resp.content;
+        }
+
+        const fundList = list.filter(item => {
+          const rawCode = item.id || stripHighlight(item.tscode || '');
+          return String(item.tsType) === '100' && /^\d{6}$/.test(rawCode);
+        });
+        resolve(fundList);
+      } catch (e) {
+        reject(new Error('搜索结果解析失败'));
+      } finally {
+        delete window[cbName];
+      }
+    };
+
+    const s = document.createElement('script');
+    s.src = `https://s.howbuy.com/searchdata.do?callback=${cbName}&wzfl=&queryBody=&q=${encodeURIComponent(q)}&fq=100`;
+    s.charset = 'utf-8';
+    s.onerror = () => {
+      delete window[cbName];
+      reject(new Error('搜索请求失败'));
+    };
+    searchScriptEl = s;
+    document.head.appendChild(s);
+  });
+}
+
+/* ============================================================
+ * 工具：加载基金净值
+ * ============================================================ */
+function loadFundNav(code) {
+  return new Promise((resolve, reject) => {
+    if (navScriptEl && navScriptEl.parentNode) {
+      navScriptEl.parentNode.removeChild(navScriptEl);
+    }
+    delete window.JzzsDateObj;
+    delete window['JzzsDateObj_' + code];
+
+    const s = document.createElement('script');
+    s.src = `https://static.howbuy.com/??/upload/auto/script/fund/jzzs_${code}.js?v=${Date.now()}`;
+    s.charset = 'utf-8';
+    s.onload = () => {
+      const obj = window.JzzsDateObj || window['JzzsDateObj_' + code];
+      if (!obj || !Array.isArray(obj.navList) || obj.navList.length === 0) {
+        reject(new Error('未获取到有效净值数据'));
+        return;
+      }
+      resolve(obj);
+    };
+    s.onerror = () => reject(new Error('净值数据加载失败'));
+    navScriptEl = s;
+    document.head.appendChild(s);
+  });
+}
+
+/* ============================================================
+ * 解析 navList 并计算涨跌幅
+ * ============================================================ */
+function parseNavList(navList) {
+  const result = [];
+  navList.forEach(line => {
+    const p = line.split(',');
+    if (p.length < 8) return;
+    const year = +p[0];
+    const month = +p[1];
+    const day = +p[2];
+    const date = new Date(year, month, day);
+    if (isNaN(date.getTime())) return;
+    const mm = String(month + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    result.push({
+      date,
+      dateStr: `${year}-${mm}-${dd}`,
+      unitNav: +p[6],
+      accNav: +p[7]
+    });
+  });
+
+  result.sort((a, b) => a.date - b.date);
+
+  for (let i = 0; i < result.length; i++) {
+    if (i === 0 || !result[i - 1].unitNav) {
+      result[i].navReturn = 0;
+    } else {
+      const prev = result[i - 1].unitNav;
+      const cur = result[i].unitNav;
+      result[i].navReturn = Number(((cur - prev) / prev * 100).toFixed(2));
+    }
+  }
+  return result;
+}
+
+function filterByRange(data, months) {
+  if (!months || months <= 0) return data;
+  if (data.length === 0) return data;
+  const lastDate = data[data.length - 1].date;
+  const cutoff = new Date(lastDate);
+  cutoff.setMonth(cutoff.getMonth() - months);
+  return data.filter(d => d.date >= cutoff);
+}
+
+/* ============================================================
+ * 自选列表：localStorage 读写
+ * 存储结构：[{code, name, latestUnitNav, latestAccNav, latestReturn, latestDate}]
+ * ============================================================ */
+function loadWatchlist() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    watchlist = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(watchlist)) watchlist = [];
+    // 兼容旧数据
+    watchlist = watchlist.map(f => ({
+      code: f.code,
+      name: f.name || f.code,
+      latestUnitNav: f.latestUnitNav != null ? f.latestUnitNav : null,
+      latestAccNav: f.latestAccNav != null ? f.latestAccNav : null,
+      latestReturn: f.latestReturn != null ? f.latestReturn : null,
+      latestDate: f.latestDate || ''
+    }));
+  } catch (e) {
+    watchlist = [];
+  }
+}
+function saveWatchlist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(watchlist));
+  } catch (e) { /* 忽略 */ }
+}
+
+/* ============================================================
+ * 渲染：涨跌数字（红涨绿跌）
+ * ============================================================ */
+function renderReturnHtml(v) {
+  if (v == null || isNaN(v)) return '<span class="flat">-</span>';
+  const n = Number(v);
+  const cls = n > 0 ? 'up' : (n < 0 ? 'down' : 'flat');
+  const sign = n > 0 ? '+' : '';
+  return `<span class="${cls}">${sign}${n.toFixed(2)}%</span>`;
+}
+function renderNavHtml(v) {
+  if (v == null || isNaN(v)) return '<span class="flat">-</span>';
+  return Number(v).toFixed(4);
+}
+
+/* ============================================================
+ * 渲染：自选表格
+ * ============================================================ */
+function renderWatchlist() {
+  const wrap = document.getElementById('watchlistWrap');
+
+  if (watchlist.length === 0) {
+    wrap.innerHTML = `<div class="watch-empty">暂无自选基金，请在上方搜索后添加</div>`;
+    return;
+  }
+
+  const rows = watchlist.map(f => {
+    const active = currentFund && currentFund.code === f.code ? 'active' : '';
+    return `
+      <tr class="${active}" data-code="${f.code}">
+        <td class="name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</td>
+        <td class="code">${escapeHtml(f.code)}</td>
+        <td class="num">${renderNavHtml(f.latestUnitNav)}</td>
+        <td class="num">${renderNavHtml(f.latestAccNav)}</td>
+        <td class="num">${renderReturnHtml(f.latestReturn)}</td>
+        <td class="actions"><button class="del-btn" data-code="${f.code}" title="删除">×</button></td>
+      </tr>
+    `;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table class="watch-table">
+      <thead>
+        <tr>
+          <th>基金名称</th>
+          <th>代码</th>
+          <th class="num">单位净值</th>
+          <th class="num">累计净值</th>
+          <th class="num">日涨跌幅</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+
+  // 事件绑定
+  wrap.querySelectorAll('tbody tr').forEach(tr => {
+    tr.addEventListener('click', e => {
+      if (e.target.classList.contains('del-btn')) {
+        e.stopPropagation();
+        removeFromWatchlist(e.target.dataset.code);
+        return;
+      }
+      const code = tr.dataset.code;
+      const fund = watchlist.find(f => f.code === code);
+      if (fund) selectFund(fund);
+    });
+  });
+}
+
+function addToWatchlist(fund) {
+  if (!fund || !fund.code) return;
+  const exists = watchlist.find(f => f.code === fund.code);
+  if (!exists) {
+    watchlist.push({
+      code: fund.code,
+      name: fund.name,
+      latestUnitNav: null,
+      latestAccNav: null,
+      latestReturn: null,
+      latestDate: ''
+    });
+    saveWatchlist();
+    renderWatchlist();
+  }
+}
+function removeFromWatchlist(code) {
+  watchlist = watchlist.filter(f => f.code !== code);
+  saveWatchlist();
+  if (currentFund && currentFund.code === code) {
+    currentFund = null;
+    document.getElementById('chartArea').style.display = 'none';
+    document.getElementById('emptyTip').style.display = 'block';
+  }
+  renderWatchlist();
+}
+function clearWatchlist() {
+  if (watchlist.length === 0) return;
+  if (!confirm('确定清空所有自选基金吗？')) return;
+  watchlist = [];
+  saveWatchlist();
+  currentFund = null;
+  renderWatchlist();
+  document.getElementById('chartArea').style.display = 'none';
+  document.getElementById('emptyTip').style.display = 'block';
+}
+
+/* ============================================================
+ * 渲染：搜索结果
+ * ============================================================ */
+function renderSearchResults(list) {
+  const box = document.getElementById('searchResults');
+  box.innerHTML = '';
+  if (!list || list.length === 0) return;
+
+  list.forEach(item => {
+    const realCode = item.id || stripHighlight(item.tscode || '');
+    if (!/^\d{6}$/.test(realCode)) return;
+
+    const displayCodeRaw = item.tscode || item.id || '';
+    const nameRaw = item.tsshortName || item.tsname || realCode;
+
+    const nameHtml = parseHighlight(nameRaw);
+    const codeHtml = parseHighlight(displayCodeRaw);
+    const cleanName = stripHighlight(nameRaw);
+
+    const div = document.createElement('div');
+    div.className = 'result-item';
+    div.innerHTML = `
+      <div class="info">
+        <div class="name">${nameHtml}</div>
+        <div class="code">${codeHtml}</div>
+      </div>
+      <button class="add-btn">加入自选</button>
+    `;
+
+    const fund = { code: realCode, name: cleanName };
+
+    div.addEventListener('click', e => {
+      if (e.target.classList.contains('add-btn')) {
+        e.stopPropagation();
+        addToWatchlist(fund);
+      } else {
+        
+        selectFund(fund);
+      }
+    });
+    box.appendChild(div);
+  });
+}
+
+/* ============================================================
+ * 选择基金 → 加载 → 渲染
+ * ============================================================ */
+async function selectFund(fund) {
+  currentFund = fund;
+  renderWatchlist();
+
+  const statusEl = document.getElementById('searchStatus');
+  statusEl.textContent = `正在加载 ${fund.name}（${fund.code}）...`;
+  statusEl.className = 'status';
+
+  try {
+    const obj = await loadFundNav(fund.code);
+    allNavData = parseNavList(obj.navList);
+    if (allNavData.length === 0) throw new Error('净值数据为空');
+
+    // 更新自选列表里这只基金的最新数据
+    const last = allNavData[allNavData.length - 1];
+    const inList = watchlist.find(f => f.code === fund.code);
+    if (inList) {
+      inList.latestUnitNav = last.unitNav;
+      inList.latestAccNav = last.accNav;
+      inList.latestReturn = last.navReturn;
+      inList.latestDate = last.dateStr;
+      saveWatchlist();
+      renderWatchlist();
+    }
+
+    document.getElementById('fundTitle').textContent =
+      `${fund.name}（${fund.code}）`;
+    document.getElementById('chartArea').style.display = 'block';
+    document.getElementById('emptyTip').style.display = 'none';
+
+    renderCharts();
+
+    statusEl.textContent = `已加载：${fund.name}（${fund.code}），共 ${allNavData.length} 条数据`;
+    statusEl.className = 'status success';
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = '加载失败：' + err.message;
+    statusEl.className = 'status error';
+    document.getElementById('chartArea').style.display = 'none';
+    document.getElementById('emptyTip').style.display = 'block';
+    document.getElementById('emptyTip').textContent = '加载失败，请重试';
+  }
+}
+
+/* ============================================================
+ * 渲染图表
+ * ============================================================ */
+function renderCharts() {
+  const months = parseInt(document.getElementById('rangeSelect').value, 10);
+  const data = filterByRange(allNavData, months);
+  if (data.length === 0) return;
+
+  const dates = data.map(d => d.dateStr);
+  const unitNavs = data.map(d => d.unitNav);
+  const accNavs = data.map(d => d.accNav);
+  const returns = data.map(d => d.navReturn);
+
+  const last = data[data.length - 1];
+  document.getElementById('latestDate').textContent = last.dateStr;
+  document.getElementById('latestUnitNav').textContent = last.unitNav.toFixed(4);
+  document.getElementById('latestAccNav').textContent = last.accNav.toFixed(4);
+
+  const retEl = document.getElementById('latestReturn');
+  retEl.innerHTML = renderReturnHtml(last.navReturn);
+  document.getElementById('dataCount').textContent = data.length;
+
+  // ---- 净值折线图 ----
+  if (!navChart) navChart = echarts.init(document.getElementById('navChart'));
+  navChart.setOption({
+    grid: { left: 60, right: 24, top: 40, bottom: 60 },
+    tooltip: {
+      trigger: 'axis',
+      formatter: params => {
+        let html = params[0].axisValue + '<br/>';
+        params.forEach(item => {
+          html += `${item.marker}${item.seriesName}：${Number(item.value).toFixed(4)}<br/>`;
+        });
+        return html;
+      }
+    },
+    legend: {
+      data: ['单位净值', '累计净值'],
+      top: 8, right: 20,
+      textStyle: { fontSize: 12, color: '#6b7a90' }
+    },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      boundaryGap: false,
+      axisLine: { lineStyle: { color: '#dfe4ec' } },
+      axisLabel: { formatter: v => v.substring(2, 7), fontSize: 11, color: '#8a9bb0' }
+    },
+    yAxis: {
+      type: 'value',
+      scale: true,
+      name: '净值',
+      nameTextStyle: { fontSize: 11, color: '#8a9bb0' },
+      axisLabel: { fontSize: 11, color: '#8a9bb0' },
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: '#eef1f6' } }
+    },
+    dataZoom: [
+      { type: 'inside', start: 0, end: 100 },
+      { type: 'slider', start: 0, end: 100, height: 20, bottom: 16,
+        borderColor: '#dfe4ec', fillerColor: 'rgba(44,111,187,0.12)',
+        handleStyle: { color: '#2c6fbb' } }
+    ],
+    series: [
+      {
+        name: '单位净值', type: 'line', data: unitNavs,
+        showSymbol: false, lineStyle: { width: 1.6, color: '#2c6fbb' },
+        itemStyle: { color: '#2c6fbb' }, emphasis: { focus: 'series' }
+      },
+      {
+        name: '累计净值', type: 'line', data: accNavs,
+        showSymbol: false, lineStyle: { width: 1.6, color: '#e8a33d' },
+        itemStyle: { color: '#e8a33d' }, emphasis: { focus: 'series' }
+      }
+    ]
+  }, true);
+
+  // ---- 每日涨跌幅柱状图（红涨绿跌） ----
+  if (!returnChart) returnChart = echarts.init(document.getElementById('returnChart'));
+
+  const returnSeriesData = returns.map(v => {
+    const n = Number(v);
+    let color = '#8a9bb0';
+    if (n > 0) color = '#e04b4b';
+    else if (n < 0) color = '#2e9e5b';
+    return { value: n, itemStyle: { color } };
+  });
+
+  returnChart.setOption({
+    grid: { left: 60, right: 24, top: 30, bottom: 60 },
+    tooltip: {
+      trigger: 'axis',
+      formatter: params => {
+        const p = params[0];
+        const v = Number(p.value);
+        const sign = v > 0 ? '+' : '';
+        const color = v > 0 ? '#e04b4b' : (v < 0 ? '#2e9e5b' : '#8a9bb0');
+        return `${p.axisValue}<br/><span style="color:${color}">日涨跌幅：${sign}${v.toFixed(2)}%</span>`;
+      }
+    },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      boundaryGap: true,
+      axisLine: { lineStyle: { color: '#dfe4ec' } },
+      axisLabel: { formatter: v => v.substring(2, 7), fontSize: 11, color: '#8a9bb0' }
+    },
+    yAxis: {
+      type: 'value',
+      scale: true,
+      name: '%',
+      nameTextStyle: { fontSize: 11, color: '#8a9bb0' },
+      axisLabel: { fontSize: 11, color: '#8a9bb0' },
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: '#eef1f6' } }
+    },
+    dataZoom: [
+      { type: 'inside', start: 0, end: 100 },
+      { type: 'slider', start: 0, end: 100, height: 20, bottom: 16,
+        borderColor: '#dfe4ec', fillerColor: 'rgba(224,75,75,0.10)',
+        handleStyle: { color: '#e04b4b' } }
+    ],
+    series: [{
+      name: '日涨跌幅',
+      type: 'bar',
+      data: returnSeriesData,
+      barMaxWidth: 10,
+      markLine: {
+        silent: true, symbol: 'none',
+        lineStyle: { color: '#c0c8d4', type: 'dashed', width: 1 },
+        data: [{ yAxis: 0 }]
+      }
+    }]
+  }, true);
+}
+
+/* ============================================================
+ * 事件绑定
+ * ============================================================ */
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const q = document.getElementById('searchInput').value.trim();
+
+  if (!q) {
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchStatus').textContent = '';
+    return;
+  }
+
+  searchTimer = setTimeout(() => doSearch(), 300);
+});
+
+document.getElementById('searchBtn').addEventListener('click', () => {
+  clearTimeout(searchTimer);
+  doSearch();
+});
+document.getElementById('clearBtn').addEventListener('click', clearWatchlist);
+document.getElementById('rangeSelect').addEventListener('change', () => {
+  if (currentFund && allNavData.length > 0) renderCharts();
+});
+
+async function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  const statusEl = document.getElementById('searchStatus');
+  const resultsBox = document.getElementById('searchResults');
+
+  if (!q) {
+    statusEl.textContent = '请输入基金代码或名称';
+    statusEl.className = 'status error';
+    resultsBox.innerHTML = '';
+    return;
+  }
+
+  statusEl.textContent = '搜索中...';
+  statusEl.className = 'status';
+  resultsBox.innerHTML = '';
+
+  try {
+    const list = await searchFunds(q);
+    if (!list || list.length === 0) {
+      statusEl.textContent = '未找到匹配的基金';
+      statusEl.className = 'status error';
+      return;
+    }
+    renderSearchResults(list);
+    statusEl.textContent = `找到 ${list.length} 条结果`;
+    statusEl.className = 'status success';
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = '搜索失败：' + err.message;
+    statusEl.className = 'status error';
+  }
+}
+
+window.addEventListener('resize', () => {
+  if (navChart) navChart.resize();
+  if (returnChart) returnChart.resize();
+});
+
+/* ============================================================
+ * 初始化
+ * ============================================================ */
+loadWatchlist();
+renderWatchlist();
+</script>
+</body>
+</html>
