@@ -30,6 +30,8 @@ jobs:
           mkdir -p htmls/free_clash
           cat > getlink.js << 'EOF'
           const { chromium } = require('playwright');
+          const fs = require('fs');
+          const path = require('path');
           (async () => {
             const browser = await chromium.launch({ headless: true });
             const page = await browser.newPage();
@@ -51,14 +53,23 @@ jobs:
             const html = await page.content();
             const subReg = /https:\/\/www\.freeclash\.top\/v1\/sub\/ssr\/[^\s"'<>]+/;
             const linkMatch = html.match(subReg);
-            console.log(linkMatch ? linkMatch[0] : "");
+            if(!linkMatch){
+              console.log("");
+              await browser.close();
+              return;
+            }
+            const subUrl = linkMatch[0];
+            console.log(subUrl);
+            const resp = await page.request.get(subUrl);
+            const yamlText = await resp.text();
+            fs.mkdirSync(path.join(__dirname, 'htmls/free_clash'), {recursive:true});
+            fs.writeFileSync(path.join(__dirname, 'htmls/free_clash/config.yaml'), yamlText, 'utf8');
             await browser.close();
           })();
           EOF
           SUB_URL=$(node getlink.js)
           echo "Get sub link: $SUB_URL"
           if [ -z "$SUB_URL" ]; then echo "Link empty, exit"; exit 1; fi
-          curl -s --retry 3 "$SUB_URL" -o htmls/free_clash/config.yaml
           rm -f getlink.js
 
       - name: Commit & push
