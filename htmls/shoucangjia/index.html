@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>收藏夹</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .header h1 {
+      font-size: 2.2em;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: 2px;
+    }
+    .search-box {
+      margin: 16px auto 0;
+      max-width: 400px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 1em;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-box input:focus {
+      border-color: #666;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .tab {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #666;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab:hover {
+      border-color: #bbb;
+      color: #333;
+    }
+    .tab.active {
+      background: #333;
+      color: #fff;
+      border-color: #333;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .category {
+      margin-bottom: 32px;
+    }
+    .category-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.15em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid #eee;
+      font-size: 0.95em;
+      font-weight: 500;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+      border-color: #d0d0d0;
+      color: #000;
+    }
+    .card .name { flex: 1; }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: #ccc;
+    }
+    .dot.online { background: #52c41a; }
+    .dot.offline { background: #ff4d4f; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📂 收藏夹</h1>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="搜索站点...">
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="container" id="app"></div>
+
+  <script src="links.js"></script>
+  <script>
+    const app = document.getElementById('app');
+    const tabs = document.getElementById('tabs');
+    const searchInput = document.getElementById('searchInput');
+
+    let pending = 0;
+    const status = {};
+    let activeTab = 'all';
+    let keyword = '';
+
+    function getName(url) {
+      try {
+        const u = new URL(url);
+        let host = u.hostname.replace(/^www\.|^m\./, '');
+        let segs = host.split('.');
+        let base = segs[0];
+
+        if (base.length <= 3) {
+          base = segs.slice(0, 2).join('');
+        }
+
+        const rules = [
+          { pat: /^dm$/i, rep: '动漫' },
+          { pat: /^mj$/i, rep: '漫画' },
+          { pat: /^dbk+$/i, rep: '电影' },
+          { pat: /^tt$/i, rep: '天天' },
+          { pat: /^gl$/i, rep: '图书馆' },
+          { pat: /pdf/gi, rep: 'PDF' },
+          { pat: /^(cn|cn\d*)$/i, rep: '' },
+          { pat: /^(\d+)([a-z]{2,})$/i, rep: '$1$2' },
+        ];
+
+        rules.forEach(r => { base = base.replace(r.pat, r.rep); });
+
+        base = base
+          .replace(/[_\-\d]+/g, ' ')
+          .replace(/([a-z])([A-Z])/g, '$1 $2')
+          .trim()
+          .split(/\s+/)
+          .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+          .join(' ');
+
+        return base || host;
+      } catch {
+        return url;
+      }
+    }
+
+    function renderTabs() {
+      const cats = [{ name: '全部', icon: '📁' }, ...links.map(c => ({ name: c.category, icon: c.icon }))];
+      tabs.innerHTML = cats.map((cat, i) => {
+        const key = i === 0 ? 'all' : links[i - 1].category;
+        return `<button class="tab${activeTab === key ? ' active' : ''}" data-key="${key}">${cat.icon} ${cat.name}</button>`;
+      }).join('');
+      tabs.querySelectorAll('.tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeTab = btn.dataset.key;
+          renderTabs();
+          render();
+        });
+      });
+    }
+
+    function render() {
+      const kw = keyword.trim().toLowerCase();
+      app.innerHTML = links.map((cat, ci) => {
+        if (activeTab !== 'all' && activeTab !== cat.category) return '';
+
+        const filtered = cat.links
+          .map((link, li) => ({ link, key: `${ci}-${li}` }))
+          .filter(({ link }) =>
+            (!kw || cat.category.toLowerCase().includes(kw) || getName(link.url).toLowerCase().includes(kw))
+          )
+          .sort((a, b) => status[b.key] - status[a.key]);
+
+        if (filtered.length === 0) return '';
+        return `<div class="category">
+          <div class="category-title">${cat.icon} ${cat.category}</div>
+          <div class="cards">
+            ${filtered.map(({ link, key }) => {
+              const dotClass = status[key] ? 'online' : (status[key] === false ? 'offline' : '');
+              return `<a class="card" href="${link.url}" target="_blank" rel="noopener">
+                <span class="name">${getName(link.url)}</span>
+                <span class="dot ${dotClass}"></span>
+              </a>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    renderTabs();
+    render();
+
+    links.forEach((cat, ci) => {
+      cat.links.forEach((link, li) => {
+        const key = `${ci}-${li}`;
+        status[key] = null;
+        pending++;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 5000);
+        fetch(link.url, { mode: 'no-cors', signal: controller.signal })
+          .then(() => { status[key] = true; })
+          .catch(() => { status[key] = false; })
+          .finally(() => {
+            clearTimeout(timer);
+            if (--pending === 0) render();
+          });
+      });
+    });
+
+    searchInput.addEventListener('input', () => {
+      keyword = searchInput.value;
+      render();
+    });
+  </script>
+</body>
+</html>
