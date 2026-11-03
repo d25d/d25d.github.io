@@ -27,7 +27,7 @@ proxies:
     name: Free SSR Proxy Server00
     obfs: http_simple
     obfs-param: bing.com
-    password: a5566165
+    password: eeee57ab
     port: 8891
     protocol: origin
     protocol-param: ''
@@ -38,7 +38,7 @@ proxies:
     name: Free SSR Proxy Server01
     obfs: http_simple
     obfs-param: bing.com
-    password: 69512154
+    password: 2931ef73
     port: 8892
     protocol: origin
     protocol-param: ''
@@ -49,7 +49,7 @@ proxies:
     name: Free SSR Proxy Server02
     obfs: http_simple
     obfs-param: bing.com
-    password: e6f76cd4
+    password: 1f2a3e07
     port: 8893
     protocol: origin
     protocol-param: ''
@@ -60,7 +60,7 @@ proxies:
     name: Free SSR Proxy Server03
     obfs: http_simple
     obfs-param: bing.com
-    password: f92e2776
+    password: 9c432790
     port: 8894
     protocol: origin
     protocol-param: ''
